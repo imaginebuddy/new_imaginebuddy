@@ -1,0 +1,114 @@
+@extends('layouts.app')
+
+@section('title'){{ $photoshoot->title }} - AI Photoshoot Set - @endsection
+@if ($photoshoot->description)
+  @section('description_custom'){{ Helper::removeLineBreak($photoshoot->description) . ' - ' }}@endsection
+@endif
+
+@section('content')
+@php
+  $coverImage = $images->first();
+  $coverUrl = $coverImage ? Storage::url(config('path.preview') . $coverImage->preview) : null;
+@endphp
+
+<section class="section section-sm py-4" style="padding-top: 95px !important;">
+  <div class="container">
+    
+    <!-- Top Breadcrumb -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <nav aria-label="breadcrumb">
+        <div class="breadcrumb-pill-box rounded-pill shadow-sm border border-custom px-4 py-2 d-inline-flex align-items-center bg-card-custom">
+          <ol class="breadcrumb mb-0 align-items-center">
+            <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none text-muted">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url('photoshoots') }}" class="text-decoration-none text-muted">Photoshoots</a></li>
+            @if ($photoshoot->category)
+              <li class="breadcrumb-item"><a href="{{ url('photoshoots') }}?category={{ $photoshoot->category->slug }}" class="text-decoration-none text-muted">{{ $photoshoot->category->name }}</a></li>
+            @endif
+            <li class="breadcrumb-item active" aria-current="page">
+              <span class="badge bg-custom-mint text-white rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem; letter-spacing: -0.2px;">{{ $photoshoot->title }}</span>
+            </li>
+          </ol>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Photoshoot Showcase Header Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-card-custom border border-custom position-relative overflow-hidden">
+      <div class="row align-items-center g-4">
+        
+        <!-- Details Column -->
+        <div class="col-lg-12">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            @if ($photoshoot->category)
+              <a href="{{ url('photoshoots') }}?category={{ $photoshoot->category->slug }}" class="badge bg-subtle-custom text-secondary border border-custom text-decoration-none rounded-pill px-3 py-2 fw-medium" style="font-size: 0.8rem;">
+                {{ $photoshoot->category->name }}
+              </a>
+            @endif
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-bold" style="font-size: 0.8rem;">
+              <i class="bi bi-images me-1 text-mint"></i> {{ $images->total() }} {{ str_plural('Prompt', $images->total()) }} Set
+            </span>
+          </div>
+
+          <h1 class="fw-bold text-dark title-custom display-5 mb-3">{{ $photoshoot->title }}</h1>
+
+          @if ($photoshoot->description)
+            <p class="lead text-muted mb-4" style="font-size: 1.05rem; line-height: 1.6;">
+              {{ $photoshoot->description }}
+            </p>
+          @endif
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top border-custom mt-4">
+            <div class="d-flex align-items-center gap-3 text-muted small">
+              <span><i class="bi bi-clock me-1"></i> {{ Helper::formatDate($photoshoot->created_at) }}</span>
+              @if ($photoshoot->user)
+                <span><i class="bi bi-person me-1"></i> By {{ $photoshoot->user->username }}</span>
+              @endif
+            </div>
+
+            <a href="{{ url('photoshoots') }}" class="btn btn-sm btn-outline-custom rounded-pill px-4 py-2 fw-semibold">
+              <i class="bi bi-arrow-left me-2"></i> All Photoshoots
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Prompts Grid Section -->
+    <div class="mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-custom gap-2">
+        <div>
+          <h3 class="fw-bold text-dark title-custom m-0">Prompts in this Photoshoot</h3>
+        </div>
+        <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 fw-medium" style="font-size: 0.85rem;">
+          <i class="bi bi-grid-fill text-mint me-1"></i> Showing {{ $images->count() }} of {{ $images->total() }} {{ str_plural('Prompt', $images->total()) }}
+        </span>
+      </div>
+
+      @if ($images->total() != 0)
+        <div class="dataResult">
+          @include('includes.images', ['images' => $images])
+          <div class="mt-5 d-flex justify-content-center">
+            {{ $images->onEachSide(0)->links() }}
+          </div>
+        </div>
+      @else
+        <div class="text-center py-5 my-4 bg-card-custom rounded-4 border border-custom p-5">
+          <p class="text-muted m-0">No active prompts found in this photoshoot.</p>
+        </div>
+      @endif
+    </div>
+
+  </div>
+</section>
+
+<style>
+.text-mint {
+  color: #00d690 !important;
+}
+.backdrop-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+</style>
+@endsection
