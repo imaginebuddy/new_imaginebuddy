@@ -563,17 +563,37 @@ var thanks = "{{ __('misc.thanks') }}";
   color: #1e293b !important;
 }
 
+.prompt-card-title,
+.photoshoot-card-title {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
 .prompt-title-link {
   color: #090d16 !important;
+  display: inline-block !important;
+  width: 100% !important;
+}
+
+.line-clamp-2 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
 }
 
 .prompt-snippet-text {
   color: #94a3b8 !important;
+  line-height: 1.4 !important;
 }
 
 .prompt-author-pill {
   background-color: #f1f5f9 !important;
   color: #1e293b !important;
+  max-width: 185px !important;
 }
 
 .prompt-share-btn {

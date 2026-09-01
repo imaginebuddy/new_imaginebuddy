@@ -30,6 +30,14 @@
 					 @include('includes.pagination-links')
 				 </div>
 
+				<!-- Infinite Scroll Loader -->
+				<div id="infiniteScrollLoader" class="text-center py-4 my-3 d-none">
+					<div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem;">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+					<p class="text-muted small mt-2 mb-0">Loading more prompts...</p>
+				</div>
+
 	  @else
 	    		<h3 class="mt-0 fw-light">
 	    		{{ trans('misc.no_results_found') }}
@@ -44,6 +52,82 @@
 
 @section('javascript')
 <script type="text/javascript">
- $('#imagesFlex').flexImages({ rowHeight: 580 });
+(function($) {
+  "use strict";
+
+  $('#imagesFlex').flexImages({ rowHeight: 580 });
+
+  var state = {
+    page: {{ $images->hasMorePages() ? 2 : 'null' }},
+    hasMore: {{ $images->hasMorePages() ? 'true' : 'false' }},
+    loading: false
+  };
+
+  // Hide numbered pagination container
+  $('#linkPagination').hide();
+
+  function checkScrollLoad() {
+    if (state.loading || !state.hasMore || !state.page) return;
+
+    var scrollTop = $(window).scrollTop();
+    var windowHeight = $(window).height();
+    var docHeight = $(document).height();
+
+    if (scrollTop + windowHeight >= docHeight - 500) {
+      loadNextPage();
+    }
+  }
+
+  function loadNextPage() {
+    state.loading = true;
+    $('#infiniteScrollLoader').removeClass('d-none');
+
+    var currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('page', state.page);
+
+    $.ajax({
+      url: currentUrl.toString(),
+      type: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: function(response) {
+        if (response) {
+          var $wrapper = $('<div>').html(response);
+          var $newItems = $wrapper.find('.item');
+
+          if ($newItems.length > 0) {
+            $('#imagesFlex').append($newItems);
+            state.page++;
+
+            var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;
+            if (!hasNext) {
+              state.hasMore = false;
+            }
+          } else {
+            state.hasMore = false;
+          }
+        } else {
+          state.hasMore = false;
+        }
+
+        state.loading = false;
+        $('#infiniteScrollLoader').addClass('d-none');
+        $('#linkPagination').hide();
+      },
+      error: function() {
+        state.loading = false;
+        $('#infiniteScrollLoader').addClass('d-none');
+      }
+    });
+  }
+
+  $(window).on('scroll resize', checkScrollLoad);
+
+  $(document).ready(function() {
+    $('#linkPagination').hide();
+    checkScrollLoad();
+  });
+})(jQuery);
 </script>
 @endsection

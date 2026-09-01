@@ -56,21 +56,21 @@
 				<!-- 2. Bottom Details Section (Title, Subtext, Author, Share & Copy) PLACED AFTER THE IMAGE -->
 				<div class="prompt-card-bottom-info px-2 pb-2 pt-3 position-relative prompt-card-info-bg" style="z-index: 6;">
 					<!-- Title -->
-					<h5 class="fw-bold text-truncate mb-1" style="font-size: 18px; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.3px;">
+					<h5 class="fw-bold mb-2 prompt-card-title text-break" style="font-size: 17px; line-height: 1.35; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.3px;">
 						<a href="{{ url('prompt', $image->slug) }}" class="text-decoration-none prompt-title-link" title="{{ $image->title }}">
 							{{ $image->title }}
 						</a>
 					</h5>
 
 					<!-- Prompt Snippet (Subtext) -->
-					<p class="small mb-3 prompt-snippet-text text-truncate" style="font-size: 13px;">
-						{{ Str::limit($image->prompt ?: $image->description ?: $image->title, 60, '...') }}
+					<p class="small mb-3 prompt-snippet-text line-clamp-2" style="font-size: 13px; line-height: 1.4;">
+						{{ Str::limit($image->prompt ?: $image->description ?: $image->title, 160, '...') }}
 					</p>
 
 					<!-- Bottom Action Controls Bar -->
-					<div class="d-flex align-items-center justify-content-between">
+					<div class="d-flex align-items-center justify-content-between gap-2">
 						<!-- Author Pill Badge (Left Side) -->
-						<span class="badge fw-bold rounded-pill px-3 py-2 text-truncate prompt-author-pill" style="font-size: 13px; max-width: 120px;">
+						<span class="badge fw-bold rounded-pill px-3 py-2 text-truncate prompt-author-pill" style="font-size: 13px; max-width: 185px;">
 							By {{ $image->author->name ?: $image->author->username }}
 						</span>
 
