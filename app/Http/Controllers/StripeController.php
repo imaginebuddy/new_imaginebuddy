@@ -181,39 +181,40 @@ class StripeController extends Controller
     $plan = Plans::wherePlanId($this->request->plan)->whereStatus('1')->firstOrFail();
 
     // Check Subscription
-    if (auth()->user()->getSubscription()) {
+    $currentSub = auth()->user()->getSubscription();
+    if ($currentSub && $currentSub->stripe_price == $plan->plan_id && $currentSub->interval == $this->request->interval && $currentSub->cancelled == 'no') {
       return response()->json([
           'success' => false,
           'errors' => ['error' => trans('misc.subscription_exists')],
       ]);
     }
 
-    $payment = PaymentGateways::whereName('Stripe')->whereEnabled(1)->first();
+    $payment = PaymentGateways::whereName('Stripe')->whereEnabled(1)->firstOrFail();
     $stripe = new \Stripe\StripeClient($payment->key_secret);
-    $planId = $plan->plan_id;
-    $planPrice = $this->request->interval == 'month' ? $plan->price : $plan->price_year;
+    $interval = $this->request->interval == 'year' ? 'year' : 'month';
+    $planPrice = $interval == 'month' ? $plan->price : $plan->price_year;
+    $stripePlanId = $plan->plan_id . '_' . $interval;
 
     // Verify Plan Exists
     try {
-      $planCurrent = $stripe->plans->retrieve($planId, []);
-      $pricePlanOnStripe = ($planCurrent->amount / 100);
+      $planCurrent = $stripe->plans->retrieve($stripePlanId, []);
+      $pricePlanOnStripe = in_array(config('settings.currency_code'), config('currencies.zero_decimal'))
+        ? $planCurrent->amount
+        : ($planCurrent->amount / 100);
 
-      // We check if the plan changed price
+      // If price on Stripe differs from current plan price, version the plan ID to avoid breaking existing subscribers
       if ($pricePlanOnStripe != $planPrice) {
-        // Delete old plan
-        $stripe->plans->delete($planId, []);
-
-        // Delete Product
-        $stripe->products->delete($planCurrent->product, []);
-
-        // We create the plan with new price
-        $this->createPlan($payment->key_secret, $plan, $this->request->interval);
+        $stripePlanId = $plan->plan_id . '_' . $interval . '_' . (int)$planPrice;
+        try {
+          $stripe->plans->retrieve($stripePlanId, []);
+        } catch (\Exception $e) {
+          $this->createPlan($payment->key_secret, $plan, $interval, $stripePlanId, $planPrice);
+        }
       }
 
     } catch (\Exception $exception) {
-
       // Create New Plan
-      $this->createPlan($payment->key_secret, $plan, $this->request->interval);
+      $this->createPlan($payment->key_secret, $plan, $interval, $stripePlanId, $planPrice);
     }
 
       try {
@@ -223,7 +224,7 @@ class StripeController extends Controller
           'taxes' => auth()->user()->taxesPayable()
         ];
 
-        $checkout = auth()->user()->newSubscription('main', $planId)
+        $checkout = auth()->user()->newSubscription('main', $stripePlanId)
         ->withMetadata($metadata)
           ->checkout([
             'success_url' => route('success.subscription', ['alert' => 'payment']),
@@ -246,23 +247,16 @@ class StripeController extends Controller
     }
   }
 
-  private function createPlan($keySecret, $plan, $interval)
+  private function createPlan($keySecret, $plan, $interval, $planId = null, $price = null)
   {
     $stripe = new \Stripe\StripeClient($keySecret);
 
-    switch ($interval) {
-      case 'month':
-        $interval = 'month';
-        $interval_count = 1;
-        $price = $plan->price;
-        break;
-
-      case 'year':
-        $interval = 'year';
-        $interval_count = 1;
-        $price = $plan->price_year;
-        break;
+    $planId = $planId ?: ($plan->plan_id . '_' . $interval);
+    if ($price === null) {
+      $price = $interval == 'year' ? $plan->price_year : $plan->price;
     }
+
+    $interval_count = 1;
 
     // If it does not exist we create the plan
     $stripe->plans->create([
@@ -270,10 +264,10 @@ class StripeController extends Controller
         'interval' => $interval,
         'interval_count' => $interval_count,
         "product" => [
-            "name" => trans('misc.subscription_plan', ['name' => $plan->name]),
+            "name" => trans('misc.subscription_plan', ['name' => $plan->name]) . ' (' . ucfirst($interval) . ')',
         ],
-        'nickname' => $plan->name,
-        'id' => $plan->plan_id,
+        'nickname' => $plan->name . ' - ' . ucfirst($interval),
+        'id' => $planId,
         'amount' => in_array(config('settings.currency_code'), config('currencies.zero_decimal')) ? $price : ($price * 100),
     ]);
   }

@@ -82,11 +82,16 @@ class SubscriptionsController extends Controller
       }
 
 	    // Check Subscription
-	    if (auth()->user()->getSubscription()) {
+	    $currentSub = auth()->user()->getSubscription();
+	    if ($currentSub && $currentSub->stripe_price == $plan->plan_id && $currentSub->interval == $this->request->interval && $currentSub->cancelled == 'no') {
 	      return response()->json([
 	          'success' => false,
 	          'errors' => ['error' => trans('misc.subscription_exists')],
 	      ]);
+	    }
+
+	    if ($currentSub && strtolower($currentSub->payment_gateway) == 'wallet') {
+	      $currentSub->update(['cancelled' => 'yes', 'rebill_wallet' => 'off']);
 	    }
 
 			// Insert DB
@@ -131,25 +136,35 @@ class SubscriptionsController extends Controller
 		public function cancel(Request $request)
 		{
 			$checkSubscription = auth()->user()->mySubscription()->whereId($request->id)->firstOrFail();
-			$payment = PaymentGateways::whereName('Stripe')->whereEnabled(1)->firstOrFail();
+			$gateway = strtolower($checkSubscription->payment_gateway);
 
-			if ($checkSubscription->stripe_id) {
+			if ($gateway == 'stripe' && $checkSubscription->stripe_id && \Illuminate\Support\Str::startsWith($checkSubscription->stripe_id, 'sub_')) {
+				$payment = PaymentGateways::whereName('Stripe')->whereEnabled(1)->first();
 
+				if ($payment && $payment->key_secret) {
+					try {
+						$stripe = new \Stripe\StripeClient($payment->key_secret);
+						$response = $stripe->subscriptions->cancel($checkSubscription->stripe_id);
+						$checkSubscription->ends_at = date('Y-m-d H:i:s', $response->current_period_end);
+					} catch (\Exception $e) {
+						\Log::error('Stripe cancellation error: ' . $e->getMessage());
+					}
+				}
+			} elseif ($gateway == 'paypal' && $checkSubscription->paypal_id) {
 				try {
-					$stripe = new \Stripe\StripeClient($payment->key_secret);
-          $response = $stripe->subscriptions->cancel($checkSubscription->stripe_id);
-        } catch (\Exception $e) {
-          return back()->withError($e->getMessage());
-        }
-
-        sleep(2);
-
-        $checkSubscription->ends_at = date('Y-m-d H:i:s', $response->current_period_end);
-        $checkSubscription->save();
-			} else {
-				$checkSubscription->cancelled = 'yes';
-		    $checkSubscription->save();
+					if (class_exists(\Srmklive\PayPal\Services\PayPal::class)) {
+						$provider = new \Srmklive\PayPal\Services\PayPal(config('paypal'));
+						$provider->getAccessToken();
+						$provider->cancelSubscription($checkSubscription->paypal_id, 'Customer requested cancellation');
+					}
+				} catch (\Exception $e) {
+					\Log::error('PayPal cancel error: ' . $e->getMessage());
+				}
 			}
+
+			$checkSubscription->cancelled = 'yes';
+			$checkSubscription->rebill_wallet = 'off';
+			$checkSubscription->save();
 
 			return redirect('account/subscription')->withSuccessCancel(__('misc.subscription_canceled_success'));
 		}

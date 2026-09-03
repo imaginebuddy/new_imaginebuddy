@@ -66,18 +66,21 @@ class StripeWebHookController extends WebhookController
           $subscription->payment_gateway = 'Stripe';
 
           // Get data Plan
-          $plan = Plans::wherePlanId($subscription->stripe_price)->first();
+          $cleanPlanId = preg_replace('/_(month|year).*$/', '', $subscription->stripe_price);
+          $plan = Plans::wherePlanId($subscription->stripe_price)->orWhere('plan_id', $cleanPlanId)->first();
 
-          if ($object['billing_reason'] == 'subscription_create') {
-            User::find($subscription->user_id)->update(['downloads' => $plan->downloads_per_month]);
-          }
-
-          // Renewal cycle
-          if ($object['billing_reason'] == 'subscription_cycle') {
-            if ($plan->unused_downloads_rollover) {
-              User::find($subscription->user_id)->increment('downloads', $plan->downloads_per_month);
-            } else {
+          if ($plan) {
+            if ($object['billing_reason'] == 'subscription_create') {
               User::find($subscription->user_id)->update(['downloads' => $plan->downloads_per_month]);
+            }
+
+            // Renewal cycle
+            if ($object['billing_reason'] == 'subscription_cycle') {
+              if ($plan->unused_downloads_rollover) {
+                User::find($subscription->user_id)->increment('downloads', $plan->downloads_per_month);
+              } else {
+                User::find($subscription->user_id)->update(['downloads' => $plan->downloads_per_month]);
+              }
             }
           }
 

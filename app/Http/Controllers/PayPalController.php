@@ -292,7 +292,8 @@ class PayPalController extends Controller
     $plan = Plans::wherePlanId($this->request->plan)->whereStatus('1')->firstOrFail();
 
     // Check Subscription
-    if (auth()->user()->getSubscription()) {
+    $currentSub = auth()->user()->getSubscription();
+    if ($currentSub && $currentSub->stripe_price == $plan->plan_id && $currentSub->interval == $this->request->interval && $currentSub->cancelled == 'no') {
       return response()->json([
         'success' => false,
         'errors' => ['error' => __('misc.subscription_exists')],
@@ -578,11 +579,14 @@ class PayPalController extends Controller
     $provider->setAccessToken($token);
 
     try {
-      $provider->cancelSubscription($subscription->subscription_id, 'Not satisfied with the service');
+      if ($subscription->paypal_id) {
+        $provider->cancelSubscription($subscription->paypal_id, 'Not satisfied with the service');
+      }
 
       $subscription->cancelled = 'yes';
       $subscription->save();
-    } catch (\Exception) {
+    } catch (\Exception $e) {
+      \Log::error('PayPal cancellation error: ' . $e->getMessage());
     }
 
     // Wait for the Webhook capture

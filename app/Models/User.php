@@ -154,6 +154,7 @@ class User extends Authenticatable
   {
     return $this->downloads()
       ->where('date', '>=', today())
+      ->where('action_type', 'download')
       ->whereType('free')
       ->count();
   }
@@ -162,18 +163,37 @@ class User extends Authenticatable
   {
     return $this->downloads()
       ->where('date', '>=', today())
+      ->where('action_type', 'download')
+      ->whereType('subscription')
+      ->count();
+  }
+
+  public function freeDailyPromptCopies()
+  {
+    return $this->downloads()
+      ->where('date', '>=', today())
+      ->where('action_type', 'copy')
+      ->whereType('free')
+      ->count();
+  }
+
+  public function subscriptionDailyPromptCopies()
+  {
+    return $this->downloads()
+      ->where('date', '>=', today())
+      ->where('action_type', 'copy')
       ->whereType('subscription')
       ->count();
   }
 
   public function freeDailyUsage()
   {
-    return $this->freeDailyDownloads();
+    return $this->freeDailyPromptCopies();
   }
 
   public function subscriptionDailyUsage()
   {
-    return $this->subscriptionDailyDownloads();
+    return $this->subscriptionDailyPromptCopies();
   }
 
   public function canCopyPrompt($image)
@@ -185,13 +205,17 @@ class User extends Authenticatable
     $subscription = $this->getSubscription();
 
     if ($image->item_for_sale == 'free') {
-      $limit = $subscription ? 100 : 20;
-      return $this->freeDailyUsage() < $limit;
+      $settings = AdminSettings::first();
+      $limit = $subscription ? 100 : ($settings->daily_limit_downloads ?: 20);
+      return $this->freeDailyPromptCopies() < $limit;
     } else {
       if (!$subscription) {
         return false;
       }
-      return $this->subscriptionDailyUsage() < 100;
+      $planLimit = ($subscription->plan && $subscription->plan->download_limits)
+        ? $subscription->plan->download_limits
+        : 100;
+      return $this->subscriptionDailyPromptCopies() < $planLimit;
     }
   }
 
@@ -382,17 +406,21 @@ class User extends Authenticatable
   public function getSubscription()
   {
     return $this->mySubscription()
-      ->where('stripe_id', '=', '')
-      ->where('ends_at', '>=', now())
-
-      ->orWhere('stripe_id', '<>', '')
-      ->where('stripe_status', 'active')
-      ->whereUserId($this->id)
-
-      ->orWhere('stripe_id', '<>', '')
-      ->where('stripe_status', 'canceled')
-      ->where('ends_at', '>=', now())
-      ->whereUserId($this->id)
+      ->where(function ($query) {
+        $query->where(function ($q) {
+          $q->where('stripe_id', '=', '')
+            ->where('ends_at', '>=', now());
+        })
+        ->orWhere(function ($q) {
+          $q->where('stripe_id', '<>', '')
+            ->where('stripe_status', 'active');
+        })
+        ->orWhere(function ($q) {
+          $q->where('stripe_id', '<>', '')
+            ->where('stripe_status', 'canceled')
+            ->where('ends_at', '>=', now());
+        });
+      })
       ->first();
   }
 

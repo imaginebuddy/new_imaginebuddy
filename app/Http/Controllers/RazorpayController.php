@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 
 class RazorpayController extends Controller
 {
+    use Traits\FunctionsTrait;
+
     public function showSubscription(Request $request)
     {
         $payment = PaymentGateways::whereName('Razorpay')->firstOrFail();
@@ -58,16 +60,21 @@ class RazorpayController extends Controller
         }
 
         $plan = Plans::wherePlanId($request->plan_id)->firstOrFail();
+        $planPrice = $request->interval == 'month' ? $plan->price : $plan->price_year;
 
         $subscription = new Subscriptions();
         $subscription->user_id = auth()->id();
         $subscription->stripe_price = $plan->plan_id;
         $subscription->stripe_id = $request->razorpay_payment_id;
         $subscription->stripe_status = 'active';
+        $subscription->last_payment = $request->razorpay_payment_id;
         $subscription->ends_at = Helper::planInterval($request->interval);
         $subscription->interval = $request->interval;
         $subscription->payment_gateway = 'Razorpay';
         $subscription->save();
+
+        // Create Invoice
+        $this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true);
 
         auth()->user()->update([
             'downloads' => $plan->downloads_per_month

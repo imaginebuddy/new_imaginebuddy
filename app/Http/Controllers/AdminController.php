@@ -1077,14 +1077,25 @@ class AdminController extends Controller
 
 		$input = $_POST;
 
-		// Sandbox off
-		if (!$request->sandbox) {
+		// Sandbox
+		if (!$request->sandbox || $request->sandbox === 'off' || $request->sandbox === 'false') {
 			$input['sandbox'] = 'false';
+		} else {
+			$input['sandbox'] = 'true';
 		}
 
 		// Enabled off
 		if (!$request->enabled) {
 			$input['enabled'] = '0';
+		} else {
+			$input['enabled'] = '1';
+		}
+
+		// Subscription off
+		if (!$request->subscription) {
+			$input['subscription'] = 0;
+		} else {
+			$input['subscription'] = 1;
 		}
 
 		$this->validate($request, [
@@ -1126,6 +1137,15 @@ class AdminController extends Controller
 		if ($data->name == 'Flutterwave') {
 			Helper::envUpdate('FLW_PUBLIC_KEY', $input['key']);
 			Helper::envUpdate('FLW_SECRET_KEY', $input['key_secret']);
+		}
+
+		// Set Razorpay Keys
+		if ($data->name == 'Razorpay') {
+			Helper::envUpdate('RAZORPAY_KEY', $input['key']);
+			Helper::envUpdate('RAZORPAY_SECRET', $input['key_secret']);
+			if (isset($input['webhook_secret'])) {
+				Helper::envUpdate('RAZORPAY_WEBHOOK_SECRET', $input['webhook_secret']);
+			}
 		}
 
 		return back()->withSuccessMessage(__('admin.success_update'));

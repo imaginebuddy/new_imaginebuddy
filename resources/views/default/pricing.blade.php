@@ -29,55 +29,147 @@
 		  </div><!-- /COL MD -->
     </div><!-- row -->
 
-    <div class="row row-cols-1 row-cols-md-3 mb-3">
+    <div class="row justify-content-center g-4 mb-4">
 
+      <!-- FREE STARTER CARD -->
+      <div class="col-lg-5 col-md-6">
+        <div class="card h-100 rounded-4 shadow-sm p-4 border bg-white">
+          <div class="card-header py-3 bg-transparent border-bottom-0 text-center">
+            <span class="w-100 mb-2 d-block">
+              <span class="badge rounded-pill bg-light text-dark px-3 py-1.5 border">Free Forever</span>
+            </span>
+            <h2 class="my-0 fw-bold">Starter Plan</h2>
+            <p class="text-muted small mt-2 mb-0">Free access to explore and try AI photography prompts</p>
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h1 class="card-title text-center mb-4">
+              <sup class="h4 fw-bold lh-1">{{ $settings->currency_symbol }}</sup>0
+              <small class="fw-light f-size-18 text-muted">/forever</small>
+            </h1>
+
+            <ul class="list-unstyled mb-4 flex-grow-1">
+              <li class="mb-3 d-flex align-items-center">
+                <i class="bi bi-check2 text-success fs-5 me-2"></i>
+                <span>Access to all <strong>Free AI Prompts</strong></span>
+              </li>
+              <li class="mb-3 d-flex align-items-center">
+                <i class="bi bi-check2 text-success fs-5 me-2"></i>
+                <span>Copy up to <strong>20 free prompts</strong> / day</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center">
+                <i class="bi bi-check2 text-success fs-5 me-2"></i>
+                <span>Up to <strong>{{ $settings->daily_limit_downloads ?: 20 }} free photo downloads</strong> / day</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center">
+                <i class="bi bi-check2 text-success fs-5 me-2"></i>
+                <span>Supports Gemini, ChatGPT & Midjourney</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center text-muted">
+                <i class="bi bi-x fs-4 text-muted me-2"></i>
+                <span class="text-decoration-line-through">Unlock Premium AI Prompts</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center text-muted">
+                <i class="bi bi-x fs-4 text-muted me-2"></i>
+                <span class="text-decoration-line-through">High-Resolution Pro Downloads</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center text-muted">
+                <i class="bi bi-x fs-4 text-muted me-2"></i>
+                <span class="text-decoration-line-through">Commercial Client License</span>
+              </li>
+            </ul>
+
+            <div class="mt-auto">
+              @if (!auth()->check())
+                <a href="{{ url('register') }}" class="w-100 btn btn-lg btn-outline-dark rounded-pill py-3 fw-semibold">
+                  Get Started Free
+                </a>
+              @elseif (!$getSubscription)
+                <button type="button" class="w-100 btn btn-lg btn-outline-secondary rounded-pill py-3 fw-semibold disabled" disabled>
+                  <i class="bi bi-check2 me-1"></i> Current Plan
+                </button>
+              @else
+                <button type="button" class="w-100 btn btn-lg btn-outline-secondary rounded-pill py-3 fw-semibold disabled" disabled>
+                  Free Tier
+                </button>
+              @endif
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- PRO PLAN CARD(S) -->
       @foreach ($plans->whereDownloadableContent('images')->get() as $plan)
-        <div class="col">
-            <div class="card mb-4 rounded-4 shadow p-4 @if ($plan->popular) popular-plan @endif">
-              <div class="card-header py-3 bg-transparent border-bottom-0 text-center">
-                @if ($plan->popular)
-                <span class="w-100 mb-2 d-block">
-                  <span class="badge rounded-pill bg-success px-3">{{ __('misc.popular') }} </span>
+        @php
+          $isCurrentExactPlan = auth()->check() && $getSubscription && ($getSubscription->stripe_price == $plan->plan_id || preg_replace('/_(month|year).*$/', '', $getSubscription->stripe_price) == $plan->plan_id);
+        @endphp
+        <div class="col-lg-5 col-md-6">
+          <div class="card h-100 rounded-4 p-4 border border-2 border-dark position-relative bg-white text-dark" style="box-shadow: 0 16px 40px rgba(0,0,0,0.08) !important; color: #1e293b !important;">
+            <div class="card-header py-3 bg-transparent border-bottom-0 text-center">
+              <span class="w-100 mb-2 d-block">
+                <span class="badge rounded-pill bg-dark text-white px-3 py-1.5">
+                  <i class="bi bi-stars text-warning me-1"></i> Most Popular
                 </span>
+              </span>
+              <h2 class="my-0 fw-bold text-dark">
+                {{ $plan->name }}
+                @if (Helper::calculateSubscriptionDiscount($plan->price, $plan->price_year) > 0)
+                  <small class="badge bg-success rounded-pill display-none planYearly fs-small align-middle ms-1">
+                    {{ Helper::calculateSubscriptionDiscount($plan->price, $plan->price_year) }}% {{ __('misc.discount') }}
+                  </small>
                 @endif
-                <h2 class="my-0">
-                  <span class="highlight">
-                    {{ $plan->name }}
-                  </span>
+              </h2>
+              <p class="text-secondary small mt-2 mb-0">Unlimited creativity with full prompt access & commercial rights</p>
+            </div>
+            <div class="card-body d-flex flex-column text-dark">
+              <h1 class="card-title text-center text-dark mb-4">
+                <span class="planMonthly text-dark">
+                  <sup class="h4 fw-bold lh-1 text-dark">{{ $settings->currency_symbol }}</sup><span class="text-dark">{{ $plan->price }}</span>
+                  <small class="fw-light f-size-18 text-muted">/{{ __('misc.mo') }}</small>
+                </span>
 
-                  @if (Helper::calculateSubscriptionDiscount($plan->price, $plan->price_year) > 0)
-                    <small class="badge bg-success rounded-pill display-none planYearly fs-small align-middle">{{ Helper::calculateSubscriptionDiscount($plan->price, $plan->price_year) }}% {{ __('misc.discount') }}</small>
-                  @endif
-                </h2>
-              </div>
-              <div class="card-body">
-                <h1 class="card-title text-center">
-                  <span class="planMonthly">
-                    <sup class="h4 fw-bold lh-1">{{ $settings->currency_symbol }}</sup>
-                    {{ $plan->price }}
-                    <small class="fw-light f-size-18">/{{ __('misc.mo') }}</small>
-                  </span>
+                <span class="planYearly text-dark display-none">
+                  <sup class="h4 fw-bold lh-1 text-dark">{{ $settings->currency_symbol }}</sup><span class="text-dark">{{ $plan->price_year }}</span>
+                  <small class="fw-light f-size-18 text-muted">/{{ __('misc.yr') }}</small>
+                </span>
+              </h1>
 
-                  <span class="planYearly display-none">
-                    <sup class="h4 fw-bold lh-1">{{ $settings->currency_symbol }}</sup>
-                    {{ $plan->price_year }}
-                    <small class="fw-light f-size-18">/{{ __('misc.yr') }}</small>
-                  </span>
-                </h1>
-                <ul class="list-unstyled mt-3 mb-4">
-                  <li class="mb-2"><i class="bi-check2 me-1"></i> <strong>{{ $plan->downloads_per_month }}</strong> {{ __('admin.downloads_per_month') }}</li>
-                  <li class="mb-2">
-                    <i class="bi-check2 me-1"></i>
-                    <span class="planMonthly">{{ Helper::calculatePriceByDownloads($plan->price, $plan->downloads_per_month, true) }}</span>
-                    <span class="planYearly display-none">{{ Helper::calculatePriceByDownloads($plan->price_year, $plan->downloads_per_month) }}</span>
-                    {{ __('misc.per_download') }}
-                  </li>
-                  <li class="mb-2"><i class="bi-check2 me-1"></i> {{ __('misc.all_images_vectors') }}</li>
-                  <li class="mb-2"><i class="bi-check2 me-1"></i> {{ $plan->unused_downloads_rollover ? __('misc.unused_downloads_added_next_month') : __('misc.download_limit_renewed_monthly') }}</li>
-                  <li class="mb-2"><i class="bi-check2 me-1"></i> {{ $plan->download_limits == 0 ? __('misc.no_daily_download_limits') : __('misc.downloads_per_day', ['number' => $plan->download_limits]) }}</li>
-                  <li class="mb-2"><i class="bi-check2 me-1"></i> {{ $plan->license == 'regular' ? __('misc.license_regular') : __('admin.regular_extended') }}</li>
-                  <li><i class="bi-check2 me-1"></i> {{ __('misc.cancel_subscription_any_time') }}</li>
-                </ul>
+              <ul class="list-unstyled mb-4 flex-grow-1 text-dark" style="color: #1e293b !important;">
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span><strong>Unlock & copy ALL Premium AI Prompts</strong></span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span>Copy up to <strong>100 prompts per day</strong></span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span><strong>{{ number_format($plan->downloads_per_month) }} High-Res Downloads</strong> / month (up to {{ $plan->download_limits }}/day)</span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span><strong>Full Prompt Details & Parameters</strong> (Midjourney, Gemini, ChatGPT)</span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span>Multi-angle <strong>Generated Example Outputs</strong> gallery</span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success me-2"></i>
+                  <span><strong>Commercial Regular License</strong> included</span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span>{{ $plan->unused_downloads_rollover ? 'Unused downloads roll over each month' : 'Downloads renew fresh every month' }}</span>
+                </li>
+                <li class="mb-3 d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                  <span><strong>Cancel anytime</strong> with 1-click</span>
+                </li>
+              </ul>
+
+              <div class="mt-auto">
                 <a
                   data-plan-id="{{ $plan->plan_id }}"
                   data-plan-name="{{ __('misc.plan_name', ['plan' => $plan->name]) }}"
@@ -88,22 +180,23 @@
                   data-price-year-gross="{{ $plan->price_year }}"
                   data-price-year-total="{{ Helper::amountFormatDecimal($plan->price_year, true) }}"
                   href="@auth javascript:void(0); @else{{ url('/login') }}@endauth"
-                  @if (auth()->check() && ! $getSubscription) data-bs-toggle="modal" data-bs-target="#checkout" @endif
-                    class="w-100 btn btn-lg btn-custom rounded-pill @if (auth()->check() && $getSubscription) disabled @endif">
-
-                    @if (auth()->check()
-                      && $getSubscription
-                      && $getSubscription->stripe_price == $plan->plan_id)
-                  {{ __('misc.active') }}
-
-                @else
-                  {{ __('misc.suscribe') }}
-                @endif
+                  @if (auth()->check()) data-bs-toggle="modal" data-bs-target="#checkout" @endif
+                  class="w-100 btn btn-lg rounded-pill py-3 fw-bold shadow-sm"
+                  style="background-color: #0f172a !important; color: #ffffff !important; border: 1px solid #0f172a !important;">
+                  @if ($isCurrentExactPlan)
+                    <i class="bi bi-check2 me-1"></i> {{ __('misc.active') }} (Switch)
+                  @else
+                    <i class="bi bi-stars text-warning me-1"></i> Upgrade to Pro
+                  @endif
                 </a>
               </div>
+
             </div>
           </div>
+        </div>
       @endforeach
+
+    </div>
 
       <div class="d-block text-center w-100 fst-italic">
         <small>
@@ -111,7 +204,6 @@
         </small>
       </div>
 
-    </div>
  </div><!-- container -->
 
  <div class="container py-5">
@@ -143,7 +235,7 @@
         </div>
 </section>
 
-@if (auth()->check() && ! $getSubscription)
+@if (auth()->check())
 <div class="modal fade" tabindex="-1"  id="checkout">
   <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
     <div class="modal-content">

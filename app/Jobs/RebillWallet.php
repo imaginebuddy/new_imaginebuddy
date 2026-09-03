@@ -41,8 +41,12 @@ class RebillWallet implements ShouldQueue
 
       if ($subscriptions) {
         foreach ($subscriptions as $subscription) {
-          // Get price of Plan
-          $plan = Plans::wherePlanId($subscription->stripe_price)->first();
+          // Get Plan
+          $plan = $subscription->plan ?: Plans::wherePlanId($subscription->stripe_price)->first();
+
+          if (! $plan) {
+            continue;
+          }
 
           // Get Taxes
           $taxes = TaxRates::whereIn('id', collect(explode('_', $subscription->taxes)))->get();
@@ -68,8 +72,12 @@ class RebillWallet implements ShouldQueue
       						'ends_at' => Helper::planInterval($subscription->interval)
       					]);
           } else {
-            // Remove downloads
+            // Remove downloads and turn off rebill to prevent infinite hourly loop
             $subscription->user()->update(['downloads' => 0]);
+            $subscription->update([
+              'rebill_wallet' => 'off',
+              'cancelled' => 'yes'
+            ]);
           }
         }
       }
