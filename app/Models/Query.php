@@ -66,11 +66,18 @@ class Query extends Model
 		$q     = request()->get('q');
 		$page  = request()->get('page');
 		$sort  = request()->get('sort');
+		$tier  = request()->get('tier');
 
 		try {
 			$query = Images::search($q)
 				->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution'])
 				->where('images.status', 'active');
+
+			if ($tier == 'free') {
+				$query->where('images.item_for_sale', 'free');
+			} else if ($tier == 'premium' || $tier == 'sale') {
+				$query->where('images.item_for_sale', 'sale');
+			}
 
 			if ($sort == 'oldest') {
 				$query->orderBy('images.id', 'asc');
@@ -84,6 +91,12 @@ class Query extends Model
 			$query = Images::searchLike($q)
 				->selectFieldsRelation()
 				->where('images.status', 'active');
+
+			if ($tier == 'free') {
+				$query->where('images.item_for_sale', 'free');
+			} else if ($tier == 'premium' || $tier == 'sale') {
+				$query->where('images.item_for_sale', 'sale');
+			}
 
 			if ($sort == 'oldest') {
 				$query->orderBy('images.id', 'asc');
@@ -115,16 +128,20 @@ class Query extends Model
 
 	public static function latestImages()
 	{
-		$poolLimit = (int) config('settings.result_request', 12) * 4;
+		$query = Images::selectFieldsRelation()
+			->where('images.status', 'active');
 
-		$recentIds = Images::where('status', 'active')
-			->orderBy('id', 'DESC')
-			->take($poolLimit)
-			->pluck('id');
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
 
-		$data = Images::selectFieldsRelation()
-			->whereIn('images.id', $recentIds)
-			->inRandomOrder()
+		if (request('ai_model')) {
+			$query->where('images.ai_model', request('ai_model'));
+		}
+
+		$data = $query->orderBy('images.id', 'DESC')
 			->paginate(config('settings.result_request'))
 			->onEachSide(1);
 
@@ -136,6 +153,16 @@ class Query extends Model
 		$query = Images::selectFieldsRelation()
 			->where('featured', 'yes')
 			->where('status', 'active');
+
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		if (request('ai_model')) {
+			$query->where('images.ai_model', request('ai_model'));
+		}
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -173,6 +200,16 @@ class Query extends Model
 				->where('images.status', 'active');
 		});
 
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		if (request('ai_model')) {
+			$query->where('images.ai_model', request('ai_model'));
+		}
+
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
 			$q->where('likes.date', '>=', Carbon::today()->toDateString());
@@ -208,6 +245,16 @@ class Query extends Model
 	{
 		$query = Images::join('comments', 'images.id', '=', 'comments.images_id')
 			->where('images.status', 'active');
+
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		if (request('ai_model')) {
+			$query->where('images.ai_model', request('ai_model'));
+		}
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -245,6 +292,16 @@ class Query extends Model
 		$query = Images::join('visits', 'images.id', '=', 'visits.images_id')
 			->where('images.status', 'active');
 
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		if (request('ai_model')) {
+			$query->where('images.ai_model', request('ai_model'));
+		}
+
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
 			$q->where('visits.date', '>=', Carbon::today()->toDateString());
@@ -281,6 +338,16 @@ class Query extends Model
 		$query = Images::join('downloads', 'images.id', '=', 'downloads.images_id')
 			->where('images.status', 'active');
 
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		if (request('ai_model')) {
+			$query->where('images.ai_model', request('ai_model'));
+		}
+
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
 			$q->where('downloads.date', '>=', Carbon::today()->toDateString());
@@ -315,7 +382,14 @@ class Query extends Model
 	public static function copiedImages()
 	{
 		$query = Images::selectFieldsRelation()
-			->where('images.status', 'active');
+			->where('images.status', 'active')
+			->where('images.copies_count', '>', 0);
+
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
 
 		if (request('ai_model')) {
 			$query->where('images.ai_model', request('ai_model'));

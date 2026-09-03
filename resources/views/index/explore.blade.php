@@ -17,6 +17,19 @@ switch(request()->get('timeframe')) {
 	default:
 		$timeframe_text = null;
 	}
+
+  $currentTier      = request()->get('tier');
+  $currentAiModel   = request()->get('ai_model');
+  $currentTimeframe = request()->get('timeframe');
+
+  function buildExploreFilterUrl($overrides = []) {
+    $current = request()->only(['tier', 'ai_model', 'timeframe']);
+    $merged = array_merge($current, $overrides);
+    $filtered = array_filter($merged, function($v) {
+      return $v !== null && $v !== '';
+    });
+    return url()->current() . ($filtered ? '?' . http_build_query($filtered) : '');
+  }
 @endphp
 
 @section('title'){{ $title.$timeframe_text.' - ' }}@endsection
@@ -40,10 +53,12 @@ switch(request()->get('timeframe')) {
 
 		@if ($images->total() != 0)
 
-	@if (request()->is(['featured', 'popular', 'most/commented', 'most/viewed', 'most/downloads', 'most/copied']))
+	@if (request()->is(['latest', 'featured', 'popular', 'most/commented', 'most/viewed', 'most/downloads', 'most/copied']))
 	<div class="d-block w-100 mb-3 text-end">
 
+		<!-- 1. Explore Page Navigation Dropdown -->
 		<select class="ms-2 form-select d-inline-block w-auto me-2 filter filter-explore">
+			<option @if (request()->is('latest')) selected @endif value="{{ url('latest') }}">{{__('misc.latest')}}</option>
 			<option @if (request()->is('featured')) selected @endif value="{{ url('featured') }}">{{__('misc.featured')}}</option>
 			<option @if (request()->is('popular')) selected @endif value="{{ url('popular') }}">{{__('misc.popular')}}</option>
 			@if ($settings->comments)
@@ -54,22 +69,33 @@ switch(request()->get('timeframe')) {
 			<option @if (request()->is('most/copied')) selected @endif value="{{ url('most/copied') }}">Most Copied Prompts</option>
 		</select>
 
-		<select class="ms-2 form-select d-inline-block w-auto filter filter-explore">
-			<option @if (! request()->get('ai_model')) selected @endif value="{{ url()->current() }}">All AI Models</option>
+		<!-- 2. Free vs Premium Tier Filter Dropdown -->
+		<select class="ms-2 form-select d-inline-block w-auto me-2" onchange="window.location.href=this.value;">
+			<option value="{{ buildExploreFilterUrl(['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
+			<option value="{{ buildExploreFilterUrl(['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
+			<option value="{{ buildExploreFilterUrl(['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
+		</select>
+
+		<!-- 3. AI Model Filter Dropdown -->
+		<select class="ms-2 form-select d-inline-block w-auto me-2" onchange="window.location.href=this.value;">
+			<option value="{{ buildExploreFilterUrl(['ai_model' => '']) }}" @if(empty($currentAiModel)) selected @endif>All AI Models</option>
 			@foreach (App\Models\Images::$aiModels as $model)
-				<option @if (request()->get('ai_model') == $model) selected @endif value="{{ url()->current() }}?ai_model={{ urlencode($model) }}">{{ $model }}</option>
+				<option value="{{ buildExploreFilterUrl(['ai_model' => $model]) }}" @if($currentAiModel == $model) selected @endif>{{ $model }}</option>
 			@endforeach
 		</select>
 
-		<select class="ms-2 form-select d-inline-block w-auto filter filter-explore">
-			<option @if (! request()->get('timeframe')) selected @endif value="{{ url()->current() }}">{{__('misc.all_time')}}</option>
-			<option @if (request()->get('timeframe') == 'today') selected @endif value="{{ url()->current() }}?timeframe=today">{{__('misc.today')}}</option>
-			<option @if (request()->get('timeframe') == 'week') selected @endif value="{{ url()->current() }}?timeframe=week">{{__('misc.this_week')}}</option>
-			<option @if (request()->get('timeframe') == 'month') selected @endif value="{{ url()->current() }}?timeframe=month">{{__('misc.this_month')}}</option>
-			<option @if (request()->get('timeframe') == 'year') selected @endif value="{{ url()->current() }}?timeframe=year">{{__('misc.this_year')}}</option>
-			</select>
-		</div>
-		  @endif
+		<!-- 4. Timeframe Filter Dropdown -->
+		@if (!request()->is(['latest', 'most/copied']))
+		<select class="ms-2 form-select d-inline-block w-auto" onchange="window.location.href=this.value;">
+			<option value="{{ buildExploreFilterUrl(['timeframe' => '']) }}" @if(empty($currentTimeframe)) selected @endif>{{__('misc.all_time')}}</option>
+			<option value="{{ buildExploreFilterUrl(['timeframe' => 'today']) }}" @if($currentTimeframe == 'today') selected @endif>{{__('misc.today')}}</option>
+			<option value="{{ buildExploreFilterUrl(['timeframe' => 'week']) }}" @if($currentTimeframe == 'week') selected @endif>{{__('misc.this_week')}}</option>
+			<option value="{{ buildExploreFilterUrl(['timeframe' => 'month']) }}" @if($currentTimeframe == 'month') selected @endif>{{__('misc.this_month')}}</option>
+			<option value="{{ buildExploreFilterUrl(['timeframe' => 'year']) }}" @if($currentTimeframe == 'year') selected @endif>{{__('misc.this_year')}}</option>
+		</select>
+		@endif
+	</div>
+	@endif
 
 		<div class="dataResult">
 	     @include('includes.images')

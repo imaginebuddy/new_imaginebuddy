@@ -1,5 +1,19 @@
 @extends('layouts.app')
 
+@php
+  $currentQ    = request()->get('q');
+  $currentTier = request()->get('tier');
+  $currentSort = request()->get('sort');
+
+  function buildSearchFilterUrl($overrides = []) {
+    $params = array_merge(request()->only(['q', 'tier', 'sort']), $overrides);
+    $filtered = array_filter($params, function($val) {
+      return $val !== null && $val !== '';
+    });
+    return url('search') . '?' . http_build_query($filtered);
+  }
+@endphp
+
 @section('title'){{ e($title) }}@endsection
 
 @section('content')
@@ -16,14 +30,23 @@
   	  </div>
 
 		<div class="col-md-12">
-			@if ($images->total() != 0)
+			<!-- Search Filter Dropdowns (Clean Design matching Explore Page) -->
+			<div class="d-block w-100 mb-3 text-end">
+				<!-- Free vs Premium Filter -->
+				<select class="ms-2 form-select d-inline-block w-auto filter" onchange="window.location.href=this.value;">
+					<option value="{{ buildSearchFilterUrl(['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
+					<option value="{{ buildSearchFilterUrl(['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
+					<option value="{{ buildSearchFilterUrl(['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
+				</select>
 
-			<div class="d-block w-100 mb-3 text-end">		
-				<select class="ms-2 form-select d-inline-block w-auto filter filter-explore">
-					<option @if (! request()->get('sort')) selected @endif value="{{ url()->current() }}?q={{ request()->get('q') }}">{{trans('misc.latest')}}</option>
-					<option @if (request()->get('sort') == 'oldest') selected @endif value="{{ url()->full() }}&sort=oldest">{{trans('misc.oldest')}}</option>
-					</select>
-				</div>
+				<!-- Sort Order Filter -->
+				<select class="ms-2 form-select d-inline-block w-auto filter" onchange="window.location.href=this.value;">
+					<option value="{{ buildSearchFilterUrl(['sort' => 'latest']) }}" @if(empty($currentSort) || $currentSort == 'latest') selected @endif>{{ trans('misc.latest') }}</option>
+					<option value="{{ buildSearchFilterUrl(['sort' => 'oldest']) }}" @if($currentSort == 'oldest') selected @endif>{{ trans('misc.oldest') }}</option>
+				</select>
+			</div>
+
+			@if ($images->total() != 0)
 
 				<div class="dataResult">
 			     @include('includes.images')
