@@ -20,19 +20,28 @@ class RazorpayController extends Controller
         $payment = PaymentGateways::whereName('Razorpay')->firstOrFail();
         $plan = Plans::wherePlanId($request->plan)->whereStatus('1')->firstOrFail();
 
-        $amount = $request->interval == 'month' ? $plan->price : $plan->price_year;
-        $totalAmount = Helper::amountGross($amount) * 100; // in paise
+        $amount = $request->interval == 'month' ? ($plan->price_inr ?: 284.00) : ($plan->price_year_inr ?: 2550.00);
+        $totalAmount = round($amount * 100); // in paise
 
-        $api = new Api($payment->key, $payment->key_secret);
+        try {
+            $api = new Api($payment->key, $payment->key_secret);
 
-        $orderData = [
-            'receipt'         => 'sub_' . auth()->id() . '_' . time(),
-            'amount'          => (int) $totalAmount,
-            'currency'        => config('settings.currency_code', 'INR'),
-            'payment_capture' => 1
-        ];
+            $orderData = [
+                'receipt'         => 'sub_' . auth()->id() . '_' . time(),
+                'amount'          => (int) $totalAmount,
+                'currency'        => 'INR',
+                'payment_capture' => 1
+            ];
 
-        $razorpayOrder = $api->order->create($orderData);
+            $razorpayOrder = $api->order->create($orderData);
+        } catch (\Exception $e) {
+            \Log::error('Razorpay Error: ' . $e->getMessage());
+            $errorMsg = 'Razorpay Error: ' . $e->getMessage();
+            if (str_contains($e->getMessage(), 'Authentication failed')) {
+                $errorMsg = 'Razorpay Error: Authentication failed. Please verify your Razorpay Key ID and Secret in Admin Settings (Payment Settings > Razorpay).';
+            }
+            return redirect('pricing')->withError($errorMsg);
+        }
 
         return view('plans.razorpay-checkout', [
             'order' => $razorpayOrder,
@@ -60,7 +69,18 @@ class RazorpayController extends Controller
         }
 
         $plan = Plans::wherePlanId($request->plan_id)->firstOrFail();
-        $planPrice = $request->interval == 'month' ? $plan->price : $plan->price_year;
+        $planPrice = $request->interval == 'month' ? ($plan->price_inr ?: 284.00) : ($plan->price_year_inr ?: 2550.00);
+
+        // Fetch payment details to capture exact payment method (upi, card, netbanking, wallet)
+        $paymentMethod = 'card';
+        try {
+            $razorpayPayment = $api->payment->fetch($request->razorpay_payment_id);
+            if ($razorpayPayment && isset($razorpayPayment->method)) {
+                $paymentMethod = strtolower($razorpayPayment->method);
+            }
+        } catch (\Exception $e) {
+            \Log::info('Could not fetch Razorpay payment method: ' . $e->getMessage());
+        }
 
         $subscription = new Subscriptions();
         $subscription->user_id = auth()->id();
@@ -68,13 +88,18 @@ class RazorpayController extends Controller
         $subscription->stripe_id = $request->razorpay_payment_id;
         $subscription->stripe_status = 'active';
         $subscription->last_payment = $request->razorpay_payment_id;
+        $subscription->payment_gateway = 'Razorpay';
+        $subscription->payment_method = $paymentMethod;
+        $subscription->gateway_order_id = $request->razorpay_order_id;
+        $subscription->amount = $planPrice;
+        $subscription->currency = 'INR';
+        $subscription->country_code = 'IN';
         $subscription->ends_at = Helper::planInterval($request->interval);
         $subscription->interval = $request->interval;
-        $subscription->payment_gateway = 'Razorpay';
         $subscription->save();
 
         // Create Invoice
-        $this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true);
+        $this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true, 'INR');
 
         auth()->user()->update([
             'downloads' => $plan->downloads_per_month

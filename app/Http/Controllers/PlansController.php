@@ -30,6 +30,8 @@ class PlansController extends Controller
         'name' => 'required|max:100',
         'price' => 'required|numeric|min:1',
         'price_year' => 'required|numeric|min:1',
+        'price_inr' => 'nullable|numeric|min:1',
+        'price_year_inr' => 'nullable|numeric|min:1',
         'downloads_per_month' => 'required|numeric|min:1',
     ]);
 
@@ -38,6 +40,8 @@ class PlansController extends Controller
     $plan->name = $request->name;
     $plan->price = $request->price;
     $plan->price_year = $request->price_year;
+    $plan->price_inr = $request->price_inr ?: 284.00;
+    $plan->price_year_inr = $request->price_year_inr ?: 2550.00;
     $plan->downloadable_content = $request->downloadable_content;
     $plan->downloads_per_month = $request->downloads_per_month;
     $plan->download_limits = $request->download_limits;
@@ -65,6 +69,8 @@ class PlansController extends Controller
         'name' => 'required|max:100',
         'price' => 'required|numeric|min:1',
         'price_year' => 'required|numeric',
+        'price_inr' => 'nullable|numeric|min:1',
+        'price_year_inr' => 'nullable|numeric',
         'downloads_per_month' => 'required|numeric|min:1',
     ]);
 
@@ -76,6 +82,12 @@ class PlansController extends Controller
     $plan->name = $request->name;
     $plan->price = $request->price;
     $plan->price_year = $request->price_year;
+    if ($request->has('price_inr')) {
+      $plan->price_inr = $request->price_inr;
+    }
+    if ($request->has('price_year_inr')) {
+      $plan->price_year_inr = $request->price_year_inr;
+    }
     $plan->downloadable_content = $request->downloadable_content;
     $plan->downloads_per_month = $request->downloads_per_month;
     $plan->download_limits = $request->download_limits;

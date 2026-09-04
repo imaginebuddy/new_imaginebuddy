@@ -251,7 +251,7 @@ trait FunctionsTrait
 		$invoice->save();
 	}
 
-	protected function invoiceSubscription($userId, $subscriptionId, $amount, $taxes, $approved)
+	protected function invoiceSubscription($userId, $subscriptionId, $amount, $taxes, $approved, $currency = null)
 	{
 		$invoice = new Invoices();
 		$invoice->user_id = $userId;
@@ -259,16 +259,22 @@ trait FunctionsTrait
 		$invoice->amount = $amount;
 		$invoice->status = $approved ? 'paid' : 'pending';
 		$invoice->taxes = $taxes;
+		$invoice->currency = $currency ?: (Helper::isIndia() ? 'INR' : 'USD');
 		$invoice->save();
 	}
 
 	protected function AddBalanceAndNotify($data, $userId, $userEarning)
 	{
 		// Add user balance
-		$data->user()->increment('balance', $userEarning);
+		if ($userEarning > 0 && $data->user) {
+			$data->user->increment('balance', $userEarning);
+		}
 
 		// Send Notification - destination, author, type, target
-		Notifications::send($data->user()->id, $userId, 5, $data->id);
+		$authorId = $data->user_id ?? ($data->user ? $data->user->id : null);
+		if ($authorId) {
+			Notifications::send($authorId, $userId, 5, $data->id);
+		}
 	}
 
 	protected function generateTwofaCode($user)

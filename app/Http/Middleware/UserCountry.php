@@ -21,12 +21,20 @@ class UserCountry
       if (! $request->expectsJson()) {
           try {
             $ip = request()->ip();
-            if (! Cache::has('userCountry-'.$ip)) {
-
-              $data = Helper::getDatacURL("http://ip-api.com/json/".$ip);
-
-              Cache::put('userCountry-'.$ip, $data->countryCode);
-              Cache::put('userRegion-'.$ip, $data->region);
+            if ($ip != '127.0.0.1' && $ip != '::1' && !str_starts_with($ip, '192.168.') && !str_starts_with($ip, '10.')) {
+              if (! Cache::has('userCountry-'.$ip)) {
+                $data = Helper::getDatacURL("http://ip-api.com/json/".$ip);
+                if (isset($data->countryCode)) {
+                  Cache::put('userCountry-'.$ip, $data->countryCode, now()->addDays(7));
+                  Cache::put('userRegion-'.$ip, $data->region ?? '', now()->addDays(7));
+                  session()->put('user_country', strtoupper($data->countryCode));
+                }
+              } else {
+                session()->put('user_country', strtoupper(Cache::get('userCountry-'.$ip)));
+              }
+            } else {
+              $defaultCountry = env('GEOIP_DEFAULT_COUNTRY', 'IN');
+              session()->put('user_country', strtoupper($defaultCountry));
             }
 
           } catch (\Exception $e) {}

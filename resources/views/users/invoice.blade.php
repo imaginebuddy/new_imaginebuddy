@@ -18,6 +18,9 @@
     <div class="wrapper">
   <!-- Main content -->
   <section class="invoice p-4 bg-white">
+    @php
+      $invoiceCurrency = $data->currency ?: $settings->currency_code;
+    @endphp
     <!-- title row -->
     <div class="row">
       <div class="col-12">
@@ -140,7 +143,7 @@
               <td class="text-center">{{ __('misc.subscription_to_plan', ['plan' => $data->subscription()->plan->name]) }} - {{ $data->subscription()->interval == 'month' ? __('misc.billed_monthly') : __('misc.billed_yearly') }} </td>
             @endif
 
-            <td class="text-end">{{Helper::amountFormatDecimal($amount)}} {{ $settings->currency_code }}</td>
+            <td class="text-end">{{Helper::formatPrice($amount, $invoiceCurrency)}} {{ $invoiceCurrency }}</td>
           </tr>
           </tbody>
         </table>
@@ -158,26 +161,26 @@
           <table class="table">
             <tr class="border-bottom">
               <th class="w-50 text-end">{{trans('misc.subtotal')}}:</th>
-              <td class="text-end">{{Helper::amountFormatDecimal($amount)}} {{ $settings->currency_code }}</td>
+              <td class="text-end">{{Helper::formatPrice($amount, $invoiceCurrency)}} {{ $invoiceCurrency }}</td>
             </tr>
 
             @if ($transactionFee)
               <tr class="border-bottom">
                 <th class="w-50 text-end">{{trans('misc.handling_fee')}}: {{ $percentageApplied }}</th>
-                <td class="text-end">{{Helper::amountFormatDecimal($transactionFee)}} {{ $settings->currency_code }}</td>
+                <td class="text-end">{{Helper::formatPrice($transactionFee, $invoiceCurrency)}} {{ $invoiceCurrency }}</td>
               </tr>
             @endif
 
               @foreach($taxes as $tax)
                 <tr class="border-bottom">
                   <th class="w-50 text-end">{{ $tax->name }} {{ $tax->percentage }}%:</th>
-                  <td class="text-end">{{Helper::amountFormatDecimal(Helper::calculatePercentage($data->amount, $tax->percentage))}} {{ $settings->currency_code }}</td>
+                  <td class="text-end">{{Helper::formatPrice(Helper::calculatePercentage($data->amount, $tax->percentage), $invoiceCurrency)}} {{ $invoiceCurrency }}</td>
                 </tr>
               @endforeach
 
             <tr class="h5 text-end">
               <th class="text-end">{{trans('misc.total')}}:</th>
-              <td><strong>{{Helper::amountFormatDecimal($totalAmount)}} {{ $settings->currency_code }}</strong></td>
+              <td><strong>{{Helper::formatPrice($totalAmount, $invoiceCurrency)}} {{ $invoiceCurrency }}</strong></td>
             </tr>
           </table>
         </div>

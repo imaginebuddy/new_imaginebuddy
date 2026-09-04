@@ -3,9 +3,27 @@
 @section('title') {{ __('misc.pricing') }} - @endsection
 
 @section('content')
+@php
+  $isIndia = Helper::isIndia();
+  $curr = Helper::currentCurrency();
+@endphp
 <section class="section section-sm">
 
 <div class="container">
+
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+      <i class="bi-exclamation-triangle me-1"></i> {{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
+  @if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+      <i class="bi-check2 me-1"></i> {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
 
   <div class="row justify-content-center">
 	<!-- Col MD -->
@@ -43,7 +61,7 @@
           </div>
           <div class="card-body d-flex flex-column">
             <h1 class="card-title text-center mb-4">
-              <sup class="h4 fw-bold lh-1">{{ $settings->currency_symbol }}</sup>0
+              <sup class="h4 fw-bold lh-1">{{ $curr['symbol'] }}</sup>0
               <small class="fw-light f-size-18 text-muted">/forever</small>
             </h1>
 
@@ -102,6 +120,9 @@
       @foreach ($plans->whereDownloadableContent('images')->get() as $plan)
         @php
           $isCurrentExactPlan = auth()->check() && $getSubscription && ($getSubscription->stripe_price == $plan->plan_id || preg_replace('/_(month|year).*$/', '', $getSubscription->stripe_price) == $plan->plan_id);
+          $monthlyPrice = $isIndia ? ($plan->price_inr ?: 284.00) : ($plan->price ?: 3.00);
+          $yearlyPrice  = $isIndia ? ($plan->price_year_inr ?: 2550.00) : ($plan->price_year ?: 27.00);
+          $planDiscount = Helper::calculateSubscriptionDiscount($monthlyPrice, $yearlyPrice);
         @endphp
         <div class="col-lg-5 col-md-6">
           <div class="card h-100 rounded-4 p-4 border border-2 border-dark position-relative bg-white text-dark" style="box-shadow: 0 16px 40px rgba(0,0,0,0.08) !important; color: #1e293b !important;">
@@ -113,9 +134,9 @@
               </span>
               <h2 class="my-0 fw-bold text-dark">
                 {{ $plan->name }}
-                @if (Helper::calculateSubscriptionDiscount($plan->price, $plan->price_year) > 0)
+                @if ($planDiscount > 0)
                   <small class="badge bg-success rounded-pill display-none planYearly fs-small align-middle ms-1">
-                    {{ Helper::calculateSubscriptionDiscount($plan->price, $plan->price_year) }}% {{ __('misc.discount') }}
+                    {{ $planDiscount }}% {{ __('misc.discount') }}
                   </small>
                 @endif
               </h2>
@@ -124,12 +145,12 @@
             <div class="card-body d-flex flex-column text-dark">
               <h1 class="card-title text-center text-dark mb-4">
                 <span class="planMonthly text-dark">
-                  <sup class="h4 fw-bold lh-1 text-dark">{{ $settings->currency_symbol }}</sup><span class="text-dark">{{ $plan->price }}</span>
+                  <sup class="h4 fw-bold lh-1 text-dark">{{ $curr['symbol'] }}</sup><span class="text-dark">{{ $isIndia ? number_format($monthlyPrice, 0) : number_format($monthlyPrice, 2) }}</span>
                   <small class="fw-light f-size-18 text-muted">/{{ __('misc.mo') }}</small>
                 </span>
 
                 <span class="planYearly text-dark display-none">
-                  <sup class="h4 fw-bold lh-1 text-dark">{{ $settings->currency_symbol }}</sup><span class="text-dark">{{ $plan->price_year }}</span>
+                  <sup class="h4 fw-bold lh-1 text-dark">{{ $curr['symbol'] }}</sup><span class="text-dark">{{ $isIndia ? number_format($yearlyPrice, 0) : number_format($yearlyPrice, 2) }}</span>
                   <small class="fw-light f-size-18 text-muted">/{{ __('misc.yr') }}</small>
                 </span>
               </h1>
@@ -173,12 +194,12 @@
                 <a
                   data-plan-id="{{ $plan->plan_id }}"
                   data-plan-name="{{ __('misc.plan_name', ['plan' => $plan->name]) }}"
-                  data-price="{{ Helper::amountFormatDecimal($plan->price) }}"
-                  data-price-total="{{ Helper::amountFormatDecimal($plan->price, true) }}"
-                  data-price-gross="{{ $plan->price }}"
-                  data-price-year="{{ Helper::amountFormatDecimal($plan->price_year) }}"
-                  data-price-year-gross="{{ $plan->price_year }}"
-                  data-price-year-total="{{ Helper::amountFormatDecimal($plan->price_year, true) }}"
+                  data-price="{{ Helper::formatPrice($monthlyPrice, $curr['code']) }}"
+                  data-price-total="{{ Helper::formatPrice($monthlyPrice, $curr['code'], true) }}"
+                  data-price-gross="{{ $monthlyPrice }}"
+                  data-price-year="{{ Helper::formatPrice($yearlyPrice, $curr['code']) }}"
+                  data-price-year-gross="{{ $yearlyPrice }}"
+                  data-price-year-total="{{ Helper::formatPrice($yearlyPrice, $curr['code'], true) }}"
                   href="@auth javascript:void(0); @else{{ url('/login') }}@endauth"
                   @if (auth()->check()) data-bs-toggle="modal" data-bs-target="#checkout" @endif
                   class="w-100 btn btn-lg rounded-pill py-3 fw-bold shadow-sm"
@@ -200,7 +221,7 @@
 
       <div class="d-block text-center w-100 fst-italic">
         <small>
-          {{ __('misc.prices_and_excludes_tax', ['currency' => $settings->currency_code]) }}
+          {{ __('misc.prices_and_excludes_tax', ['currency' => $curr['code']]) }}
         </small>
       </div>
 
@@ -261,30 +282,53 @@
                     <input type="hidden" id="interval" name="interval" value="month">
                     <input type="hidden" id="planId" name="plan" value="">
 
-                  @foreach (PaymentGateways::whereEnabled('1')->whereSubscription('1')->orderBy('type', 'DESC')->get() as $payment)
+                  @php
+                    $availableGateways = PaymentGateways::whereEnabled('1')->whereSubscription('1')->orderBy('type', 'DESC')->get();
+                    if ($isIndia) {
+                      $availableGateways = $availableGateways->filter(function($p) {
+                        return $p->name === 'Razorpay';
+                      });
+                    } else {
+                      $availableGateways = $availableGateways->filter(function($p) {
+                        return $p->name === 'PayPal';
+                      });
+                    }
+                  @endphp
+
+                  @forelse ($availableGateways as $payment)
                     <div class="form-check custom-radio mb-2">
-                      <input name="payment_gateway" value="{{$payment->id}}" id="payment_radio{{$payment->id}}" class="form-check-input radio-bws" type="radio">
+                      <input name="payment_gateway" value="{{$payment->id}}" id="payment_radio{{$payment->id}}" class="form-check-input radio-bws" type="radio" checked>
                       <label class="form-check-label" for="payment_radio{{$payment->id}}">
                         <span><img class="me-1 rounded" src="{{ url('public/img/payments', $payment->logo) }}" width="20" /> <strong>{{ $payment->name }}</strong></span>
                         <small class="w-100 d-block">
-                          @if ($payment->type == 'card')
+                          @if ($payment->name == 'Razorpay')
+                            UPI, Google Pay, PhonePe, Paytm, RuPay & Cards
+                          @elseif ($payment->name == 'PayPal')
+                            PayPal, Credit/Debit Cards, Apple Pay
+                          @elseif ($payment->type == 'card')
                             {{ __('misc.debit_credit_card') }}
-                          @endif
-
-                          @if ($payment->name == 'PayPal')
-                            {{ __('misc.paypal_info') }}
                           @endif
                         </small>
                       </label>
                     </div>
-                  @endforeach
+                  @empty
+                    @if ($isIndia)
+                      <div class="alert alert-warning py-2 mb-2 small">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Razorpay gateway is currently unavailable.
+                      </div>
+                    @else
+                      <div class="alert alert-warning py-2 mb-2 small">
+                        <i class="bi bi-exclamation-triangle me-1"></i> PayPal gateway is currently unavailable.
+                      </div>
+                    @endif
+                  @endforelse
 
                   <div class="form-check custom-radio mb-3">
-                    <input name="payment_gateway" @if (auth()->user()->funds == 0.00) disabled @endif value="wallet" id="wallet" class="form-check-input radio-bws" type="radio">
+                    <input name="payment_gateway" @if (auth()->user()->funds == 0.00) disabled @endif value="wallet" id="wallet" class="form-check-input radio-bws" type="radio" @if($availableGateways->isEmpty() && auth()->user()->funds > 0) checked @endif>
                     <label class="form-check-label" for="wallet">
                       <span><img class="me-1 rounded" src="{{ url('public/img/payments/wallet.png') }}" width="20" /> <strong>{{ __('misc.wallet') }}</strong></span>
                       <small class="w-100 d-block">
-                        {{ __('misc.available_balance') }}: <strong>{{Helper::amountFormatDecimal(auth()->user()->funds)}}</strong>
+                        {{ __('misc.available_balance') }}: <strong>{{Helper::formatPrice(auth()->user()->funds, $curr['code'])}}</strong>
                       </small>
                     </label>
                   </div>
@@ -329,7 +373,7 @@
           	      </div>
           	      <div class="col-auto percentageAppliedTax{{$loop->iteration}}" data="{{ $tax->percentage }}">
           	        <small class="font-weight-bold">
-          	        {{ $settings->currency_position == 'left' ? $settings->currency_symbol : null }}<span class="amount{{$loop->iteration}}"></span>{{ $settings->currency_position == 'right' ? $settings->currency_symbol : null }}
+          	        {{ $curr['symbol'] }}<span class="amount{{$loop->iteration}}"></span>
           	        </small>
           	      </div>
           	    </div>
@@ -343,7 +387,7 @@
                   <small class="fw-bold">{{ __('misc.total') }}:</small>
                 </div>
                 <div class="col-auto fw-bold">
-                  <small><span id="total"></span> {{ $settings->currency_code }}</small>
+                  <small><span id="total"></span> {{ $curr['code'] }}</small>
                 </div>
               </div>
             </li>

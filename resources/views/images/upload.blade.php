@@ -161,7 +161,7 @@
              <div class="form-floating mb-3">
                <select name="item_for_sale" class="form-select" id="itemForSale">
                  <option value="free">Free Prompt (Available to Free Users & Subscribers)</option>
-                 <option value="sale">Premium Prompt (Requires ₹149 Subscription Plan)</option>
+                 <option value="sale">Premium Prompt (Requires Pro Subscription Plan)</option>
                </select>
                <label for="itemForSale">Prompt Tier / Access Type</label>
              </div>

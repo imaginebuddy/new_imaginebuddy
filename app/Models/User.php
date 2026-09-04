@@ -130,6 +130,11 @@ class User extends Authenticatable
     return $this->belongsTo(Countries::class, 'countries_id')->first();
   }
 
+  public function countryRelation()
+  {
+    return $this->belongsTo(Countries::class, 'countries_id');
+  }
+
   public static function totalImages($id)
   {
     return Images::where('user_id', '=', $id)->where('status', 'active')->count();
@@ -194,6 +199,34 @@ class User extends Authenticatable
   public function subscriptionDailyUsage()
   {
     return $this->subscriptionDailyPromptCopies();
+  }
+
+  public function remainingDailyPromptCopies()
+  {
+    $subscription = $this->getSubscription();
+    if ($subscription) {
+      $planLimit = ($subscription->plan && $subscription->plan->download_limits)
+        ? $subscription->plan->download_limits
+        : 100;
+      return max(0, $planLimit - $this->subscriptionDailyPromptCopies());
+    }
+
+    $settings = AdminSettings::first();
+    $limit = $settings ? ($settings->daily_limit_downloads ?: 20) : 20;
+    return max(0, $limit - $this->freeDailyPromptCopies());
+  }
+
+  public function totalDailyPromptLimit()
+  {
+    $subscription = $this->getSubscription();
+    if ($subscription) {
+      return ($subscription->plan && $subscription->plan->download_limits)
+        ? $subscription->plan->download_limits
+        : 100;
+    }
+
+    $settings = AdminSettings::first();
+    return $settings ? ($settings->daily_limit_downloads ?: 20) : 20;
   }
 
   public function canCopyPrompt($image)
@@ -406,21 +439,21 @@ class User extends Authenticatable
   public function getSubscription()
   {
     return $this->mySubscription()
+      ->where('ends_at', '>=', now())
       ->where(function ($query) {
         $query->where(function ($q) {
-          $q->where('stripe_id', '=', '')
-            ->where('ends_at', '>=', now());
+          $q->where('cancelled', 'no')
+            ->where(function ($sq) {
+              $sq->whereNull('stripe_status')
+                ->orWhere('stripe_status', 'active');
+            });
         })
         ->orWhere(function ($q) {
-          $q->where('stripe_id', '<>', '')
-            ->where('stripe_status', 'active');
-        })
-        ->orWhere(function ($q) {
-          $q->where('stripe_id', '<>', '')
-            ->where('stripe_status', 'canceled')
+          $q->where('cancelled', 'yes')
             ->where('ends_at', '>=', now());
         });
       })
+      ->orderBy('id', 'desc')
       ->first();
   }
 

@@ -390,13 +390,22 @@
             </div>
             
             <!-- Bottom Action Buttons Row -->
-            <div class="d-flex align-items-center justify-content-between gap-2">
-              <button type="button" class="btn btn-dark rounded-pill ps-4 pe-2 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-copy-prompt shadow-sm" data-id="{{ $response->id }}" style="height: 44px;">
-                <span class="fs-6">Copy</span>
-                <span class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center ms-1" style="width: 30px; height: 30px;">
-                  <i class="bi bi-copy" style="font-size: 13px;"></i>
-                </span>
-              </button>
+            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+              <div class="d-flex align-items-center gap-3">
+                <button type="button" class="btn btn-dark rounded-pill ps-4 pe-2 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-copy-prompt shadow-sm" data-id="{{ $response->id }}" style="height: 44px;">
+                  <span class="fs-6 btn-copy-text">Copy</span>
+                  <span class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center ms-1" style="width: 30px; height: 30px;">
+                    <i class="bi bi-copy" style="font-size: 13px;"></i>
+                  </span>
+                </button>
+
+                @auth
+                  <div class="small text-muted d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-lightning-charge text-warning"></i>
+                    <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / {{ auth()->user()->totalDailyPromptLimit() }}</span>
+                  </div>
+                @endauth
+              </div>
             </div>
           @else
             <div class="p-4 prompt-inner-content-box position-relative mb-4 text-center overflow-hidden" style="min-height: 140px;">

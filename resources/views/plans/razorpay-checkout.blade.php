@@ -9,7 +9,7 @@
       <div class="col-md-6 text-center py-5">
         <div class="card border-0 shadow-sm p-4 rounded-3">
           <h3 class="fw-bold mb-3">Complete Your Subscription</h3>
-          <p class="text-muted mb-4">Plan: <strong>{{ $plan->name }}</strong> ({{ strtoupper($interval) }})</p>
+          <p class="text-muted mb-4">Plan: <strong>{{ $plan->name }}</strong> ({{ strtoupper($interval) }}) &bull; <strong class="text-dark">₹{{ number_format($order['amount'] / 100, 2) }}</strong></p>
 
           <form action="{{ url('razorpay/subscription/process') }}" method="POST" id="razorpayForm">
             @csrf
@@ -50,6 +50,12 @@
         "name": "{{ auth()->user()->name }}",
         "email": "{{ auth()->user()->email }}"
     },
+    "method": {
+        "upi": true,
+        "card": true,
+        "netbanking": true,
+        "wallet": true
+    },
     "theme": {
         "color": "#000000"
     }
@@ -59,5 +65,7 @@
     rzp1.open();
     e.preventDefault();
   }
+  // Auto-launch checkout
+  rzp1.open();
 </script>
 @endsection

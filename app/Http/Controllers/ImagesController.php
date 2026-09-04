@@ -29,6 +29,9 @@ class ImagesController extends Controller
 {
 	use Traits\UploadTrait, Traits\FunctionsTrait;
 
+	protected $settings;
+	protected $request;
+
 	public function __construct(AdminSettings $settings, Request $request)
 	{
 		$this->settings = $settings::first();
@@ -690,12 +693,12 @@ class ImagesController extends Controller
 		$typeArray     = ['small', 'medium', 'large', 'vector'];
 
 		// License
-		if (!in_array($license, $licensesArray) && auth()->id() != $image->user()->id) {
+		if (!in_array($license, $licensesArray) && auth()->id() != $image->user_id) {
 			abort(404);
 		}
 
 		// Type
-		if (!in_array($type, $typeArray) && auth()->id() != $image->user()->id) {
+		if (!in_array($type, $typeArray) && auth()->id() != $image->user_id) {
 			abort(404);
 		}
 
@@ -748,9 +751,13 @@ class ImagesController extends Controller
 
 		if (!$downloadCheckUser) {
 			$planUser = auth()->user()->getSubscription();
+			$planPrice = ($planUser->currency === 'INR' && ($planUser->plan->price_inr ?? 0) > 0)
+				? ($planUser->interval == 'month' ? $planUser->plan->price_inr : $planUser->plan->price_year_inr)
+				: ($planUser->interval == 'month' ? $planUser->plan->price : $planUser->plan->price_year);
+
 			$itemPrice = $planUser->interval == 'month'
-				? Helper::calculatePriceGrossByDownloads($planUser->plan->price, $planUser->plan->downloads_per_month, true)
-				: Helper::calculatePriceGrossByDownloads($planUser->plan->price_year, $planUser->plan->downloads_per_month);
+				? Helper::calculatePriceGrossByDownloads($planPrice, $planUser->plan->downloads_per_month, true)
+				: Helper::calculatePriceGrossByDownloads($planPrice, $planUser->plan->downloads_per_month);
 
 			if ($planUser->plan->download_limits != 0 && $dailyDownloads >= $planUser->plan->download_limits) {
 				return back()->withError(__('misc.reached_daily_download'));
@@ -761,11 +768,12 @@ class ImagesController extends Controller
 			}
 
 			// Admin and user earnings calculation
-			$earnings = $this->earningsAdminUser($image->user()->author_exclusive, $itemPrice, null, null);
+			$authorExclusive = $image->user ? $image->user->author_exclusive : 'no';
+			$earnings = $this->earningsAdminUser($authorExclusive, $itemPrice, null, null);
 			$directPayment = false;
 
 			// Stripe Connect
-			if ($image->user()->stripe_connect_id && $image->user()->completed_stripe_onboarding && $planUser->payment_gateway == 'Stripe') {
+			if ($image->user && $image->user->stripe_connect_id && $image->user->completed_stripe_onboarding && $planUser->payment_gateway == 'Stripe') {
 				try {
 					$payment = PaymentGateways::whereName('Stripe')->whereEnabled(1)->first();
 					// Stripe Client
@@ -776,7 +784,7 @@ class ImagesController extends Controller
 					$stripe->transfers->create([
 						'amount' => $earningsUser,
 						'currency' => $this->settings->currency_code,
-						'destination' => $image->user()->stripe_connect_id,
+						'destination' => $image->user->stripe_connect_id,
 						'description' => __('misc.stock_photo_purchase')
 					]);
 
@@ -785,28 +793,6 @@ class ImagesController extends Controller
 					\Log::info($e->getMessage());
 				}
 			}
-
-			// Referred
-			$earningAdminReferred = $this->referred(auth()->id(), $earnings['admin'], 'photo');
-
-			// Insert Purchase
-			$purchase                      = new Purchases();
-			$purchase->txn_id              = 'psub_' . str_random(25);
-			$purchase->images_id           = $image->id;
-			$purchase->user_id             = auth()->id();
-			$purchase->price               = $itemPrice;
-			$purchase->earning_net_seller  = $earnings['user'];
-			$purchase->earning_net_admin   = $earningAdminReferred ?: $earnings['admin'];
-			$purchase->payment_gateway     = $planUser->payment_gateway;
-			$purchase->type                = $type;
-			$purchase->license             = $license;
-			$purchase->order_id	           = substr(strtolower(md5(microtime() . mt_rand(1000, 9999))), 0, 15);
-			$purchase->purchase_code       = implode('-', str_split(substr(strtolower(md5(time() . mt_rand(1000, 9999))), 0, 27), 5));
-			$purchase->mode                = 'subscription';
-			$purchase->percentage_applied  = $earnings['percentageApplied'];
-			$purchase->referred_commission = $earningAdminReferred ? true : false;
-			$purchase->direct_payment      = $directPayment;
-			$purchase->save();
 
 			// Insert Download
 			$download            = new Downloads();
@@ -817,18 +803,14 @@ class ImagesController extends Controller
 			$download->size      = $type;
 			$download->save();
 
-			// Add Balance And Notify to User
-			$amountUserEarning = $directPayment ? 0 : $earnings['user'];
-
-			$this->AddBalanceAndNotify($image, auth()->id(), $amountUserEarning);
-
 			// Subtract download to user
 			auth()->user()->decrement('downloads', 1);
 
-			// Send Email to seller
-			try {
-				$purchase->user()->notify(new NewSale($purchase));
-			} catch (\Exception $e) {}
+			// If photo belongs to a 3rd-party contributor (not admin), credit their balance
+			$isOwnerAdmin = ($image->user_id == 1 || ($image->user && $image->user->isSuperAdmin()));
+			if (!$isOwnerAdmin && $image->user && !$directPayment && ($earnings['user'] ?? 0) > 0) {
+				$image->user->increment('balance', $earnings['user']);
+			}
 		}
 
 
@@ -1135,10 +1117,15 @@ class ImagesController extends Controller
 		// Increment copies count
 		$image->increment('copies_count');
 
+		$remaining = $user->remainingDailyPromptCopies();
+		$limit = $user->totalDailyPromptLimit();
+
 		return response()->json([
 			'success' => true,
 			'prompt' => $image->prompt ?: $image->title,
-			'message' => __('misc.prompt_copied_success') ?: 'Prompt copied to clipboard successfully!'
+			'remaining_copies' => $remaining,
+			'total_limit' => $limit,
+			'message' => __('misc.prompt_copied_success') ?: "Prompt copied! ($remaining remaining today)"
 		]);
 	}
 }

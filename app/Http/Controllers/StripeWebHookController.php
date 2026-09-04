@@ -165,10 +165,11 @@ class StripeWebHookController extends WebhookController
           $itemPrice = $this->priceItem($license, $priceItem, $type);
 
           // Admin and user earnings calculation
-          $earnings = $this->earningsAdminUser($image->user()->author_exclusive, $itemPrice, $payment->fee, $payment->fee_cents);
+          $authorExclusive = $image->user ? $image->user->author_exclusive : 'no';
+          $earnings = $this->earningsAdminUser($authorExclusive, $itemPrice, $payment->fee, $payment->fee_cents);
 
           // Stripe Connect
-          if ($image->user()->stripe_connect_id && $image->user()->completed_stripe_onboarding) {
+          if ($image->user && $image->user->stripe_connect_id && $image->user->completed_stripe_onboarding) {
             try {
               // Stripe Client
               $stripe = new \Stripe\StripeClient($payment->key_secret);
@@ -178,7 +179,7 @@ class StripeWebHookController extends WebhookController
               $stripe->transfers->create([
                 'amount' => $earningsUser,
                 'currency' => $settings->currency_code,
-                'destination' => $image->user()->stripe_connect_id,
+                'destination' => $image->user->stripe_connect_id,
                 'description' => trans('misc.stock_photo_purchase')
               ]);
 

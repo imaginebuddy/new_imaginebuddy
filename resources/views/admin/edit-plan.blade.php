@@ -34,16 +34,30 @@
 		        </div>
 
 						<div class="row mb-3">
-		          <label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.price_per_month') }}</label>
+		          <label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.price_per_month') }} (USD - $)</label>
 		          <div class="col-sm-10">
 		            <input  value="{{ $plan->price }}" required name="price" type="text" class="form-control isNumber" placeholder="0.00" autocomplete="off">
 		          </div>
 		        </div>
 
 						<div class="row mb-3">
-							<label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.price_per_year') }}</label>
+							<label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.price_per_year') }} (USD - $)</label>
 							<div class="col-sm-10">
 								<input  value="{{ $plan->price_year }}" required name="price_year" type="text" class="form-control isNumber" placeholder="0.00" autocomplete="off">
+							</div>
+						</div>
+
+						<div class="row mb-3">
+		          <label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.price_per_month') }} (INR - ₹)</label>
+		          <div class="col-sm-10">
+		            <input  value="{{ $plan->price_inr ?: 284.00 }}" required name="price_inr" type="text" class="form-control isNumber" placeholder="284.00" autocomplete="off">
+		          </div>
+		        </div>
+
+						<div class="row mb-3">
+							<label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.price_per_year') }} (INR - ₹)</label>
+							<div class="col-sm-10">
+								<input  value="{{ $plan->price_year_inr ?: 2550.00 }}" required name="price_year_inr" type="text" class="form-control isNumber" placeholder="2550.00" autocomplete="off">
 							</div>
 						</div>
 

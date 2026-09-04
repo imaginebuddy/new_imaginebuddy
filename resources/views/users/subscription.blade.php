@@ -85,7 +85,10 @@
 
       @if ($subscription->plan->download_limits)
         <small>{{ __('misc.limit_daily_downloads_available') }}</small>
-        <h6>{{ $subscription->plan->download_limits - auth()->user()->subscriptionDailyDownloads() }}</h6>
+        <h6>{{ max(0, $subscription->plan->download_limits - auth()->user()->subscriptionDailyDownloads()) }}</h6>
+
+        <small>{{ __('misc.limit_daily_copies_available') }}</small>
+        <h6>{{ auth()->user()->remainingDailyPromptCopies() }}</h6>
       @endif
 
       @endif
@@ -136,15 +139,20 @@
         <tbody>
           @foreach ($subscriptions as $subscription)
 
+            @php $subInvoice = $subscription->invoice; @endphp
             <tr>
-              <td>{{ str_pad($subscription->invoice()->id, 4, "0", STR_PAD_LEFT) }}</td>
-              <td>{{ Helper::amountFormat($subscription->invoice()->amount) }}</td>
-              <td>{{ date('d M, Y', strtotime($subscription->invoice()->created_at)) }}</td>
+              <td>{{ $subInvoice ? str_pad($subInvoice->id, 4, "0", STR_PAD_LEFT) : '—' }}</td>
+              <td>{{ $subInvoice ? Helper::formatPrice($subInvoice->amount, $subInvoice->currency) : $subscription->formatted_amount }}</td>
+              <td>{{ $subInvoice ? date('d M, Y', strtotime($subInvoice->created_at)) : date('d M, Y', strtotime($subscription->created_at)) }}</td>
               <td><small class="badge rounded-pill bg-success text-uppercase">{{ trans('misc.paid') }}</small></td>
 
                <td>
-                 <a href="{{url('invoice', $subscription->invoice()->id)}}" target="_blank"><i class="bi-receipt"></i> {{trans('misc.invoice')}}</a>
-                 </td>
+                 @if ($subInvoice)
+                   <a href="{{url('invoice', $subInvoice->id)}}" target="_blank"><i class="bi-receipt"></i> {{trans('misc.invoice')}}</a>
+                 @else
+                   —
+                 @endif
+               </td>
             </tr><!-- /.TR -->
             @endforeach
         </tbody>

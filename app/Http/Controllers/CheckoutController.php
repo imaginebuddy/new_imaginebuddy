@@ -87,7 +87,8 @@ class CheckoutController extends Controller
 		}
 
 		// Admin and user earnings calculation
-		$earnings = $this->earningsAdminUser($image->user()->author_exclusive, $itemPrice, null, null);
+		$authorExclusive = $image->user ? $image->user->author_exclusive : 'no';
+		$earnings = $this->earningsAdminUser($authorExclusive, $itemPrice, null, null);
 
 		// Insert purchase
 		$this->purchase(

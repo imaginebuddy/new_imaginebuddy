@@ -62,6 +62,37 @@ class SubscriptionsController extends Controller
 						]);
 					}
 
+					$isIndia = Helper::isIndia();
+					if ($isIndia && $payment->name !== 'Razorpay') {
+						return response()->json([
+								'success' => false,
+								'errors' => ['error' => 'Razorpay is the required payment gateway for customers in India.'],
+						]);
+					}
+
+					if (!$isIndia && $payment->name === 'Razorpay') {
+						return response()->json([
+								'success' => false,
+								'errors' => ['error' => 'Razorpay is only available for customers in India. Please select PayPal.'],
+						]);
+					}
+
+					// Razorpay JSON redirect for AJAX checkout
+					if ($payment->name == 'Razorpay') {
+						return response()->json([
+							'success' => true,
+							'url' => route('razorpay.subscription', $this->request->except(['_token']))
+						]);
+					}
+
+					// PayPal JSON redirect for AJAX checkout
+					if ($payment->name == 'PayPal') {
+						return response()->json([
+							'success' => true,
+							'url' => route('paypal.subscription', $this->request->except(['_token']))
+						]);
+					}
+
 					$routePayment = str_slug($payment->name).'.subscription';
 
 					// Send data to the payment processor
@@ -72,7 +103,8 @@ class SubscriptionsController extends Controller
 		private function wallet()
 		{
 			$plan = Plans::wherePlanId($this->request->plan)->whereStatus('1')->firstOrFail();
-			$planPrice = $this->request->interval == 'month' ? $plan->price : $plan->price_year;
+			$planPrice = $this->request->interval == 'month' ? $plan->localized_price : $plan->localized_price_year;
+			$currencyCode = Helper::currentCurrency()['code'];
 
 			if (auth()->user()->funds < Helper::amountGross($planPrice)) {
         return response()->json([
@@ -103,13 +135,17 @@ class SubscriptionsController extends Controller
       $subscription->interval = $this->request->interval;
       $subscription->taxes = auth()->user()->taxesPayable();
 			$subscription->payment_gateway = 'Wallet';
+			$subscription->payment_method = 'wallet';
+			$subscription->amount = $planPrice;
+			$subscription->currency = $currencyCode;
+			$subscription->country_code = Helper::resolveUserCountry();
       $subscription->save();
 
 			// Add downloads to user
 			auth()->user()->update(['downloads' => $plan->downloads_per_month]);
 
 			// Create Invoice
-			$this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true);
+			$this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true, $currencyCode);
 
 			// Subtract user funds
       auth()->user()->decrement('funds', Helper::amountGross($planPrice));
@@ -163,6 +199,7 @@ class SubscriptionsController extends Controller
 			}
 
 			$checkSubscription->cancelled = 'yes';
+			$checkSubscription->cancelled_at = now();
 			$checkSubscription->rebill_wallet = 'off';
 			$checkSubscription->save();
 

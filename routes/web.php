@@ -551,6 +551,8 @@ Route::group(['middleware' => 'role'], function() {
 
 	// Subscriptions
 	Route::get('panel/admin/subscriptions',[AdminController::class, 'subscriptions'])->name('subscriptions');
+	Route::get('panel/admin/subscriptions/{id}',[AdminController::class, 'subscriptionDetail'])->name('subscriptions.detail');
+	Route::post('panel/admin/subscriptions/{id}/cancel',[AdminController::class, 'adminCancelSubscription'])->name('subscriptions.cancel');
 
 	// Countries
 	Route::get('panel/admin/countries', [CountriesStatesController::class, 'countries'])->name('countries');

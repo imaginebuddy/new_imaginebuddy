@@ -32,6 +32,7 @@ use App\Notifications\DepositVerification;
 
 class AdminController extends Controller
 {
+	protected $settings;
 
 	public function __construct(AdminSettings $settings)
 	{
@@ -44,7 +45,7 @@ class AdminController extends Controller
 			return view('admin.unauthorized');
 		}
 
-		$earningNetAdmin = Purchases::whereApproved('1')->sum('earning_net_admin');
+		$earningNetAdmin = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->sum('earning_net_admin');
 
 		//  Calcule Chart Earnings last 30 days
 		for ($i = 0; $i <= 30; ++$i) {
@@ -52,10 +53,10 @@ class AdminController extends Controller
 			$date = date('Y-m-d', strtotime('-' . $i . ' day'));
 
 			// Earnings last 30 days
-			$sales = Purchases::whereApproved('1')->whereDate('purchases.date', '=', $date)->sum('earning_net_admin');
+			$sales = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->whereDate('purchases.date', '=', $date)->sum('earning_net_admin');
 
 			// Sales last 30 days
-			$salesLast30 = Purchases::whereApproved('1')->whereDate('purchases.date', '=', $date)->count();
+			$salesLast30 = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->whereDate('purchases.date', '=', $date)->count();
 
 			// Format Date on Chart
 			$formatDate = Helper::formatDateChart($date);
@@ -69,34 +70,34 @@ class AdminController extends Controller
 		}
 
 		// Today
-		$stat_revenue_today = Purchases::whereApproved('1')->where('purchases.date', '>=', Carbon::today())
+		$stat_revenue_today = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->where('purchases.date', '>=', Carbon::today())
 			->sum('earning_net_admin');
 
 		// Yesterday
-		$stat_revenue_yesterday = Purchases::whereApproved('1')->where('purchases.date', '>=', Carbon::yesterday())
+		$stat_revenue_yesterday = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->where('purchases.date', '>=', Carbon::yesterday())
 			->where('purchases.date', '<', Carbon::today())
 			->sum('earning_net_admin');
 
 		// Week
-		$stat_revenue_week = Purchases::whereApproved('1')->whereBetween('purchases.date', [
+		$stat_revenue_week = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->whereBetween('purchases.date', [
 			Carbon::parse()->startOfWeek(),
 			Carbon::parse()->endOfWeek(),
 		])->sum('earning_net_admin');
 
 		// Last Week
-		$stat_revenue_last_week = Purchases::whereApproved('1')->whereBetween('purchases.date', [
+		$stat_revenue_last_week = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->whereBetween('purchases.date', [
 			Carbon::now()->startOfWeek()->subWeek(),
 			Carbon::now()->subWeek()->endOfWeek(),
 		])->sum('earning_net_admin');
 
 		// Month
-		$stat_revenue_month = Purchases::whereApproved('1')->whereBetween('purchases.date', [
+		$stat_revenue_month = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->whereBetween('purchases.date', [
 			Carbon::parse()->startOfMonth(),
 			Carbon::parse()->endOfMonth(),
 		])->sum('earning_net_admin');
 
 		// Last Month
-		$stat_revenue_last_month = Purchases::whereApproved('1')->whereBetween('purchases.date', [
+		$stat_revenue_last_month = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->whereBetween('purchases.date', [
 			Carbon::now()->startOfMonth()->subMonth(),
 			Carbon::now()->subMonth()->endOfMonth(),
 		])->sum('earning_net_admin');
@@ -108,7 +109,7 @@ class AdminController extends Controller
 
 		$totalImages = Images::count();
 		$totalUsers  = User::count();
-		$totalSales = Purchases::whereApproved('1')->count();
+		$totalSales = Purchases::whereApproved('1')->where('mode', '!=', 'subscription')->count();
 
 		return view('admin.dashboard', [
 			'earningNetAdmin' => $earningNetAdmin,
@@ -1294,10 +1295,110 @@ class AdminController extends Controller
 		return back()->withSuccessMessage(trans('admin.success_update'));
 	}
 
-	public function subscriptions()
+	public function subscriptions(Request $request)
 	{
-		$subscriptions = Subscriptions::orderBy('id', 'DESC')->paginate(50);
-		return view('admin.subscriptions', ['subscriptions' => $subscriptions]);
+		$query = Subscriptions::with(['user.countryRelation', 'invoice', 'plan'])->orderBy('id', 'DESC');
+
+		// Filter by search query (username, name, email, transaction IDs)
+		if ($request->filled('q')) {
+			$q = trim($request->q);
+			$query->where(function ($sq) use ($q) {
+				$sq->where('id', $q)
+					->orWhere('last_payment', 'like', "%{$q}%")
+					->orWhere('stripe_id', 'like', "%{$q}%")
+					->orWhere('paypal_id', 'like', "%{$q}%")
+					->orWhere('gateway_order_id', 'like', "%{$q}%")
+					->orWhereHas('user', function ($uq) use ($q) {
+						$uq->where('username', 'like', "%{$q}%")
+							->orWhere('name', 'like', "%{$q}%")
+							->orWhere('email', 'like', "%{$q}%");
+					});
+			});
+		}
+
+		// Filter by status
+		if ($request->filled('status')) {
+			$now = now();
+			switch ($request->status) {
+				case 'active':
+					$query->where('ends_at', '>=', $now)
+						->where('cancelled', 'no')
+						->where(function ($sq) {
+							$sq->whereNull('stripe_status')->orWhere('stripe_status', 'active');
+						});
+					break;
+				case 'expiring_soon':
+					$query->where('ends_at', '>=', $now)
+						->where('ends_at', '<=', $now->copy()->addDays(3))
+						->where('cancelled', 'no');
+					break;
+				case 'cancelled':
+					$query->where('cancelled', 'yes');
+					break;
+				case 'expired':
+					$query->where('ends_at', '<', $now);
+					break;
+			}
+		}
+
+		// Filter by gateway
+		if ($request->filled('gateway')) {
+			$query->where('payment_gateway', $request->gateway);
+		}
+
+		// Filter by country
+		if ($request->filled('country')) {
+			$country = strtoupper(trim($request->country));
+			$query->where(function ($sq) use ($country) {
+				$sq->where('country_code', $country)
+					->orWhereHas('user.countryRelation', function ($cq) use ($country) {
+						$cq->where('country_code', $country);
+					});
+			});
+		}
+
+		// Filter by interval
+		if ($request->filled('interval')) {
+			$query->where('interval', $request->interval);
+		}
+
+		// Summary statistics
+		$now = now();
+		$stats = [
+			'total' => Subscriptions::count(),
+			'active' => Subscriptions::where('ends_at', '>=', $now)->where('cancelled', 'no')->count(),
+			'expiring_soon' => Subscriptions::where('ends_at', '>=', $now)->where('ends_at', '<=', $now->copy()->addDays(3))->where('cancelled', 'no')->count(),
+			'expired' => Subscriptions::where('ends_at', '<', $now)->count(),
+			'cancelled' => Subscriptions::where('cancelled', 'yes')->count(),
+			'revenue_inr' => Subscriptions::where('currency', 'INR')->sum('amount'),
+			'revenue_usd' => Subscriptions::where('currency', 'USD')->sum('amount'),
+		];
+
+		$subscriptions = $query->paginate(30)->appends($request->except('page'));
+
+		return view('admin.subscriptions', compact('subscriptions', 'stats'));
+	}
+
+	public function subscriptionDetail($id)
+	{
+		$subscription = Subscriptions::with(['user.countryRelation', 'invoice', 'plan'])->findOrFail($id);
+
+		if (request()->ajax() || request()->wantsJson()) {
+			return view('admin.subscription-detail-modal', compact('subscription'))->render();
+		}
+
+		return view('admin.subscription-detail-modal', compact('subscription'));
+	}
+
+	public function adminCancelSubscription($id)
+	{
+		$subscription = Subscriptions::findOrFail($id);
+		$subscription->cancelled = 'yes';
+		$subscription->cancelled_at = now();
+		$subscription->rebill_wallet = 'off';
+		$subscription->save();
+
+		return redirect()->back()->withSuccess(__('misc.subscription_canceled_success'));
 	}
 
 	public function collections()

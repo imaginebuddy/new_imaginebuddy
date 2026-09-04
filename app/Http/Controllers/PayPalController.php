@@ -251,7 +251,8 @@ class PayPalController extends Controller
               $itemPrice = $this->priceItem($data['license'], $priceItem, $data['type']);
 
               // Admin and user earnings calculation
-              $earnings = $this->earningsAdminUser($image->user()->author_exclusive, $itemPrice, $payment->fee, $payment->fee_cents);
+              $authorExclusive = $image->user ? $image->user->author_exclusive : 'no';
+              $earnings = $this->earningsAdminUser($authorExclusive, $itemPrice, $payment->fee, $payment->fee_cents);
 
               // Check outh POST variable and insert in DB
               $verifiedTxnId = Purchases::where('txn_id', $txnId)->first();
@@ -352,7 +353,8 @@ class PayPalController extends Controller
 
     try {
       // Create Plan
-      $planPayPal = 'plan_' . $plan->plan_id;
+      $planPayPal = 'plan_' . $plan->plan_id . '_' . $this->request->interval;
+      $usdAmount = $this->request->interval == 'month' ? ($plan->price ?: 3.00) : ($plan->price_year ?: 27.00);
 
       $requestIdPlan = 'create-plan-' . time();
 
@@ -371,8 +373,8 @@ class PayPalController extends Controller
             'total_cycles' => 0,
             'pricing_scheme' => [
               'fixed_price' => [
-                'value' => Helper::amountGross($plan->price),
-                'currency_code' => config('settings.currency_code'),
+                'value' => number_format($usdAmount, 2, '.', ''),
+                'currency_code' => 'USD',
               ],
             ]
           ]
@@ -521,6 +523,8 @@ class PayPalController extends Controller
             }
           }
 
+          $planAmount = $data['interval'] == 'year' ? ($plan->price_year ?: 27.00) : ($plan->price ?: 3.00);
+
           // Insert if the subscription does not exist
           if (!$subscription) {
             // Insert DB
@@ -528,10 +532,15 @@ class PayPalController extends Controller
             $subscription->user_id = $data['subscriber'];
             $subscription->stripe_price = $plan->plan_id;
             $subscription->paypal_id = $subscriptionId;
+            $subscription->last_payment = $payload['resource']['id'] ?? $subscriptionId;
+            $subscription->payment_gateway = 'PayPal';
+            $subscription->payment_method = 'paypal';
+            $subscription->amount = $planAmount;
+            $subscription->currency = 'USD';
+            $subscription->country_code = ($subscriber->country() ? $subscriber->country()->country_code : 'US');
             $subscription->interval = $data['interval'];
             $subscription->ends_at = Helper::planInterval($data['interval']);
             $subscription->taxes = $taxes ?? null;
-		        $subscription->payment_gateway = 'PayPal';
             $subscription->save();
 
             // Add downloads to user
@@ -539,7 +548,7 @@ class PayPalController extends Controller
           }
 
           // Create Invoice
-          $this->invoiceSubscription($subscription->user_id, $subscription->id, $plan->price, $taxes, true);
+          $this->invoiceSubscription($subscription->user_id, $subscription->id, $planAmount, $taxes, true, 'USD');
 
         }
       } // Payment Sale Completed
@@ -553,6 +562,7 @@ class PayPalController extends Controller
 
       if ($subscription) {
         $subscription->cancelled = 'yes';
+        $subscription->cancelled_at = now();
         $subscription->save();
       }
     }

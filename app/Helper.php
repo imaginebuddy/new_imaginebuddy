@@ -585,20 +585,104 @@ class Helper
 		return json_decode($ch);
 	}
 
+	public static function resolveUserCountry()
+	{
+		// 1. Session check
+		if (session()->has('user_country')) {
+			return session('user_country');
+		}
+
+		// 2. Logged-in user's profile country
+		if (auth()->check()) {
+			$country = auth()->user()->country();
+			if ($country && !empty($country->country_code)) {
+				session()->put('user_country', strtoupper($country->country_code));
+				return strtoupper($country->country_code);
+			}
+		}
+
+		// 3. IP Cache check
+		$ip = request()->ip();
+		if ($ip && cache()->has('userCountry-' . $ip)) {
+			$code = cache('userCountry-' . $ip);
+			if (!empty($code) && $code != 'null') {
+				session()->put('user_country', strtoupper($code));
+				return strtoupper($code);
+			}
+		}
+
+		// 4. Localhost / Private IP fallback
+		if ($ip == '127.0.0.1' || $ip == '::1' || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.')) {
+			$localCountry = env('GEOIP_DEFAULT_COUNTRY', 'IN');
+			session()->put('user_country', strtoupper($localCountry));
+			return strtoupper($localCountry);
+		}
+
+		// 5. Default fallback to Non-India (US)
+		return 'US';
+	}
+
+	public static function isIndia()
+	{
+		return self::resolveUserCountry() === 'IN';
+	}
+
+	public static function currentCurrency()
+	{
+		if (self::isIndia()) {
+			return [
+				'code' => 'INR',
+				'symbol' => '₹',
+				'name' => 'Indian Rupee'
+			];
+		}
+
+		return [
+			'code' => 'USD',
+			'symbol' => '$',
+			'name' => 'US Dollar'
+		];
+	}
+
+	public static function formatPrice($value, $currencyCode = null, $applyTax = false)
+	{
+		if (auth()->check() && $applyTax) {
+			$isTaxable = auth()->user()->isTaxable();
+			$taxes = 0;
+
+			if ($applyTax && $isTaxable->count()) {
+				foreach ($isTaxable as $tax) {
+					$taxes += $tax->percentage;
+				}
+				$valueWithTax = number_format($taxes * $value / 100, 2);
+				$value = ($value + $valueWithTax);
+			}
+		}
+
+		$symbol = ($currencyCode === 'INR' || ($currencyCode === null && self::isIndia())) ? '₹' : '$';
+
+		if (config('settings.decimal_format') == 'dot') {
+			$decimalDot = '.';
+			$decimalComma = ',';
+		} else {
+			$decimalDot = ',';
+			$decimalComma = '.';
+		}
+
+		if ($symbol === '₹') {
+			return '₹' . number_format($value, 2, $decimalDot, $decimalComma);
+		}
+
+		if (config('settings.currency_position') == 'right') {
+			return number_format($value, 2, $decimalDot, $decimalComma) . $symbol;
+		}
+
+		return $symbol . number_format($value, 2, $decimalDot, $decimalComma);
+	}
+
 	public static function userCountry()
 	{
-		$ip = request()->ip();
-		if (cache('userCountry-' . $ip)) {
-
-			// Give access to Admin or staff if their country has been blocked.
-			if (auth()->check() && auth()->user()->permission == 'all') {
-				return 'null';
-			}
-
-			return cache('userCountry-' . $ip);
-		} else {
-			return 'null';
-		}
+		return self::resolveUserCountry();
 	}
 
 	public static function amountGross($amount)

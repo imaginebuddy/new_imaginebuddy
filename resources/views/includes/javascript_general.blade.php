@@ -91,13 +91,20 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
       btn.prop('disabled', false).html(originalHtml);
       if (response.success) {
         var promptText = response.prompt;
+        var remainingMsg = (response.remaining_copies !== undefined) ? ' (' + response.remaining_copies + ' left)' : '';
+        if (response.remaining_copies !== undefined) {
+          $('.remaining-copies-count').text(response.remaining_copies);
+        }
+
+        var applyCopiedState = function() {
+          btn.removeClass('btn-primary btn-dark').addClass('btn-success').html('<i class="bi bi-check-lg me-1"></i> Copied!' + remainingMsg);
+          setTimeout(function() {
+            btn.removeClass('btn-success').html(originalHtml);
+          }, 3000);
+        };
+
         if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(promptText).then(function() {
-            btn.removeClass('btn-primary').addClass('btn-success').html('<i class="bi bi-check-lg me-1"></i> Copied!');
-            setTimeout(function() {
-              btn.removeClass('btn-success').addClass('btn-primary').html(originalHtml);
-            }, 3000);
-          });
+          navigator.clipboard.writeText(promptText).then(applyCopiedState);
         } else {
           var textArea = document.createElement("textarea");
           textArea.value = promptText;
@@ -107,10 +114,7 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
             document.execCommand("copy");
           } catch(err) {}
           document.body.removeChild(textArea);
-          btn.removeClass('btn-primary').addClass('btn-success').html('<i class="bi bi-check-lg me-1"></i> Copied!');
-          setTimeout(function() {
-            btn.removeClass('btn-success').addClass('btn-primary').html(originalHtml);
-          }, 3000);
+          applyCopiedState();
         }
       }
     },

@@ -75,8 +75,8 @@
 		theme: "bootstrap-5",
 	});
 
-	// Delete Post, Categories, Members, Languages, etc...
-	$(".actionDelete").on('click', function (e) {
+	// Delete Post, Categories, Members, Languages, Subscriptions, etc...
+	$(document).on('click', '.actionDelete', function (e) {
 		e.preventDefault();
 
 		var element = $(this);

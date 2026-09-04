@@ -54,18 +54,18 @@ class RebillWallet implements ShouldQueue
           $totalTaxes = ($originalPlanPrice * $taxes->sum('percentage') / 100);
           $planPrice = ($originalPlanPrice + $totalTaxes);
 
-          if ($subscription->user()->funds >= $planPrice) {
+          if ($subscription->user && $subscription->user->funds >= $planPrice) {
             // Create Invoice
       			$this->invoiceSubscription($subscription->user_id, $subscription->id, $originalPlanPrice, $subscription->taxes, true);
 
             // Subtract user funds
-            $subscription->user()->decrement('funds', $planPrice);
+            $subscription->user->decrement('funds', $planPrice);
 
             // Downloads per month
             if ($plan->unused_downloads_rollover) {
-              $subscription->user()->increment('downloads', $plan->downloads_per_month);
+              $subscription->user->increment('downloads', $plan->downloads_per_month);
             } else {
-              $subscription->user()->update(['downloads' => $plan->downloads_per_month]);
+              $subscription->user->update(['downloads' => $plan->downloads_per_month]);
             }
 
             $subscription->update([
@@ -73,7 +73,9 @@ class RebillWallet implements ShouldQueue
       					]);
           } else {
             // Remove downloads and turn off rebill to prevent infinite hourly loop
-            $subscription->user()->update(['downloads' => 0]);
+            if ($subscription->user) {
+              $subscription->user->update(['downloads' => 0]);
+            }
             $subscription->update([
               'rebill_wallet' => 'off',
               'cancelled' => 'yes'

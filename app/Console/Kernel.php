@@ -30,6 +30,7 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping();
 
         $schedule->job(new RebillWallet)->hourly();
+        $schedule->command('subscriptions:check-expirations')->hourly();
     }
 
     /**
