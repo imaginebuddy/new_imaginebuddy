@@ -82,6 +82,16 @@
       @if (auth()->user()->getSubscription())
       <small>{{ __('misc.available_downloads') }}</small>
       <h6>{{ auth()->user()->downloads }}</h6>
+      @if ($subscription->interval == 'year' && $subscription->cancelled == 'no' && $subscription->stripe_status == 'active')
+        @php
+          $nextRefillDate = \Carbon\Carbon::parse($subscription->last_refilled_at ?: $subscription->created_at)->addMonth();
+        @endphp
+        @if ($nextRefillDate->lessThanOrEqualTo(\Carbon\Carbon::parse($subscription->ends_at)))
+          <small class="text-muted d-block mt-n1 mb-2" style="font-size: 0.82rem;">
+            <i class="bi bi-arrow-repeat me-1 text-primary"></i> Refills monthly (Next: <strong>{{ Helper::formatDate($nextRefillDate) }}</strong>)
+          </small>
+        @endif
+      @endif
 
       @if ($subscription->plan->download_limits)
         <small>{{ __('misc.limit_daily_downloads_available') }}</small>

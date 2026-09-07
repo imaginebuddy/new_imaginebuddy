@@ -295,10 +295,13 @@ class PayPalController extends Controller
     // Check Subscription
     $currentSub = auth()->user()->getSubscription();
     if ($currentSub && $currentSub->stripe_price == $plan->plan_id && $currentSub->interval == $this->request->interval && $currentSub->cancelled == 'no') {
-      return response()->json([
-        'success' => false,
-        'errors' => ['error' => __('misc.subscription_exists')],
-      ]);
+      if ($this->request->expectsJson()) {
+        return response()->json([
+          'success' => false,
+          'errors' => ['error' => __('misc.subscription_exists')],
+        ]);
+      }
+      return redirect('pricing')->withError(__('misc.subscription_exists'));
     }
 
     // Get Payment Gateway
@@ -344,10 +347,13 @@ class PayPalController extends Controller
         }
 
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'errors' => ['error' => $e->getMessage()]
-      ]);
+      if ($this->request->expectsJson()) {
+        return response()->json([
+          'success' => false,
+          'errors' => ['error' => $e->getMessage()]
+        ]);
+      }
+      return redirect('pricing')->withError($e->getMessage());
     }
       
 
@@ -385,10 +391,13 @@ class PayPalController extends Controller
         ],
       ], $requestIdPlan);
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'errors' => ['error' => $e->getMessage()]
-      ]);
+      if ($this->request->expectsJson()) {
+        return response()->json([
+          'success' => false,
+          'errors' => ['error' => $e->getMessage()]
+        ]);
+      }
+      return redirect('pricing')->withError($e->getMessage());
     }
 
     try {
@@ -415,15 +424,22 @@ class PayPalController extends Controller
         ])
       ]);
 
-      return response()->json([
-        'success' => true,
-        'url' => $subscription['links'][0]['href']
-      ]);
+      if ($this->request->expectsJson()) {
+        return response()->json([
+          'success' => true,
+          'url' => $subscription['links'][0]['href']
+        ]);
+      }
+
+      return redirect()->away($subscription['links'][0]['href']);
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'errors' => ['error' => $e->getMessage()]
-      ]);
+      if ($this->request->expectsJson()) {
+        return response()->json([
+          'success' => false,
+          'errors' => ['error' => $e->getMessage()]
+        ]);
+      }
+      return redirect('pricing')->withError($e->getMessage());
     }
   }
 
@@ -541,6 +557,7 @@ class PayPalController extends Controller
             $subscription->interval = $data['interval'];
             $subscription->ends_at = Helper::planInterval($data['interval']);
             $subscription->taxes = $taxes ?? null;
+            $subscription->last_refilled_at = now();
             $subscription->save();
 
             // Add downloads to user

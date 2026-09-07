@@ -92,7 +92,7 @@ class User extends Authenticatable
 
   public function collections()
   {
-    return $this->hasMany(Collections::class)->where('type', 'public');
+    return $this->hasMany(Collections::class);
   }
 
   public function likes()
@@ -422,6 +422,10 @@ class User extends Authenticatable
    */
   public function hasPermission($section)
   {
+    if (! $this->role()) {
+      return false;
+    }
+
     $permissions = explode(',', $this->role()->permissions);
 
     return in_array($section, $permissions)

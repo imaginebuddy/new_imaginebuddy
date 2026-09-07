@@ -21,13 +21,15 @@
             {{$user->username}}
           </a>
 
-          @if (auth()->check() && auth()->id() == $collectionData->user_id)
+          @if (auth()->check() && (auth()->id() == $collectionData->user_id || auth()->user()->isSuperAdmin()))
 
           <span class="float-end">
+            @if (auth()->id() == $collectionData->user_id)
             <a class="text-muted btn btn-sm bg-white border me-2 e-none btn-category" href="javascript:void(0);"
               data-bs-toggle="modal" data-bs-target="#collections">
               {{trans('admin.edit')}}
             </a>
+            @endif
 
             <a class="text-danger btn btn-sm bg-white border me-2 e-none btn-category actionDelete"
               data-url="{{url('collection/delete',$collectionData->id)}}" href="javascript:void(0);">

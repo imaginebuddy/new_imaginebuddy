@@ -20,8 +20,14 @@ class RazorpayController extends Controller
         $payment = PaymentGateways::whereName('Razorpay')->firstOrFail();
         $plan = Plans::wherePlanId($request->plan)->whereStatus('1')->firstOrFail();
 
-        $amount = $request->interval == 'month' ? ($plan->price_inr ?: 284.00) : ($plan->price_year_inr ?: 2550.00);
-        $totalAmount = round($amount * 100); // in paise
+        $isIndia = Helper::isIndia();
+        $currency = $isIndia ? 'INR' : 'USD';
+        if ($isIndia) {
+            $amount = $request->interval == 'month' ? ($plan->price_inr ?: 284.00) : ($plan->price_year_inr ?: 2550.00);
+        } else {
+            $amount = $request->interval == 'month' ? ($plan->price ?: 3.00) : ($plan->price_year ?: 27.00);
+        }
+        $totalAmount = round($amount * 100); // in paise for INR, cents for USD
 
         try {
             $api = new Api($payment->key, $payment->key_secret);
@@ -29,7 +35,7 @@ class RazorpayController extends Controller
             $orderData = [
                 'receipt'         => 'sub_' . auth()->id() . '_' . time(),
                 'amount'          => (int) $totalAmount,
-                'currency'        => 'INR',
+                'currency'        => $currency,
                 'payment_capture' => 1
             ];
 
@@ -69,17 +75,32 @@ class RazorpayController extends Controller
         }
 
         $plan = Plans::wherePlanId($request->plan_id)->firstOrFail();
-        $planPrice = $request->interval == 'month' ? ($plan->price_inr ?: 284.00) : ($plan->price_year_inr ?: 2550.00);
 
-        // Fetch payment details to capture exact payment method (upi, card, netbanking, wallet)
+        $isIndia = Helper::isIndia();
+        $currency = $isIndia ? 'INR' : 'USD';
+
+        // Fetch payment details to capture exact payment method and currency from Razorpay
         $paymentMethod = 'card';
         try {
             $razorpayPayment = $api->payment->fetch($request->razorpay_payment_id);
-            if ($razorpayPayment && isset($razorpayPayment->method)) {
-                $paymentMethod = strtolower($razorpayPayment->method);
+            if ($razorpayPayment) {
+                if (isset($razorpayPayment->method)) {
+                    $paymentMethod = strtolower($razorpayPayment->method);
+                }
+                if (isset($razorpayPayment->currency)) {
+                    $currency = strtoupper($razorpayPayment->currency);
+                }
             }
         } catch (\Exception $e) {
-            \Log::info('Could not fetch Razorpay payment method: ' . $e->getMessage());
+            \Log::info('Could not fetch Razorpay payment details: ' . $e->getMessage());
+        }
+
+        if ($currency === 'INR') {
+            $planPrice = $request->interval == 'month' ? ($plan->price_inr ?: 284.00) : ($plan->price_year_inr ?: 2550.00);
+            $countryCode = 'IN';
+        } else {
+            $planPrice = $request->interval == 'month' ? ($plan->price ?: 3.00) : ($plan->price_year ?: 27.00);
+            $countryCode = auth()->user()->country() ? auth()->user()->country()->country_code : 'US';
         }
 
         $subscription = new Subscriptions();
@@ -92,14 +113,15 @@ class RazorpayController extends Controller
         $subscription->payment_method = $paymentMethod;
         $subscription->gateway_order_id = $request->razorpay_order_id;
         $subscription->amount = $planPrice;
-        $subscription->currency = 'INR';
-        $subscription->country_code = 'IN';
+        $subscription->currency = $currency;
+        $subscription->country_code = $countryCode;
         $subscription->ends_at = Helper::planInterval($request->interval);
         $subscription->interval = $request->interval;
+        $subscription->last_refilled_at = now();
         $subscription->save();
 
         // Create Invoice
-        $this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true, 'INR');
+        $this->invoiceSubscription($subscription->user_id, $subscription->id, $planPrice, auth()->user()->taxesPayable(), true, $currency);
 
         auth()->user()->update([
             'downloads' => $plan->downloads_per_month

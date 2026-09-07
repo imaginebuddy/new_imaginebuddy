@@ -155,7 +155,11 @@ class CollectionController extends Controller {
    */
 	public function destroy($id){
 
-	  $collection = Collections::whereId($id)->whereUserId(auth()->id())->firstOrFail();
+		if (auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'))) {
+			$collection = Collections::whereId($id)->firstOrFail();
+		} else {
+			$collection = Collections::whereId($id)->whereUserId(auth()->id())->firstOrFail();
+		}
 
 		// Delete images on collection
 		 CollectionsImages::whereCollectionsId($id)->delete();

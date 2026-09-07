@@ -82,6 +82,15 @@
 						</fieldset>
 
 						<fieldset class="row mb-3">
+							<legend class="col-form-label col-sm-2 pt-0 text-lg-end">{{ __('misc.subscription') }}</legend>
+							<div class="col-sm-10">
+								<div class="form-check form-switch form-switch-md">
+									<input class="form-check-input" type="checkbox" name="subscription" @if ($data->subscription) checked="checked" @endif value="1" role="switch">
+								</div>
+							</div>
+						</fieldset>
+
+						<fieldset class="row mb-3">
 							<legend class="col-form-label col-sm-2 pt-0 text-lg-end">Sandbox</legend>
 							<div class="col-sm-10">
 								<div class="form-check form-switch form-switch-md">

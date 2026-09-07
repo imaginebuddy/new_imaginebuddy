@@ -16,6 +16,8 @@
 			</div>
 		</a><!-- end link -->
 
+    {{-- HIDDEN_NAV: Dashboard (/user/dashboard) --}}
+    @if(false)
     @if ($settings->sell_option == 'on')
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard'))active @endif" href="{{ url('user/dashboard') }}">
 			<div>
@@ -28,7 +30,10 @@
 			</div>
 		</a><!-- end link -->
   @endif
+  @endif
 
+    {{-- HIDDEN_NAV: Photos (/user/dashboard/photos) --}}
+    @if(false)
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard/photos'))active @endif" href="{{ url('user/dashboard/photos') }}">
 			<div>
 				<i class="bi bi-images me-2"></i>
@@ -39,7 +44,10 @@
 				<i class="bi bi-chevron-right"></i>
 			</div>
 		</a><!-- end link -->
+    @endif
 
+    {{-- HIDDEN_NAV: Sales (/user/dashboard/sales) --}}
+    @if(false)
     @if ($settings->sell_option == 'on')
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard/sales'))active @endif" href="{{ url('user/dashboard/sales') }}">
 			<div>
@@ -52,7 +60,10 @@
 			</div>
 		</a><!-- end link -->
   @endif
+  @endif
 
+   {{-- HIDDEN_NAV: Purchases (/user/dashboard/purchases) --}}
+   @if(false)
    @if ($settings->sell_option == 'on')
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard/purchases'))active @endif" href="{{ url('user/dashboard/purchases') }}">
 			<div>
@@ -64,6 +75,7 @@
 				<i class="bi bi-chevron-right"></i>
 			</div>
 		</a><!-- end link -->
+  @endif
   @endif
 
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard/downloads'))active @endif" href="{{ url('user/dashboard/downloads') }}">
@@ -112,6 +124,8 @@
 			</div>
 		</a><!-- end link -->
 
+    {{-- HIDDEN_NAV: Referrals (/my/referrals) --}}
+    @if(false)
     @if ($settings->referral_system == 'on')
       <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('my/referrals'))active @endif" href="{{ url('my/referrals') }}">
   			<div>
@@ -124,7 +138,10 @@
   			</div>
   		</a><!-- end link -->
     @endif
+    @endif
 
+    {{-- HIDDEN_NAV: Payout Method (/user/dashboard/withdrawals/configure) --}}
+    @if(false)
     @if ($settings->sell_option == 'on')
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard/withdrawals/configure'))active @endif" href="{{ url('user/dashboard/withdrawals/configure') }}">
 			<div>
@@ -137,7 +154,10 @@
 			</div>
 		</a><!-- end link -->
   @endif
+  @endif
 
+  {{-- HIDDEN_NAV: Withdrawals (/user/dashboard/withdrawals) --}}
+  @if(false)
   @if ($settings->sell_option == 'on')
     <a class="list-group-item list-group-item-action d-flex justify-content-between @if (request()->is('user/dashboard/withdrawals'))active @endif" href="{{ url('user/dashboard/withdrawals') }}">
 			<div>
@@ -149,6 +169,7 @@
 				<i class="bi bi-chevron-right"></i>
 			</div>
 		</a><!-- end link -->
+  @endif
   @endif
   </div>
 </div>

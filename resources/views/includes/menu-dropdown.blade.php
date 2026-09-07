@@ -3,6 +3,8 @@
   <li><hr class="dropdown-divider"></li>
 @endif
 
+{{-- HIDDEN_NAV: Balance and Add Funds (/user/dashboard/add/funds) --}}
+@if(false)
 @if ($settings->sell_option == 'on')
 <li>
   <span class="dropdown-item disable-item">
@@ -15,6 +17,7 @@
 </a>
 </li>
 @endif
+@endif
 
 @if ($settings->daily_limit_downloads != 0 && auth()->user()->role != 'admin')
     <li>
@@ -24,12 +27,15 @@
     </li>
 @endif
 
+{{-- HIDDEN_NAV: Dashboard (/user/dashboard) --}}
+@if(false)
 @if ($settings->sell_option == 'on')
   <li>
   <a class="dropdown-item" href="{{ url('user/dashboard') }}">
       <i class="bi bi-speedometer2 me-2"></i> {{ __('admin.dashboard') }}
       </a>
   </li>
+@endif
 @endif
 
 <li>
@@ -45,11 +51,14 @@
     </a>
 </li>
 
+{{-- HIDDEN_NAV: Purchases (/user/dashboard/purchases) --}}
+@if(false)
 <li>
 <a class="dropdown-item" href="{{ url('user/dashboard/purchases') }}">
     <i class="bi-bag-check me-2"></i> {{ __('misc.my_purchases') }}
     </a>
 </li>
+@endif
 @endif
 
 <li>
@@ -64,12 +73,15 @@
     </a>
 </li>
 
+{{-- HIDDEN_NAV: Referrals (/my/referrals) --}}
+@if(false)
 @if ($settings->referral_system == 'on')
 <li>
 <a class="dropdown-item" href="{{ url('my/referrals') }}">
     <i class="bi-person-plus me-2"></i> {{ __('misc.referrals') }}
     </a>
 </li>
+@endif
 @endif
 
 <li>

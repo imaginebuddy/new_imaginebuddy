@@ -283,26 +283,31 @@
                     <input type="hidden" id="planId" name="plan" value="">
 
                   @php
-                    $availableGateways = PaymentGateways::whereEnabled('1')->whereSubscription('1')->orderBy('type', 'DESC')->get();
+                    $allGateways = PaymentGateways::whereEnabled('1')->whereSubscription('1')->orderBy('type', 'DESC')->get();
                     if ($isIndia) {
-                      $availableGateways = $availableGateways->filter(function($p) {
+                      $availableGateways = $allGateways->filter(function($p) {
                         return $p->name === 'Razorpay';
                       });
                     } else {
-                      $availableGateways = $availableGateways->filter(function($p) {
-                        return $p->name === 'PayPal';
+                      // International: Allow Razorpay (Card) and PayPal/Stripe (if enabled)
+                      $availableGateways = $allGateways->filter(function($p) {
+                        return in_array($p->name, ['Razorpay', 'PayPal', 'Stripe']);
                       });
                     }
                   @endphp
 
                   @forelse ($availableGateways as $payment)
                     <div class="form-check custom-radio mb-2">
-                      <input name="payment_gateway" value="{{$payment->id}}" id="payment_radio{{$payment->id}}" class="form-check-input radio-bws" type="radio" checked>
+                      <input name="payment_gateway" value="{{$payment->id}}" id="payment_radio{{$payment->id}}" class="form-check-input radio-bws" type="radio" @if($loop->first) checked @endif>
                       <label class="form-check-label" for="payment_radio{{$payment->id}}">
                         <span><img class="me-1 rounded" src="{{ url('public/img/payments', $payment->logo) }}" width="20" /> <strong>{{ $payment->name }}</strong></span>
                         <small class="w-100 d-block">
                           @if ($payment->name == 'Razorpay')
-                            UPI, Google Pay, PhonePe, Paytm, RuPay & Cards
+                            @if ($isIndia)
+                              UPI, Google Pay, PhonePe, Paytm, RuPay & Cards
+                            @else
+                              Credit / Debit Cards (Visa, Mastercard, Amex)
+                            @endif
                           @elseif ($payment->name == 'PayPal')
                             PayPal, Credit/Debit Cards, Apple Pay
                           @elseif ($payment->type == 'card')
@@ -318,11 +323,13 @@
                       </div>
                     @else
                       <div class="alert alert-warning py-2 mb-2 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i> PayPal gateway is currently unavailable.
+                        <i class="bi bi-exclamation-triangle me-1"></i> Payment gateway is currently unavailable.
                       </div>
                     @endif
                   @endforelse
 
+                  {{-- HIDDEN: Wallet payment option in subscription checkout modal --}}
+                  @if(false)
                   <div class="form-check custom-radio mb-3">
                     <input name="payment_gateway" @if (auth()->user()->funds == 0.00) disabled @endif value="wallet" id="wallet" class="form-check-input radio-bws" type="radio" @if($availableGateways->isEmpty() && auth()->user()->funds > 0) checked @endif>
                     <label class="form-check-label" for="wallet">
@@ -332,6 +339,7 @@
                       </small>
                     </label>
                   </div>
+                  @endif
                 </div>
                 <div class="col-md-6 ps-0">
 

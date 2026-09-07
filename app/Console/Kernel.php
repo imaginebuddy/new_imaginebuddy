@@ -31,6 +31,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->job(new RebillWallet)->hourly();
         $schedule->command('subscriptions:check-expirations')->hourly();
+        $schedule->command('subscriptions:refill-yearly')->hourly();
     }
 
     /**

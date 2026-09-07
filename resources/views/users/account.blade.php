@@ -76,6 +76,8 @@
 				</div><!-- End Col MD-->
 			</div><!-- End row -->
 
+      {{-- HIDDEN_FIELD: Exclusivity of your items (author_exclusive) --}}
+      @if(false)
       @if ($settings->who_can_sell == 'all'
           || $settings->who_can_sell == 'admin'
           && auth()->user()->isSuperAdmin())
@@ -100,11 +102,17 @@
       <label for="authorExclusive">{{ trans('misc.exclusivity_items') }}</label>
     </div>
   @endif
+  @endif
+  <input type="hidden" name="author_exclusive" value="{{ auth()->user()->author_exclusive }}">
 
+      {{-- HIDDEN_FIELD: PayPal Account (paypal_account) --}}
+      @if(false)
       <div class="form-floating mb-3">
        <input type="email" class="form-control" id="inputpaypal_account" value="{{auth()->user()->paypal_account}}" name="paypal_account" placeholder="{{ trans('admin.paypal_account') }}">
        <label for="inputpaypal_account">{{ trans('admin.paypal_account') }}</label>
      </div>
+     @endif
+     <input type="hidden" name="paypal_account" value="{{ auth()->user()->paypal_account }}">
 
        <div class="form-floating mb-3">
         <input type="url" class="form-control" id="input-website_misc" value="{{auth()->user()->website}}" name="website" placeholder="{{ trans('misc.website_misc') }}">

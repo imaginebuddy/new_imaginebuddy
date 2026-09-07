@@ -43,10 +43,29 @@
                  @foreach ($data as $collection)
                    <tr>
                      <td>{{ $collection->id }}</td>
-                     <td><a href="{{ url($collection->creator->username) }}" target="_blank">{{ $collection->creator->username }} <i class="bi-box-arrow-up-right"></i></a></td>
-										 <td><a href="{{ url($collection->creator->username, 'collection').'/'.$collection->id }}" target="_blank">{{ $collection->title }} <i class="bi-box-arrow-up-right"></i></a></td>
+                     <td>
+                       @if ($collection->creator)
+                         <a href="{{ url($collection->creator->username) }}" target="_blank">{{ $collection->creator->username }} <i class="bi-box-arrow-up-right"></i></a>
+                       @else
+                         <span class="text-muted">—</span>
+                       @endif
+                     </td>
+										 <td>
+                       <a href="{{ url($collection->creator ? $collection->creator->username : 'user', 'collection').'/'.$collection->id }}" target="_blank">
+                         @if ($collection->type == 'private')
+                           <i class="bi bi-lock-fill text-muted me-1" title="{{ __('misc.private') }}"></i>
+                         @endif
+                         {{ $collection->title }} <i class="bi-box-arrow-up-right"></i>
+                       </a>
+                     </td>
 										 <td>{{ $collection->collectionImages->count() }}</td>
-                     <td>{{ __('misc.'.$collection->type.'') }}</td>
+                     <td>
+                       @if ($collection->type == 'private')
+                         <span class="badge bg-secondary"><i class="bi bi-lock-fill me-1"></i>{{ __('misc.private') }}</span>
+                       @else
+                         <span class="badge bg-success">{{ __('misc.public') }}</span>
+                       @endif
+                     </td>
 
                      <td>{{ Helper::formatDate($collection->created_at) }}</td>
                      <td>

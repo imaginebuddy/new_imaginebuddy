@@ -22,9 +22,12 @@
               @endif
 
 
+              {{-- HIDDEN_NAV: Feed (/feed) --}}
+              @if(false)
               @auth
                 <li><a href="{{url('feed')}}" class="nav-link px-2 link-dark">{{__('misc.feed')}}</a></li>
               @endauth
+              @endif
 
               <li class="dropdown">
                 <a href="javascript:void(0);" class="nav-link px-2 link-dark dropdown-toggle" id="dropdownExplore" data-bs-toggle="dropdown" aria-expanded="false">
@@ -141,6 +144,8 @@
           </li>
           @endif
 
+          {{-- HIDDEN_NAV: Feed (/feed) --}}
+          @if(false)
           @auth
             <li>
             <a href="{{url('feed')}}" class="nav-link link-dark text-truncate">
@@ -148,6 +153,7 @@
             </a>
             </li>
           @endauth
+          @endif
 
             <li>
                 <a href="#explore" data-bs-toggle="collapse" class="nav-link text-truncate link-dark dropdown-toggle">

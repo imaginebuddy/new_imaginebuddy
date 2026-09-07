@@ -70,13 +70,6 @@ class SubscriptionsController extends Controller
 						]);
 					}
 
-					if (!$isIndia && $payment->name === 'Razorpay') {
-						return response()->json([
-								'success' => false,
-								'errors' => ['error' => 'Razorpay is only available for customers in India. Please select PayPal.'],
-						]);
-					}
-
 					// Razorpay JSON redirect for AJAX checkout
 					if ($payment->name == 'Razorpay') {
 						return response()->json([
@@ -139,6 +132,7 @@ class SubscriptionsController extends Controller
 			$subscription->amount = $planPrice;
 			$subscription->currency = $currencyCode;
 			$subscription->country_code = Helper::resolveUserCountry();
+			$subscription->last_refilled_at = now();
       $subscription->save();
 
 			// Add downloads to user

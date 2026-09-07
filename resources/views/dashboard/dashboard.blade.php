@@ -36,8 +36,11 @@
 							<div class="card-body">
 								<h5><i class="fas fa-wallet me-2 icon-dashboard"></i> {{ Helper::amountFormatDecimal(auth()->user()->balance) }}</h5>
 								<small>{{ trans('misc.balance') }}
+									{{-- HIDDEN_NAV: Withdrawals (/user/dashboard/withdrawals) --}}
+									@if(false)
 									@if (auth()->user()->balance >= $settings->amount_min_withdrawal)
 									<a href="{{ url('user/dashboard/withdrawals')}}" class="text-decoration-underline"> {{ trans('misc.withdraw_balance') }}</a>
+								@endif
 								@endif
 								</small>
                 <span class="icon-wrap opacity-25">

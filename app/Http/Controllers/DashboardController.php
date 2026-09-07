@@ -335,7 +335,7 @@ class DashboardController extends Controller
       ->join('images', 'images.id', '=', 'downloads.images_id')
       ->where('downloads.type', '<>', 'sale')
       ->select('images.id', 'images.title', 'images.token_id', 'images.thumbnail')
-      ->addSelect('downloads.date AS dateDownload', 'downloads.type', 'downloads.size')
+      ->addSelect('downloads.date AS dateDownload', 'downloads.type', 'downloads.size', 'downloads.action_type')
       ->orderBy('downloads.id', 'DESC')
       ->paginate(20);
 

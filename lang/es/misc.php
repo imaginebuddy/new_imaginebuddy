@@ -713,4 +713,7 @@ return array(
 
 	// Version 5.0
 	'default_theme' => 'Tema por defecto',
+	'prompts' => 'Prompts',
+	'prompt' => 'Prompt',
+	'view_prompts' => 'Ver Prompts',
 );

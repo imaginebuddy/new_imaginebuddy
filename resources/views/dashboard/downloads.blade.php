@@ -45,20 +45,28 @@
                       $downloadUrl = url('download/stock', $downloads->token_id);
                     }
 
+                    $type = __('misc.small_photo');
+
                     switch ($downloads->size) {
-              			case 'small':
-              				$type = __('misc.small_photo');
-              				break;
-              			case 'medium':
-              				$type = __('misc.medium_photo');
-              				break;
-              			case 'large':
-              				$type = __('misc.large_photo');
-              				break;
-                    case 'vector':
+                      case 'small':
+                        $type = __('misc.small_photo');
+                        break;
+                      case 'medium':
+                        $type = __('misc.medium_photo');
+                        break;
+                      case 'large':
+                        $type = __('misc.large_photo');
+                        break;
+                      case 'vector':
                         $type = __('misc.vector_graphic');
                         break;
-                      }
+                      case 'prompt':
+                        $type = __('misc.prompt') ?: 'Prompt';
+                        break;
+                      default:
+                        $type = ucfirst($downloads->size ?? __('misc.small_photo'));
+                        break;
+                    }
 
                     @endphp
 
@@ -71,6 +79,10 @@
                       <td>
                         @if ($image_photo == null)
                           <em>{{$image_title}}</em>
+                        @elseif ($downloads->size == 'prompt' || (isset($downloads->action_type) && $downloads->action_type == 'copy'))
+                          <a href="{{ $image_url }}" class="btn btn-outline-primary btn-sm" title="{{ __('misc.view_prompts') ?: 'View Prompt' }}">
+                            <i class="bi bi-eye"></i>
+                          </a>
                         @else
                         <form method="POST" action="{{$downloadUrl}}" accept-charset="UTF-8" class="displayInline">
                           @csrf

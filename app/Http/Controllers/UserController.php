@@ -59,9 +59,22 @@ class UserController extends Controller
 	public function profile($slug, Request $request)
 	{
 		$user  = User::where('username', '=', $slug)
-			->withCount(['images', 'followers', 'following', 'collections'])
 			->whereStatus('active')
 			->firstOrFail();
+
+		$isOwner = auth()->check() && auth()->id() == $user->id;
+		$isSuperAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'));
+
+		$user->loadCount([
+			'images',
+			'followers',
+			'following',
+			'collections' => function ($q) use ($isOwner, $isSuperAdmin) {
+				if (!$isOwner && !$isSuperAdmin) {
+					$q->where('type', 'public');
+				}
+			}
+		]);
 		$title = $user->name ?: $user->username;
 
 		$images = Query::userImages($user->id);
@@ -113,9 +126,21 @@ class UserController extends Controller
 	public function followers($slug, Request $request)
 	{
 
-		$user  = User::where('username', '=', $slug)
-			->withCount(['images', 'followers', 'following', 'collections'])
-			->firstOrFail();
+		$user  = User::where('username', '=', $slug)->firstOrFail();
+
+		$isOwner = auth()->check() && auth()->id() == $user->id;
+		$isSuperAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'));
+
+		$user->loadCount([
+			'images',
+			'followers',
+			'following',
+			'collections' => function ($q) use ($isOwner, $isSuperAdmin) {
+				if (!$isOwner && !$isSuperAdmin) {
+					$q->where('type', 'public');
+				}
+			}
+		]);
 		$_title = $user->name ?: $user->username;
 		$title  = $_title . ' - ' . __('users.followers');
 
@@ -192,9 +217,21 @@ class UserController extends Controller
 	public function following($slug, Request $request)
 	{
 
-		$user  = User::where('username', '=', $slug)
-			->withCount(['images', 'followers', 'following', 'collections'])
-			->firstOrFail();
+		$user  = User::where('username', '=', $slug)->firstOrFail();
+
+		$isOwner = auth()->check() && auth()->id() == $user->id;
+		$isSuperAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'));
+
+		$user->loadCount([
+			'images',
+			'followers',
+			'following',
+			'collections' => function ($q) use ($isOwner, $isSuperAdmin) {
+				if (!$isOwner && !$isSuperAdmin) {
+					$q->where('type', 'public');
+				}
+			}
+		]);
 		$_title = $user->name ?: $user->username;
 		$title  = $_title . ' - ' . __('users.following');
 
@@ -577,9 +614,21 @@ class UserController extends Controller
 
 	public function collections($slug, Request $request)
 	{
-		$user  = User::where('username', '=', $slug)
-			->withCount(['images', 'followers', 'following', 'collections'])
-			->firstOrFail();
+		$user  = User::where('username', '=', $slug)->firstOrFail();
+
+		$isOwner = auth()->check() && auth()->id() == $user->id;
+		$isSuperAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'));
+
+		$user->loadCount([
+			'images',
+			'followers',
+			'following',
+			'collections' => function ($q) use ($isOwner, $isSuperAdmin) {
+				if (!$isOwner && !$isSuperAdmin) {
+					$q->where('type', 'public');
+				}
+			}
+		]);
 		$_title = $user->name ?: $user->username;
 		$title  = $_title . ' - ' . __('misc.collections');
 
@@ -587,20 +636,16 @@ class UserController extends Controller
 			return view('errors.user_suspended');
 		}
 
-		if (auth()->check()) {
-			$AuthId = auth()->user()->id;
-		} else {
-			$AuthId = 0;
-		}
+		$isOwner = auth()->check() && auth()->id() == $user->id;
+		$isSuperAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'));
 
-		$collections = $user->collections()->where('user_id', $user->id)
-			->where('type', 'public')
-			->orWhere('user_id', $AuthId)
-			->where('user_id', $user->id)
-			->where('type', 'private')
+		$collections = Collections::where('user_id', $user->id)
+			->when(!$isOwner && !$isSuperAdmin, function ($query) {
+				$query->where('type', 'public');
+			})
 			->orderBy('id', 'desc')
 			->with(['collectionImages' => fn($q) =>
-				$q->with(['stockCollection'])
+				$q->with(['stockCollection', 'images'])
 			   , 'creator'])
 			->paginate(config('settings.result_request'));
 
@@ -655,10 +700,14 @@ class UserController extends Controller
 
 		$user = User::find($collectionData->user_id);
 
+		$isSuperAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('collections'));
+
 		$images = Images::whereIn('id', function ($q) use ($request) {
 			$q->select('images_id')->from('collections_images')->where('collections_id', $request->id);
 		})
-			->where('status', 'active')
+			->when(!$isSuperAdmin, function ($query) {
+				$query->where('status', 'active');
+			})
 			->orderBy('id', 'desc')
 			->with(['author', 'category', 'stock'])
 			->paginate(config('settings.result_request'));
@@ -674,8 +723,10 @@ class UserController extends Controller
 		}
 
 		if (
-			$collectionData->type == 'private' && auth()->check() && auth()->user()->id != $collectionData->user_id
-			|| $collectionData->type == 'private' && auth()->guest()
+			$collectionData->type == 'private' && !$isSuperAdmin && (
+				(auth()->check() && auth()->user()->id != $collectionData->user_id)
+				|| auth()->guest()
+			)
 		) {
 			abort('404');
 		}
@@ -690,7 +741,8 @@ class UserController extends Controller
 
 		//<<<-- * Redirect the user real name * -->>>
 		$uri = request()->path();
-		$uriCanonical = $user->username . '/collection/' . $collectionData->id . $slugUrl;
+		$username = $user ? $user->username : 'user';
+		$uriCanonical = $username . '/collection/' . $collectionData->id . $slugUrl;
 
 		if ($uri != $uriCanonical) {
 			return redirect($uriCanonical);
