@@ -1,8 +1,19 @@
 @extends('layouts.app')
 
-@section('title'){{ $photoshoot->title }} - AI Photoshoot Set - @endsection
-@if ($photoshoot->description)
+@if (!empty($photoshoot->meta_title))
+  @section('title'){{ $photoshoot->meta_title }}@endsection
+@else
+  @section('title'){{ $photoshoot->title }} - AI Photoshoot Set - @endsection
+@endif
+
+@if (!empty($photoshoot->meta_description))
+  @section('description_override'){{ Helper::removeLineBreak(e($photoshoot->meta_description)) }}@endsection
+@elseif ($photoshoot->description)
   @section('description_custom'){{ Helper::removeLineBreak($photoshoot->description) . ' - ' }}@endsection
+@endif
+
+@if (!empty($photoshoot->meta_keywords))
+  @section('keywords_override'){{ $photoshoot->meta_keywords }}@endsection
 @endif
 
 @section('content')

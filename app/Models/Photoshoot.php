@@ -18,7 +18,10 @@ class Photoshoot extends Model
         'user_id',
         'categories_id',
         'prompts_count',
-        'created_at'
+        'created_at',
+        'meta_title',
+        'meta_description',
+        'meta_keywords'
     ];
 
     public function user()

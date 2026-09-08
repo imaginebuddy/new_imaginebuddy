@@ -18,7 +18,7 @@
     <meta name="theme-color" content="{{ $settings->color_default }}">
     <link rel="shortcut icon" href="{{ url('public/img', $settings->favicon) }}" />
 
-    <title>@auth {{ auth()->user()->unseenNotifications() ? '('.auth()->user()->unseenNotifications().') ' : null }} @endauth @yield('title')@if(empty($category->seo_title) && (empty($response) || empty($response->meta_title))){{$settings->title.' - '.__('seo.welcome_subtitle')}}@endif</title>
+    <title>@auth {{ auth()->user()->unseenNotifications() ? '('.auth()->user()->unseenNotifications().') ' : null }} @endauth @yield('title')@if(empty($category->seo_title) && (empty($response) || empty($response->meta_title)) && (empty($photoshoot) || empty($photoshoot->meta_title))){{$settings->title.' - '.__('seo.welcome_subtitle')}}@endif</title>
 
     @include('includes.css_general')
 

@@ -63,6 +63,36 @@
                   <label for="description">Description (Optional)</label>
                 </div>
               </div>
+
+              <div class="col-12 mt-4">
+                <h6 class="fw-bold text-muted text-uppercase small mb-2 border-bottom pb-2">
+                  <i class="bi bi-search me-1"></i> SEO & Search Engine Optimization
+                </h6>
+              </div>
+
+              <div class="col-md-12">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="meta_title" name="meta_title" value="{{ old('meta_title') }}" placeholder="Meta Title">
+                  <label for="meta_title">Meta Title (Optional)</label>
+                </div>
+                <small class="text-muted d-block mt-1">Leave empty to use photoshoot title as default.</small>
+              </div>
+
+              <div class="col-md-12">
+                <div class="form-floating">
+                  <textarea class="form-control" name="meta_description" id="meta_description" placeholder="Meta Description" style="height: 80px;">{{ old('meta_description') }}</textarea>
+                  <label for="meta_description">Meta Description (Optional)</label>
+                </div>
+                <small class="text-muted d-block mt-1">Leave empty to use photoshoot description or site default.</small>
+              </div>
+
+              <div class="col-md-12">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="{{ old('meta_keywords') }}" placeholder="Meta Keywords">
+                  <label for="meta_keywords">Meta Keywords (Optional)</label>
+                </div>
+                <small class="text-muted d-block mt-1">Comma-separated keywords (e.g. fashion, studio, portrait). Leave empty to use site default.</small>
+              </div>
             </div>
 
             <div class="mt-4 text-end">

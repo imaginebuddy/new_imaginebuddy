@@ -1612,6 +1612,9 @@ class AdminController extends Controller
 		$request->validate([
 			'title' => 'required|string|min:3|max:255',
 			'slug' => 'nullable|string|max:255',
+			'meta_title' => 'nullable|string|max:255',
+			'meta_description' => 'nullable|string|max:500',
+			'meta_keywords' => 'nullable|string|max:255',
 		]);
 
 		$title = trim($request->title);
@@ -1627,6 +1630,10 @@ class AdminController extends Controller
 			$count++;
 		}
 
+		$metaTitle = trim($request->meta_title ?? '');
+		$metaDescription = trim($request->meta_description ?? '');
+		$metaKeywords = trim($request->meta_keywords ?? '');
+
 		$photoshoot = Photoshoot::create([
 			'uuid' => 'batch_' . uniqid(),
 			'title' => $title,
@@ -1635,6 +1642,9 @@ class AdminController extends Controller
 			'user_id' => auth()->id(),
 			'categories_id' => $request->categories_id ?: null,
 			'prompts_count' => 0,
+			'meta_title' => $metaTitle !== '' ? $metaTitle : null,
+			'meta_description' => $metaDescription !== '' ? $metaDescription : null,
+			'meta_keywords' => $metaKeywords !== '' ? $metaKeywords : null,
 		]);
 
 		return redirect('panel/admin/photoshoots/edit/' . $photoshoot->id)
@@ -1663,6 +1673,9 @@ class AdminController extends Controller
 			'id' => 'required|exists:photoshoots,id',
 			'title' => 'required|string|min:3|max:255',
 			'slug' => 'nullable|string|max:255',
+			'meta_title' => 'nullable|string|max:255',
+			'meta_description' => 'nullable|string|max:500',
+			'meta_keywords' => 'nullable|string|max:255',
 		]);
 
 		$photoshoot = Photoshoot::findOrFail($request->id);
@@ -1671,6 +1684,14 @@ class AdminController extends Controller
 		if ($request->has('description')) {
 			$photoshoot->description = trim($request->description ?: '');
 		}
+
+		$metaTitle = trim($request->meta_title ?? '');
+		$metaDescription = trim($request->meta_description ?? '');
+		$metaKeywords = trim($request->meta_keywords ?? '');
+
+		$photoshoot->meta_title = $metaTitle !== '' ? $metaTitle : null;
+		$photoshoot->meta_description = $metaDescription !== '' ? $metaDescription : null;
+		$photoshoot->meta_keywords = $metaKeywords !== '' ? $metaKeywords : null;
 
 		// Process Slug
 		$requestedSlug = \Illuminate\Support\Str::slug($request->slug ?: $request->title);
