@@ -35,6 +35,7 @@ use App\Http\Controllers\CountriesStatesController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\RolesAndPermissionsController;
+use App\Http\Controllers\TestimonialsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -597,6 +598,15 @@ Route::group(['middleware' => 'role'], function() {
 	// Push notification
 	Route::view('panel/admin/push-notifications', 'admin.push_notifications')->name('push_notifications');
 	Route::post('panel/admin/push-notifications', [AdminController::class, 'savePushNotifications']);
+
+	// Testimonials
+	Route::get('panel/admin/testimonials', [TestimonialsController::class, 'index'])->name('testimonials');
+	Route::get('panel/admin/testimonials/add', [TestimonialsController::class, 'create'])->name('testimonials');
+	Route::post('panel/admin/testimonials/add', [TestimonialsController::class, 'store']);
+	Route::get('panel/admin/testimonials/edit/{id}', [TestimonialsController::class, 'edit'])->name('testimonials');
+	Route::post('panel/admin/testimonials/update/{id}', [TestimonialsController::class, 'update']);
+	Route::post('panel/admin/testimonials/delete/{id}', [TestimonialsController::class, 'destroy']);
+	Route::post('panel/admin/testimonials/toggle-status/{id}', [TestimonialsController::class, 'toggleStatus']);
 
 });//<--- End Group Role
 

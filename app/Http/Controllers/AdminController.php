@@ -1231,6 +1231,7 @@ class AdminController extends Controller
 			'WAS_SECRET_ACCESS_KEY' => 'required_if:FILESYSTEM_DRIVER,==,wasabi',
 			'WAS_DEFAULT_REGION' => 'required_if:FILESYSTEM_DRIVER,==,wasabi',
 			'WAS_BUCKET' => 'required_if:FILESYSTEM_DRIVER,==,wasabi',
+			'WAS_URL' => 'nullable|url',
 
 			'VULTR_ACCESS_KEY' => 'required_if:FILESYSTEM_DRIVER,==,vultr',
 			'VULTR_SECRET_KEY' => 'required_if:FILESYSTEM_DRIVER,==,vultr',

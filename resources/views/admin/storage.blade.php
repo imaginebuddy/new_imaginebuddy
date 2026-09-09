@@ -150,6 +150,14 @@
 		          </div>
 		        </div>
 
+						<div class="row mb-3">
+		          <label class="col-sm-2 col-form-label text-lg-end">Wasabi Custom / CDN URL</label>
+		          <div class="col-sm-10">
+		            <input value="{{ env('WAS_URL') }}" name="WAS_URL" type="text" class="form-control @error('WAS_URL') is-invalid @endif" placeholder="e.g. https://s3.us-west-2.wasabisys.com/imaginebuddy-s3 or https://cdn.imaginebuddy.com">
+								<small class="d-block mt-1">Direct Wasabi endpoint URL for Phase 1, or Cloudflare CDN URL (e.g. <code>https://cdn.imaginebuddy.com</code>) for Phase 2.</small>
+		          </div>
+		        </div>
+
 						<hr />
 
 						<div class="row mb-3">

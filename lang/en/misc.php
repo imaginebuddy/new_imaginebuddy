@@ -15,6 +15,8 @@ return array(
 	'photos_plural'             =>      'Photo|Photos', // plural 1 Photo 2 Photos
 	'explore' 		            => 		'Explore',
 	'upload' 		            => 		'Upload',
+	'creators_testimonials_heading' => 'What Creators Say About Imaginebuddy',
+	'creators_testimonials_subtitle' => 'Discover how creators and prompt engineers use Imaginebuddy to power their visual projects.',
 	'error_oops'			    =>		'Oops...',
 	'error'					    =>		'Error occurred',
 	'popular'				    =>		'Popular',

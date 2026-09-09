@@ -25,12 +25,12 @@
 
 <meta property="og:site_name" content="{{$settings->title}}"/>
 <meta property="og:url" content="{{ url('prompt', $response->slug) }}"/>
-<meta property="og:image" content="{{ asset('public/uploads/preview/' . $response->preview) }}"/>
+<meta property="og:image" content="{{ Storage::url(config('path.preview') . $response->preview) }}"/>
 <meta property="og:title" content="{{ $response->meta_title ?: ($response->title.' - '.trans_choice('misc.photos_plural', 1 ).' #'.$response->id) }}"/>
 <meta property="og:description" content="{{ $response->meta_description ? Helper::removeLineBreak(e($response->meta_description)) : Helper::removeLineBreak(e($response->description)) }}"/>
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="{{ asset('public/uploads/preview/' . $response->preview) }}" />
+<meta name="twitter:image" content="{{ Storage::url(config('path.preview') . $response->preview) }}" />
 <meta name="twitter:title" content="{{ $response->meta_title ?: ($response->title.' - '.trans_choice('misc.photos_plural', 1 ).' #'.$response->id) }}" />
 <meta name="twitter:description" content="{{ $response->meta_description ? Helper::removeLineBreak(e($response->meta_description)) : Helper::removeLineBreak(e($response->description)) }}"/>
 
@@ -68,7 +68,7 @@
             <ul class="list-inline mt-2 fs-5">
               <li class="list-inline-item me-3"><a class="btn-facebook-share" title="Facebook" href="https://www.facebook.com/sharer/sharer.php?u={{ url()->current() }}" target="_blank"><i class="fab fa-facebook"></i></a></li>
               <li class="list-inline-item me-3"><a class="text-dark" title="Twitter" href="https://twitter.com/intent/tweet?url={{ url()->current() }}&text={{ e( $response->title ) }}" data-url="{{ url()->current() }}" target="_blank"><i class="bi-twitter-x"></i></a></li>
-              <li class="list-inline-item me-3"><a class="btn-pinterest-share" title="Pinterest" href="//www.pinterest.com/pin/create/button/?url={{ url()->current() }}&media={{ asset('public/uploads/preview/' . $response->preview) }}&description={{ e( $response->title ) }}" target="_blank"><i class="fab fa-pinterest"></i></a></li>
+              <li class="list-inline-item me-3"><a class="btn-pinterest-share" title="Pinterest" href="//www.pinterest.com/pin/create/button/?url={{ url()->current() }}&media={{ Storage::url(config('path.preview') . $response->preview) }}&description={{ e( $response->title ) }}" target="_blank"><i class="fab fa-pinterest"></i></a></li>
               <li class="list-inline-item"><a class="btn-whatsapp-share" title="Whatsapp" href="whatsapp://send?text={{ url()->current() }}" target="_blank"><i class="fab fa-whatsapp"></i></a></li>
              </ul>
           </div>
@@ -173,7 +173,7 @@
     @endif
 
     @php
-      $showPreviewUrl = asset('public/uploads/preview/' . $response->preview);
+      $showPreviewUrl = Storage::url(config('path.preview') . $response->preview);
       $stockToken = $response->token_id;
 
       $canViewPrompt = true;

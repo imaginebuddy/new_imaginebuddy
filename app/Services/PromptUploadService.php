@@ -151,9 +151,12 @@ class PromptUploadService
         // Dominant Colors Extraction
         $colors_image = '';
         try {
-            $localSmallPath = public_path('uploads/small/' . $small);
-            if (file_exists($localSmallPath)) {
-                $palette   = Palette::fromFilename($localSmallPath);
+            $sourceColorPath = (isset($realPath) && file_exists($realPath))
+                ? $realPath
+                : public_path('uploads/small/' . $small);
+
+            if (file_exists($sourceColorPath)) {
+                $palette   = Palette::fromFilename($sourceColorPath);
                 $extractor = new ColorExtractor($palette);
                 $colors    = $extractor->extract(5);
                 $_color    = [];
@@ -232,7 +235,7 @@ class PromptUploadService
         $imageID = $sql->id;
 
         // Save Stock Record (Small resolution)
-        $smallSize = Helper::formatBytes(Storage::disk('public')->exists($imagePathSmall) ? Storage::disk('public')->size($imagePathSmall) : 0, 1);
+        $smallSize = Helper::formatBytes(Storage::disk()->exists($imagePathSmall) ? Storage::disk()->size($imagePathSmall) : 0, 1);
         $stock             = new Stock();
         $stock->images_id  = $imageID;
         $stock->name       = $small;

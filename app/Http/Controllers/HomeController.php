@@ -12,6 +12,7 @@ use App\Models\Images;
 use App\Models\Categories;
 use App\Models\Collections;
 use App\Models\Photoshoot;
+use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use App\Models\AdminSettings;
 use Illuminate\Support\Facades\Auth;
@@ -55,13 +56,16 @@ class HomeController extends Controller
       $categoryPopular = false;
     }
 
+    $testimonials = Testimonial::active()->ordered()->get();
+
     return view(
       'index.home',
       [
         'categories' => $categories,
         'images' => $images,
         'featured' => $featured,
-        'categoryPopular' => $categoryPopular
+        'categoryPopular' => $categoryPopular,
+        'testimonials' => $testimonials
       ]
     );
   }

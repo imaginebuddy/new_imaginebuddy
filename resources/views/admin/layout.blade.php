@@ -327,11 +327,19 @@
 
               @if (auth()->user()->hasPermission('pages'))
               <li class="nav-item">
-                  <a href="{{ url('panel/admin/pages') }}" class="nav-link text-truncate @if (request()->is('panel/admin/pages')) active @endif">
+                  <a href="{{ url('panel/admin/pages') }}" class="nav-link text-truncate @if (request()->is('panel/admin/pages*')) active @endif">
                       <i class="bi-file-earmark-text me-2"></i> {{ __('admin.pages') }}
                   </a>
               </li><!-- /end list -->
                 @endif
+
+              @if (auth()->user()->hasPermission('testimonials'))
+              <li class="nav-item">
+                  <a href="{{ url('panel/admin/testimonials') }}" class="nav-link text-truncate @if (request()->is('panel/admin/testimonial*')) active @endif">
+                      <i class="bi-chat-square-quote me-2"></i> {{ __('admin.testimonials') }}
+                  </a>
+              </li><!-- /end list -->
+              @endif
 
                 @if (auth()->user()->hasPermission('payment_settings'))
               <li class="nav-item">

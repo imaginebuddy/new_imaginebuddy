@@ -25,4 +25,7 @@ return array(
     // Admin
     'admin' => 'uploads/admin/',
 
+    // Testimonials
+    'testimonials' => 'testimonials/',
+
 );

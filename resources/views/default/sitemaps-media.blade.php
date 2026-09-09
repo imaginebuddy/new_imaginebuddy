@@ -7,7 +7,7 @@
   <url>
     <loc>{{ url('prompt', $response->slug) }}</loc>
     <image:image>
-      <image:loc>{{ asset('public/uploads/preview/' . $response->preview) }}</image:loc>
+      <image:loc>{{ Storage::url(config('path.preview') . $response->preview) }}</image:loc>
     </image:image>
     <lastmod>{{$date}}</lastmod>
     <priority>0.8</priority>

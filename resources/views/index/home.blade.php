@@ -159,6 +159,21 @@
     </section>
     @endif
 
+    @if (isset($testimonials) && $testimonials->isNotEmpty())
+    <section class="section py-5 py-large bg-light testimonials-section">
+      <div class="container">
+        <div class="btn-block text-center mb-5">
+          <h3 class="m-0">{{ __('misc.creators_testimonials_heading') }}</h3>
+          <p class="text-muted mt-2">
+            {{ __('misc.creators_testimonials_subtitle') }}
+          </p>
+        </div>
+
+        @include('includes.testimonials-slider', ['testimonials' => $testimonials])
+      </div>
+    </section>
+    @endif
+
 	@if ($settings->show_categories_index == 'on')
     <section class="section py-5 py-large">
       <div class="container">

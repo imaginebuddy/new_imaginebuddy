@@ -74,7 +74,11 @@ return [
           'secret' => env('WAS_SECRET_ACCESS_KEY'),
           'region' => env('WAS_DEFAULT_REGION'),
           'bucket' => env('WAS_BUCKET'),
-          'endpoint' => 'https://s3.'.env('WAS_DEFAULT_REGION').'.wasabisys.com'
+          'endpoint' => 'https://s3.'.env('WAS_DEFAULT_REGION').'.wasabisys.com',
+          'url' => env('WAS_URL'),
+          'options' => [
+              'CacheControl' => 'public, max-age=31536000, immutable',
+          ],
         ],
 
         'vultr' => [
