@@ -69,6 +69,8 @@ class SocialAccountService
         // Get user country
         $country = Countries::whereCountryCode(Helper::userCountry())->first();
 
+        $authorized_to_upload = $settings->who_can_upload == 'all' ? 'yes' : 'no';
+
 				$user = User::create([
 					'username'        => Helper::strRandom(),
 					'name'            => $providerUser->getName(),
@@ -84,6 +86,7 @@ class SocialAccountService
           'oauth_uid'       => $providerUser->getId(),
           'oauth_provider'  => $provider,
 					'token'           => $token,
+          'authorized_to_upload' => $authorized_to_upload,
           'ip'              => request()->ip(),
 			]);
 
