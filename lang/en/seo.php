@@ -12,9 +12,9 @@ return [
     | you want to customize your views to better match your application.
     |
     */
-    "welcome_text" => "Gostock",
+    "welcome_text" => "Create AI Images Instantly with Powerful Prompts Library",
     "welcome_subtitle" => "Free and Premium Prompts",
-    "description" => "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut tortor rutrum massa efficitur tincidunt vel nec lacus. Curabitur porta aliquet diam, eu gravida neque lacinia.",
-  	"keywords" => "images free,stock images,stock free images",
+    "description" => "Instantly access 20,000+ text-to-image AI prompts for Midjourney, DALL·E 3, Adobe Firefly, Leonardo & more.",
+  	"keywords" => "text to image ai prompts, ai stock image, ai generated images, ai prompts",
 
 ];
