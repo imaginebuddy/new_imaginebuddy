@@ -22,7 +22,7 @@
             @endif
 
           <h1 class="display-3 fw-bold text-white">{{ __('seo.welcome_text') }}</h1>
-          <p class="col-md-8 fs-4 fw-bold text-white">{{ __('seo.welcome_subtitle') }}</p>
+          <p class="col-md-12 fs-4 fw-bold text-white">{{ __('seo.welcome_subtitle') }}</p>
           <form action="{{ url('search') }}" method="get" class="position-relative">
             <i class="bi bi-search btn-search"></i>
             <input class="form-control form-control-lg ps-5 input-search-lg border-0 search-lg" type="text" name="q" value="{{ request('q') }}" autocomplete="off" placeholder="{{__('misc.search')}}" required minlength="3">

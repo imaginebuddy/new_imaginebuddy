@@ -12,9 +12,9 @@ return [
     | you want to customize your views to better match your application.
     |
     */
-    "welcome_text" => "Create AI Images Instantly with Powerful Prompts Library",
-    "welcome_subtitle" => "Free and Premium Prompts",
-    "description" => "Instantly access 20,000+ text-to-image AI prompts for Midjourney, DALL·E 3, Adobe Firefly, Leonardo & more.",
-  	"keywords" => "text to image ai prompts, ai stock image, ai generated images, ai prompts",
+    "welcome_text" => "AI Product Photoshoot Prompts Library",
+    "welcome_subtitle" => "Copy, Paste, and Create Premium Campaign Ready Photography In Seconds Using Gemini & ChatGPT",
+    "description" => "Imaginebuddy is a high-quality, campaign ready AI product photoshoot prompts library optimized for chat based ai tools like Gemini and ChatGPT",
+  	"keywords" => "text-to-image ai prompts",
 
 ];

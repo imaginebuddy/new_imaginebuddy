@@ -8,11 +8,11 @@ return array(
 	|--------------------------------------------------------------------------
 	|
 	*/
-	'title_2_index'             =>      'Free and Premium High Quality Photos',
+	'title_2_index'             =>      'Free and Premium High Quality Prompts',
 	'search' 		            => 		'Search',
-	'images'             =>      'Photos',
-	'images_plural'             =>      'Photo|Photos', // plural 1 Image 2 Images
-	'photos_plural'             =>      'Photo|Photos', // plural 1 Photo 2 Photos
+	'images'             =>      'Prompts',
+	'images_plural'             =>      'Prompt|Prompts', // plural 1 Image 2 Images
+	'photos_plural'             =>      'Prompt|Prompts', // plural 1 Photo 2 Photos
 	'explore' 		            => 		'Explore',
 	'upload' 		            => 		'Upload',
 	'creators_testimonials_heading' => 'What Creators Say About Imaginebuddy',
@@ -273,7 +273,7 @@ return array(
 	'sales_last_30_days' => 'Sales last 30 days',
 	'earnings_raised_last' => 'Earnings last 30 days',
 	'recent_sales' => 'Recent Sales',
-	'recent_photos' => 'Recent Photos',
+	'recent_photos' => 'Recent Prompts',
 	'user_not_available' => 'User not available',
 	'total_sales' => 'Total Sales',
 	'sales' => 'Sales',
@@ -433,10 +433,10 @@ return array(
 
 	// Version 4.0
 	'desc_footer_social' => 'Keep connect with us! Follow us on any of these platforms',
-	'title_section_home' => 'Download high-quality resources',
-	'desc_section_home' => 'Explore our highest quality resources from our collaborators, from totally free to premium resources for your projects.',
+	'title_section_home' => 'Your Product, Our AI Prompts. Get Campaign-Ready Product Images. No Shoot Needed.',
+	'desc_section_home' => 'Save the lakhs you spend on traditional photoshoots. Our professionally crafted AI product photoshoot prompts help you transform simple product photos into stunning studio, lifestyle, model, e-commerce, and advertising visuals using Gemini and ChatGPT.',
 	'premium_desc' => 'Explore our premium resources of the highest quality.',
-	'latest_desc' => 'Explore our latest resources of the highest quality.',
+	'latest_desc' => 'Discover professionally crafted prompts for creating premium product photography, campaign visuals, and scroll-stopping ad creatives.',
 	'featured_desc' => 'Explore our top-quality featured resources, chosen by our team',
 	'popular_desc' => 'Explore our highest quality resources that everyone loves.',
 	'most_commented_desc' => 'Explore our most commented about resources by our community.',
