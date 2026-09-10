@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title'){{ trans('misc.members').' - ' }}@endsection
+@section('robots', 'noindex, follow')
 
 @section('content')
 <section class="section section-sm">

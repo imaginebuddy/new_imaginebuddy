@@ -6,25 +6,6 @@
          <priority>0.8</priority>
       </url>
 
-      <url>
-            <loc>{{ url('members') }}</loc>
-            <lastmod>{{$date}}</lastmod>
-            <priority>0.8</priority>
-         </url>
-
-         <url>
-            <loc>{{ url('collections') }}</loc>
-            <lastmod>{{$date}}</lastmod>
-            <priority>0.8</priority>
-         </url>
-
-         @foreach (App\Models\Collections::has('collectionImages')->where('type','public')->orderBy('id','desc')->get() as $collection)
-            <url>
-                  <loc>{{ url($collection->user()->username.'/collection', $collection->id) }}</loc>
-                  <lastmod>{{$date}}</lastmod>
-                  <priority>0.8</priority>
-            </url>
-        @endforeach
 
          @if (Plans::whereStatus('1')->count() != 0 && $settings->sell_option == 'on')
          <url>
@@ -88,6 +69,20 @@
             </url>
         @endforeach
 
+        <url>
+            <loc>{{ url('photoshoots') }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.8</priority>
+        </url>
+
+        @foreach (App\Models\Photoshoot::whereNotNull('slug')->where('slug', '!=', '')->orderBy('id', 'desc')->get() as $photoshoot)
+        <url>
+            <loc>{{ url('photoshoots', $photoshoot->slug) }}</loc>
+            <lastmod>{{ $photoshoot->created_at ? Carbon\Carbon::parse($photoshoot->created_at)->format('Y-m-d') : $date }}</lastmod>
+            <priority>0.8</priority>
+        </url>
+        @endforeach
+
         
    
 	@foreach (Pages::all() as $page)
@@ -98,11 +93,4 @@
    </url>
  @endforeach
    
-	@foreach (User::where('status','active')->get() as $user)
-	<url>
-         <loc>{{ url($user->username) }}</loc>
-         <lastmod>{{$date}}</lastmod>
-         <priority>0.8</priority>
-   </url>
-   @endforeach   
 </urlset>

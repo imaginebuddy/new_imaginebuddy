@@ -27,8 +27,8 @@
     
     <!-- Top Breadcrumb -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-      <nav aria-label="breadcrumb">
-        <div class="breadcrumb-pill-box rounded-pill shadow-sm border border-custom px-4 py-2 d-inline-flex align-items-center bg-card-custom">
+      <nav aria-label="breadcrumb" style="max-width: 100%;">
+        <div class="breadcrumb-pill-box rounded-pill shadow-sm border border-custom px-3 px-md-4 py-2 d-inline-flex align-items-center bg-card-custom">
           <ol class="breadcrumb mb-0 align-items-center">
             <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none text-muted">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ url('photoshoots') }}" class="text-decoration-none text-muted">Photoshoots</a></li>
@@ -36,7 +36,7 @@
               <li class="breadcrumb-item"><a href="{{ url('photoshoots') }}?category={{ $photoshoot->category->slug }}" class="text-decoration-none text-muted">{{ $photoshoot->category->name }}</a></li>
             @endif
             <li class="breadcrumb-item active" aria-current="page">
-              <span class="badge bg-custom-mint text-white rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem; letter-spacing: -0.2px;">{{ $photoshoot->title }}</span>
+              <span class="badge bg-custom-mint text-white rounded-pill px-3 py-2 fw-bold" title="{{ $photoshoot->title }}" style="font-size: 0.85rem; letter-spacing: -0.2px;">{{ $photoshoot->title }}</span>
             </li>
           </ol>
         </div>

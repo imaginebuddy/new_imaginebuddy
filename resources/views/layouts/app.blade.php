@@ -15,6 +15,10 @@
     @else
       <meta name="keywords" content="@yield('keywords_custom'){{ __('seo.keywords') }}" />
     @endif
+
+    @if (View::hasSection('robots'))
+      <meta name="robots" content="@yield('robots')">
+    @endif
     <meta name="theme-color" content="{{ $settings->color_default }}">
     <link rel="shortcut icon" href="{{ url('public/img', $settings->favicon) }}" />
 

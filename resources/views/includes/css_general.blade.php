@@ -138,6 +138,25 @@
   background-color: #ffffff !important;
   border: 1px solid #e9ecef !important;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05) !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+}
+
+.breadcrumb-pill-box::-webkit-scrollbar {
+  display: none !important;
+}
+
+.breadcrumb-pill-box .breadcrumb {
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+}
+
+.breadcrumb-pill-box .breadcrumb-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
 }
 
 [data-bs-theme="dark"] .breadcrumb-pill-box {
@@ -148,19 +167,66 @@
 .breadcrumb-pill-box .breadcrumb-item + .breadcrumb-item::before {
   content: ">" !important;
   color: #a0aec0 !important;
-  padding-left: 0.6rem !important;
-  padding-right: 0.6rem !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
 }
 
 .breadcrumb-pill-box .breadcrumb-item a {
   color: #718096 !important;
   font-weight: 500 !important;
-  font-size: 0.88rem !important;
+  font-size: 0.86rem !important;
   transition: color 0.2s ease !important;
+  white-space: nowrap !important;
 }
 
 .breadcrumb-pill-box .breadcrumb-item a:hover {
   color: #00d690 !important;
+}
+
+.breadcrumb-pill-box .breadcrumb-item.active {
+  min-width: 0 !important;
+}
+
+.breadcrumb-pill-box .breadcrumb-item.active .badge {
+  max-width: 155px;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+@media (min-width: 576px) {
+  .breadcrumb-pill-box .breadcrumb-item.active .badge {
+    max-width: 260px;
+  }
+}
+
+@media (min-width: 992px) {
+  .breadcrumb-pill-box .breadcrumb-item.active .badge {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .breadcrumb-pill-box {
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+  }
+  .breadcrumb-pill-box .breadcrumb-item a {
+    font-size: 0.8rem !important;
+  }
+  .breadcrumb-pill-box .breadcrumb-item + .breadcrumb-item::before {
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
+    font-size: 0.75rem !important;
+  }
+  .breadcrumb-pill-box .breadcrumb-item.active .badge {
+    font-size: 0.78rem !important;
+    padding: 0.25rem 0.65rem !important;
+  }
 }
 
 [data-bs-theme="dark"] .breadcrumb-pill-box .breadcrumb-item a {

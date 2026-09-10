@@ -163,7 +163,7 @@
 
             <div class="collapse ps-3" id="explore">
 
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('collections') }}"><i class="bi bi-plus-square me-2"></i> {{ __('misc.collections') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
               <li><a class="nav-link text-truncate text-muted" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
               @if ($settings->sell_option == 'on')

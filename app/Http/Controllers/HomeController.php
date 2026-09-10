@@ -123,6 +123,8 @@ class HomeController extends Controller
 
   public function members()
   {
+    abort(404);
+
     $users = Query::users();
 
     if (request()->ajax()) {

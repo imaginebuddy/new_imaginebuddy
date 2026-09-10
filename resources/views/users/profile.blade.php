@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title'){{ $title }} -@endsection
+@section('robots', 'noindex, follow')
 
 @section('content')
     <!-- *********** COVER ************* -->
