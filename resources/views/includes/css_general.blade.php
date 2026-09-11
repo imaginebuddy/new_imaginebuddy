@@ -6,6 +6,7 @@
 <link href="{{ asset('public/css/styles.css') }}?v={{$settings->version}}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" rel="stylesheet">
 <style type="text/css">
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap');
 @if ($settings->custom_css)
   {!! $settings->custom_css !!}
 @endif
@@ -784,5 +785,261 @@ body.dark-mode .prompt-copy-icon-bg {
 /* Force zero margin on flex-images items */
 .flex-images .item {
   margin: 0px 0px !important;
+}
+
+/* ==========================================================================
+   Transformation Showcase & Before/After Slider Section
+   ========================================================================== */
+.font-serif-italic {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+}
+
+.transformation-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.transformation-eyebrow {
+  color: #00d690 !important;
+  letter-spacing: 0.14em;
+  font-size: 0.85rem;
+}
+
+.transformation-card {
+  border-radius: 24px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e9ecef !important;
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.07) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Before / After Slider Box */
+.before-after-slider-container {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  max-width: 540px;
+  min-height: 540px;
+  margin: 0 auto;
+  border-radius: 20px !important;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: ew-resize;
+  background-color: #0d1117;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+@media (min-width: 992px) {
+  .before-after-slider-container {
+    min-height: 600px;
+  }
+}
+
+@media (max-width: 576px) {
+  .before-after-slider-container {
+    min-height: 420px;
+    aspect-ratio: 4 / 5;
+  }
+}
+
+.before-after-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.before-img-clip {
+  will-change: clip-path;
+  clip-path: inset(0 50% 0 0);
+  pointer-events: none;
+}
+
+/* Floating Badges */
+.slider-badge {
+  z-index: 12;
+  pointer-events: none;
+}
+
+.slider-badge-before {
+  top: 16px;
+  left: 16px;
+}
+
+.slider-badge-after {
+  top: 16px;
+  right: 16px;
+}
+
+.badge-campaign-ready {
+  background-color: #00d690 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px;
+}
+
+/* Divider & Draggable Handle */
+.slider-divider {
+  left: 50%;
+  width: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 10;
+  will-change: left;
+}
+
+.slider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  cursor: ew-resize;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 2px solid #ffffff;
+  outline: none;
+}
+
+.before-after-slider-container:hover .slider-handle,
+.before-after-slider-container.is-dragging .slider-handle,
+.slider-handle:focus {
+  transform: translate(-50%, -50%) scale(1.12);
+  box-shadow: 0 6px 22px rgba(0, 214, 144, 0.45);
+}
+
+/* Cost & Pricing CTA Elements */
+.cost-traditional {
+  color: #ef4444 !important;
+}
+
+.cost-ib-studio {
+  color: #00d690 !important;
+}
+
+.badge-tier {
+  background-color: rgba(0, 214, 144, 0.16) !important;
+  color: #00d690 !important;
+  border: 1px solid rgba(0, 214, 144, 0.32) !important;
+  font-size: 0.72rem;
+}
+
+.pricing-cta-card {
+  transition: all 0.25s ease;
+}
+
+/* --- Dark Theme Specific Optimizations --- */
+[data-bs-theme="dark"] .transformation-card {
+  background-color: #16191f !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 45px -15px rgba(0, 214, 144, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .pricing-cta-card {
+  background-color: #1e2227 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .cost-traditional {
+  color: #f87171 !important;
+}
+
+[data-bs-theme="dark"] .cost-ib-studio {
+  color: #00d690 !important;
+  text-shadow: 0 0 12px rgba(0, 214, 144, 0.35);
+}
+
+@media (min-width: 576px) {
+  .border-end-sm {
+    border-right: 1px solid var(--bs-border-color, #e9ecef) !important;
+  }
+}
+
+[data-bs-theme="dark"] .border-end-sm {
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.comparison-matrix-card {
+  transition: all 0.25s ease;
+}
+
+[data-bs-theme="dark"] .comparison-matrix-card {
+  background-color: #1a1e24 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   Home FAQ Section
+   ========================================================================== */
+.faq-section {
+  background-color: #faf8f5;
+  transition: background-color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .faq-section {
+  background-color: #121519 !important;
+}
+
+@media (min-width: 992px) {
+  .faq-sticky-header {
+    position: sticky;
+    top: 110px;
+  }
+}
+
+.faq-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid #e9ecef !important;
+}
+
+.faq-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-bs-theme="dark"] .faq-card {
+  background-color: #1a1e24 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .faq-card:hover {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.faq-toggle {
+  cursor: pointer;
+}
+
+.faq-toggle:focus {
+  outline: none;
+}
+
+.faq-toggle .faq-icon-indicator::before {
+  content: '−';
+  display: inline-block;
+  font-weight: 300;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.faq-toggle.collapsed .faq-icon-indicator::before {
+  content: '+';
+  font-weight: 300;
+  font-size: 1.5rem;
+  line-height: 1;
 }
 </style>

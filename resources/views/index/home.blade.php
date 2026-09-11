@@ -159,6 +159,9 @@
     </section>
     @endif
 
+    {{-- Transformation Before/After Showcase Section --}}
+    @include('includes.transformation-section')
+
     @if (isset($testimonials) && $testimonials->isNotEmpty())
     <section class="section py-5 py-large bg-light testimonials-section">
       <div class="container">
@@ -185,8 +188,8 @@
         </div>
 
         <div class="row">
-
 		@include('includes.categories-listing')
+        </div>
 
     @if ($categoriesCount > 4)
     <div class="w-100 d-block text-center mt-4">
@@ -196,8 +199,12 @@
     </div>
     @endif
 
-</section>
-@endif
+      </div>
+    </section>
+    @endif
+
+    {{-- FAQ Section for Prompt Library --}}
+    @include('includes.faq-section')
 
 @endsection
 
