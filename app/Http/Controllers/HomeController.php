@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use DB;
 use Lang;
 use Mail;
+use App\Helper;
 use App\Models\User;
 use App\Models\Plans;
 use App\Models\Query;
@@ -36,6 +37,8 @@ class HomeController extends Controller
       // Redirect to Installer
       return redirect('installer/script');
     }
+
+    Helper::seo()->setPage('home');
 
     $categories = Categories::select(['name', 'slug', 'thumbnail'])->where('mode', 'on')->orderBy('name')->simplePaginate(4);
     $images     = Query::latestImagesHome();
@@ -140,6 +143,7 @@ class HomeController extends Controller
       abort(404);
     }
 
+    Helper::seo()->setPage('photos_premium');
     $images = Query::premiumImages();
 
     if (request()->ajax()) {
@@ -155,6 +159,7 @@ class HomeController extends Controller
 
   public function latest()
   {
+    Helper::seo()->setPage('explore_latest');
     $images = Query::latestImages();
 
     if (request()->ajax()) {
@@ -170,6 +175,7 @@ class HomeController extends Controller
 
   public function featured()
   {
+    Helper::seo()->setPage('explore_featured');
     $images = Query::featuredImages();
 
     if (request()->ajax()) {
@@ -186,6 +192,7 @@ class HomeController extends Controller
 
   public function popular()
   {
+    Helper::seo()->setPage('explore_popular');
     $images = Query::popularImages();
 
     if (request()->ajax()) {
@@ -216,6 +223,7 @@ class HomeController extends Controller
 
   public function viewed()
   {
+    Helper::seo()->setPage('explore_viewed');
     $images = Query::viewedImages();
 
     if (request()->ajax()) {
@@ -231,6 +239,7 @@ class HomeController extends Controller
 
   public function downloads()
   {
+    Helper::seo()->setPage('explore_downloads');
     $images = Query::downloadsImages();
 
     if (request()->ajax()) {
@@ -246,6 +255,7 @@ class HomeController extends Controller
 
   public function copied()
   {
+    Helper::seo()->setPage('explore_copied');
     $images = Query::copiedImages();
 
     if (request()->ajax()) {
@@ -380,6 +390,10 @@ class HomeController extends Controller
   {
     $images = Query::categoryImages($slug);
 
+    if (isset($images['category'])) {
+      Helper::seo()->setEntity($images['category']);
+    }
+
     if (request()->ajax()) {
       return view('includes.images')->with($images)->render();
     }
@@ -390,6 +404,10 @@ class HomeController extends Controller
   public function subcategory($slug, $subcategory)
   {
     $images = Query::subCategoryImages($slug, $subcategory);
+
+    if (isset($images['subcategory'])) {
+      Helper::seo()->setEntity($images['subcategory']);
+    }
 
     if (request()->ajax()) {
       return view('includes.images')->with($images)->render();
@@ -455,6 +473,7 @@ class HomeController extends Controller
 
   public function contact()
   {
+    Helper::seo()->setPage('contact');
     return view('default.contact');
   }
 
@@ -521,6 +540,8 @@ class HomeController extends Controller
       abort(404);
     }
 
+    Helper::seo()->setPage('pricing');
+
     return view('default.pricing')->with([
       'plans' => $plans,
       'getSubscription' => auth()->check() ? auth()->user()->getSubscription() : null
@@ -566,6 +587,7 @@ class HomeController extends Controller
 
   public function photoshoots(Request $request)
   {
+    Helper::seo()->setPage('photoshoots_index');
     $categorySlug = trim($request->get('category', ''));
 
     $categories = Categories::where('mode', 'on')

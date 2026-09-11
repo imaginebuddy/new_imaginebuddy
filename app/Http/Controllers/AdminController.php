@@ -17,6 +17,7 @@ use App\Models\Collections;
 use App\Models\Withdrawals;
 use Illuminate\Http\Request;
 use App\Models\AdminSettings;
+use App\Models\SeoMetadata;
 use App\Models\Notifications;
 use App\Models\Subcategories;
 use App\Models\Subscriptions;
@@ -1842,5 +1843,105 @@ class AdminController extends Controller
 			'success' => true,
 			'message' => 'Prompt removed from photoshoot successfully. Prompt remains in database as standalone.'
 		]);
+	}
+
+	public function seoSettings()
+	{
+		if (!auth()->user()->hasPermission('general_settings')) {
+			return view('admin.unauthorized');
+		}
+
+		$staticPages = SeoMetadata::staticPages()->orderBy('id', 'asc')->get();
+		$promptTemplate = SeoMetadata::where('page_key', 'prompt_template')->first();
+		$categoryTemplate = SeoMetadata::where('page_key', 'category_template')->first();
+
+		return view('admin.seo-settings', compact('staticPages', 'promptTemplate', 'categoryTemplate'));
+	}
+
+	public function editSeoPage($id)
+	{
+		if (!auth()->user()->hasPermission('general_settings')) {
+			return view('admin.unauthorized');
+		}
+
+		$page = SeoMetadata::findOrFail($id);
+
+		return view('admin.edit-seo-page', compact('page'));
+	}
+
+	public function updateSeoPage(Request $request, $id)
+	{
+		if (!auth()->user()->hasPermission('general_settings')) {
+			return view('admin.unauthorized');
+		}
+
+		$page = SeoMetadata::findOrFail($id);
+
+		$request->validate([
+			'page_name' => 'required|string|max:100',
+			'meta_title' => 'nullable|string|max:255',
+			'meta_description' => 'nullable|string|max:500',
+			'meta_keywords' => 'nullable|string|max:500',
+			'canonical_url' => 'nullable|url|max:255',
+			'robots' => 'nullable|string|max:50',
+			'og_title' => 'nullable|string|max:255',
+			'og_description' => 'nullable|string|max:500',
+			'twitter_card' => 'nullable|string|max:30',
+			'schema_type' => 'nullable|string|max:50',
+		]);
+
+		$page->page_name = strip_tags(trim($request->page_name));
+		$page->meta_title = $request->meta_title ? strip_tags(trim($request->meta_title)) : null;
+		$page->meta_description = $request->meta_description ? strip_tags(trim($request->meta_description)) : null;
+		$page->meta_keywords = $request->meta_keywords ? strip_tags(trim($request->meta_keywords)) : null;
+		$page->canonical_url = $request->canonical_url ? trim($request->canonical_url) : null;
+		$page->robots = $request->robots ? trim($request->robots) : 'index, follow';
+		$page->og_title = $request->og_title ? strip_tags(trim($request->og_title)) : null;
+		$page->og_description = $request->og_description ? strip_tags(trim($request->og_description)) : null;
+		$page->twitter_card = $request->twitter_card ? trim($request->twitter_card) : 'summary_large_image';
+		$page->schema_type = $request->schema_type ? trim($request->schema_type) : null;
+		$page->is_active = $request->has('is_active') ? 1 : 0;
+
+		$page->save();
+
+		\Session::flash('success_message', trans('admin.success_update'));
+
+		return redirect('panel/admin/settings/seo');
+	}
+
+	public function updateSeoPatterns(Request $request)
+	{
+		if (!auth()->user()->hasPermission('general_settings')) {
+			return view('admin.unauthorized');
+		}
+
+		$request->validate([
+			'prompt_title' => 'nullable|string|max:255',
+			'prompt_description' => 'nullable|string|max:500',
+			'prompt_keywords' => 'nullable|string|max:500',
+			'category_title' => 'nullable|string|max:255',
+			'category_description' => 'nullable|string|max:500',
+			'category_keywords' => 'nullable|string|max:500',
+		]);
+
+		$prompt = SeoMetadata::where('page_key', 'prompt_template')->first();
+		if ($prompt) {
+			$prompt->meta_title = $request->prompt_title ? strip_tags(trim($request->prompt_title)) : null;
+			$prompt->meta_description = $request->prompt_description ? strip_tags(trim($request->prompt_description)) : null;
+			$prompt->meta_keywords = $request->prompt_keywords ? strip_tags(trim($request->prompt_keywords)) : null;
+			$prompt->save();
+		}
+
+		$category = SeoMetadata::where('page_key', 'category_template')->first();
+		if ($category) {
+			$category->meta_title = $request->category_title ? strip_tags(trim($request->category_title)) : null;
+			$category->meta_description = $request->category_description ? strip_tags(trim($request->category_description)) : null;
+			$category->meta_keywords = $request->category_keywords ? strip_tags(trim($request->category_keywords)) : null;
+			$category->save();
+		}
+
+		\Session::flash('success_message', trans('admin.success_update'));
+
+		return redirect('panel/admin/settings/seo');
 	}
 }

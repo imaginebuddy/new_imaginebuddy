@@ -19,20 +19,8 @@
 @endif
 
 @section('css')
-<meta property="og:type" content="website" />
 <meta property="og:image:width" content="{{$previewWidth}}"/>
 <meta property="og:image:height" content="{{$previewHeight}}"/>
-
-<meta property="og:site_name" content="{{$settings->title}}"/>
-<meta property="og:url" content="{{ url('prompt', $response->slug) }}"/>
-<meta property="og:image" content="{{ Storage::url(config('path.preview') . $response->preview) }}"/>
-<meta property="og:title" content="{{ $response->meta_title ?: ($response->title.' - '.trans_choice('misc.photos_plural', 1 ).' #'.$response->id) }}"/>
-<meta property="og:description" content="{{ $response->meta_description ? Helper::removeLineBreak(e($response->meta_description)) : Helper::removeLineBreak(e($response->description)) }}"/>
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="{{ Storage::url(config('path.preview') . $response->preview) }}" />
-<meta name="twitter:title" content="{{ $response->meta_title ?: ($response->title.' - '.trans_choice('misc.photos_plural', 1 ).' #'.$response->id) }}" />
-<meta name="twitter:description" content="{{ $response->meta_description ? Helper::removeLineBreak(e($response->meta_description)) : Helper::removeLineBreak(e($response->description)) }}"/>
 
 <style>
 @media (min-width: 992px) {

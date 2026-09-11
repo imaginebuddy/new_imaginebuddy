@@ -829,4 +829,9 @@ class Helper
 		}
 		return $slug;
 	}
+
+	public static function seo()
+	{
+		return app(\App\Services\SeoService::class);
+	}
 }//<--- End Class

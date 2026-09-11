@@ -15,7 +15,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton(\App\Services\SeoService::class, function () {
+            return new \App\Services\SeoService();
+        });
     }
 
     /**
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        require_once app_path('helpers.php');
         Blade::withoutDoubleEncoding();
         Paginator::useBootstrap();
     }

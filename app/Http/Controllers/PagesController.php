@@ -105,6 +105,12 @@ class PagesController extends Controller {
 			abort(404);
 		}
 
+		if ($page === 'terms-and-conditions') {
+			\App\Helper::seo()->setPage('page_terms');
+		} elseif ($page === 'privacy-policy') {
+			\App\Helper::seo()->setPage('page_privacy');
+		}
+
 		return view('pages.show')->withResponse($response);
 
 	}//<--- End Method

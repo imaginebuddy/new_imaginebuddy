@@ -429,6 +429,12 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/settings/limits',[AdminController::class, 'settingsLimits'])->name('general_settings');
 	Route::post('panel/admin/settings/limits',[AdminController::class, 'saveSettingsLimits']);
 
+	// SEO Settings
+	Route::get('panel/admin/settings/seo', [AdminController::class, 'seoSettings'])->name('general_settings');
+	Route::get('panel/admin/settings/seo/edit/{id}', [AdminController::class, 'editSeoPage'])->name('general_settings');
+	Route::post('panel/admin/settings/seo/update/{id}', [AdminController::class, 'updateSeoPage']);
+	Route::post('panel/admin/settings/seo/patterns', [AdminController::class, 'updateSeoPatterns']);
+
 	Route::view('panel/admin/announcements','admin.announcements')->name('announcements');
 	Route::post('panel/admin/announcements', [AdminController::class, 'storeAnnouncements']);
 

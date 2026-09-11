@@ -271,6 +271,7 @@ class ImagesController extends Controller
 		// Item price
 		$itemPrice = $this->settings->default_price_photos ?: $response->price;
 
+		Helper::seo()->setEntity($response);
 
 		return view('images.show')->with([
 			'response' => $response,

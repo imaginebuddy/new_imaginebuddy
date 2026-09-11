@@ -60,13 +60,13 @@
 
               @if (auth()->user()->hasPermission('general_settings'))
               <li class="nav-item">
-                  <a href="#settings" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/settings') ||request()->is('panel/admin/settings/limits')) active @endif" @if (request()->is('panel/admin/settings') ||request()->is('panel/admin/settings/limits')) aria-expanded="true" @endif>
+                  <a href="#settings" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/settings') || request()->is('panel/admin/settings/limits') || request()->is('panel/admin/settings/seo*')) active @endif" @if (request()->is('panel/admin/settings') || request()->is('panel/admin/settings/limits') || request()->is('panel/admin/settings/seo*')) aria-expanded="true" @endif>
                       <i class="bi-gear me-2"></i> {{ __('admin.general_settings') }}
                   </a>
               </li><!-- /end list -->
             @endif
 
-              <div class="collapse w-100 @if (request()->is('panel/admin/settings') || request()->is('panel/admin/settings/limits')) show @endif ps-3" id="settings">
+              <div class="collapse w-100 @if (request()->is('panel/admin/settings') || request()->is('panel/admin/settings/limits') || request()->is('panel/admin/settings/seo*')) show @endif ps-3" id="settings">
                 <li>
                 <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/settings')) text-white @endif" href="{{ url('panel/admin/settings') }}">
                   <i class="bi-chevron-right fs-7 me-1"></i> {{ trans('admin.general') }}
@@ -75,6 +75,11 @@
                 <li>
                 <a class="nav-link text-truncate @if (request()->is('panel/admin/settings/limits')) text-white @endif" href="{{ url('panel/admin/settings/limits') }}">
                   <i class="bi-chevron-right fs-7 me-1"></i> {{ trans('admin.limits') }}
+                  </a>
+                </li>
+                <li>
+                <a class="nav-link text-truncate @if (request()->is('panel/admin/settings/seo*')) text-white @endif" href="{{ url('panel/admin/settings/seo') }}">
+                  <i class="bi-chevron-right fs-7 me-1"></i> SEO Settings
                   </a>
                 </li>
               </div><!-- /end collapse settings -->

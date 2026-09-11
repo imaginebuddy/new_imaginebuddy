@@ -4,25 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @if (View::hasSection('description_override'))
-      <meta name="description" content="@yield('description_override')">
-    @else
-      <meta name="description" content="@yield('description_custom'){{ __('seo.description') }}">
-    @endif
-
-    @if (View::hasSection('keywords_override'))
-      <meta name="keywords" content="@yield('keywords_override')" />
-    @else
-      <meta name="keywords" content="@yield('keywords_custom'){{ __('seo.keywords') }}" />
-    @endif
-
-    @if (View::hasSection('robots'))
-      <meta name="robots" content="@yield('robots')">
-    @endif
+    @include('includes.seo_meta')
     <meta name="theme-color" content="{{ $settings->color_default }}">
     <link rel="shortcut icon" href="{{ url('public/img', $settings->favicon) }}" />
-
-    <title>@auth {{ auth()->user()->unseenNotifications() ? '('.auth()->user()->unseenNotifications().') ' : null }} @endauth @yield('title')@if(empty($category->seo_title) && (empty($response) || empty($response->meta_title)) && (empty($photoshoot) || empty($photoshoot->meta_title))){{$settings->title.' - '.__('seo.welcome_subtitle')}}@endif</title>
 
     @include('includes.css_general')
 

@@ -22,13 +22,15 @@ switch(request()->get('timeframe')) {
   $currentAiModel   = request()->get('ai_model');
   $currentTimeframe = request()->get('timeframe');
 
-  function buildExploreFilterUrl($overrides = []) {
-    $current = request()->only(['tier', 'ai_model', 'timeframe']);
-    $merged = array_merge($current, $overrides);
-    $filtered = array_filter($merged, function($v) {
-      return $v !== null && $v !== '';
-    });
-    return url()->current() . ($filtered ? '?' . http_build_query($filtered) : '');
+  if (!function_exists('buildExploreFilterUrl')) {
+    function buildExploreFilterUrl($overrides = []) {
+      $current = request()->only(['tier', 'ai_model', 'timeframe']);
+      $merged = array_merge($current, $overrides);
+      $filtered = array_filter($merged, function($v) {
+        return $v !== null && $v !== '';
+      });
+      return url()->current() . ($filtered ? '?' . http_build_query($filtered) : '');
+    }
   }
 @endphp
 
