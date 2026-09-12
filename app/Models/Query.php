@@ -63,10 +63,11 @@ class Query extends Model
 	//Search
 	public static function searchImages()
 	{
-		$q     = request()->get('q');
-		$page  = request()->get('page');
-		$sort  = request()->get('sort');
-		$tier  = request()->get('tier');
+		$q       = request()->get('q');
+		$page    = request()->get('page');
+		$sort    = request()->get('sort');
+		$tier    = request()->get('tier');
+		$aiModel = request()->get('ai_model');
 
 		try {
 			$query = Images::search($q)
@@ -79,10 +80,14 @@ class Query extends Model
 				$query->where('images.item_for_sale', 'sale');
 			}
 
+			if (!empty($aiModel)) {
+				$query->where('images.ai_model', $aiModel);
+			}
+
 			if ($sort == 'oldest') {
-				$query->orderBy('images.id', 'asc');
+				$query->reorder()->orderBy('images.id', 'asc');
 			} else if ($sort == 'latest') {
-				$query->orderBy('images.id', 'desc');
+				$query->reorder()->orderBy('images.id', 'desc');
 			} // Default retains orderByDesc('relevance') from scopeSearch
 
 			$images = $query->paginate(config('settings.result_request', 12))->onEachSide(1);
@@ -98,10 +103,14 @@ class Query extends Model
 				$query->where('images.item_for_sale', 'sale');
 			}
 
+			if (!empty($aiModel)) {
+				$query->where('images.ai_model', $aiModel);
+			}
+
 			if ($sort == 'oldest') {
-				$query->orderBy('images.id', 'asc');
+				$query->reorder()->orderBy('images.id', 'asc');
 			} else {
-				$query->orderBy('images.id', 'desc');
+				$query->reorder()->orderBy('images.id', 'desc');
 			}
 
 			$images = $query->paginate(config('settings.result_request', 12))->onEachSide(1);

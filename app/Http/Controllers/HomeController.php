@@ -112,16 +112,17 @@ class HomeController extends Controller
 
   public function getSearch()
   {
-    $q = request()->get('q');
-    $images = Query::searchImages();
+    $q = trim(request()->get('q', ''));
 
-    //<--- * If $q is empty or is minus to 1 * ---->
-    if ($q == '' || strlen($q) <= 2) {
+    //<--- * If $q is empty or is less than 3 characters * ---->
+    if ($q == '' || mb_strlen($q) <= 2) {
       return redirect('/latest');
     }
 
+    $images = Query::searchImages();
+
     if (request()->ajax()) {
-      return view('includes.images')->with($images)->render();
+      return view('includes.images')->with($images)->render() . view('includes.pagination-links')->with($images)->render();
     }
 
     return view('default.search')->with($images);

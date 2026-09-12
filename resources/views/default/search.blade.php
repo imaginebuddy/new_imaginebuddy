@@ -1,12 +1,13 @@
 @extends('layouts.app')
 
 @php
-  $currentQ    = request()->get('q');
-  $currentTier = request()->get('tier');
-  $currentSort = request()->get('sort');
+  $currentQ       = request()->get('q');
+  $currentTier    = request()->get('tier');
+  $currentSort    = request()->get('sort');
+  $currentAiModel = request()->get('ai_model');
 
   function buildSearchFilterUrl($overrides = []) {
-    $params = array_merge(request()->only(['q', 'tier', 'sort']), $overrides);
+    $params = array_merge(request()->only(['q', 'tier', 'sort', 'ai_model']), $overrides);
     $filtered = array_filter($params, function($val) {
       return $val !== null && $val !== '';
     });
@@ -37,6 +38,14 @@
 					<option value="{{ buildSearchFilterUrl(['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
 					<option value="{{ buildSearchFilterUrl(['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
 					<option value="{{ buildSearchFilterUrl(['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
+				</select>
+
+				<!-- AI Model Filter -->
+				<select class="ms-2 form-select d-inline-block w-auto filter" onchange="window.location.href=this.value;">
+					<option value="{{ buildSearchFilterUrl(['ai_model' => '']) }}" @if(empty($currentAiModel)) selected @endif>All AI Models</option>
+					@foreach (App\Models\Images::getAiModels() as $model)
+						<option value="{{ buildSearchFilterUrl(['ai_model' => $model]) }}" @if($currentAiModel == $model) selected @endif>{{ $model }}</option>
+					@endforeach
 				</select>
 
 				<!-- Sort Order Filter -->

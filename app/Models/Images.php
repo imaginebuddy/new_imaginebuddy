@@ -37,7 +37,8 @@ class Images extends Model
 
 	protected $searchable = [
 	    'title',
-	    'tags'
+	    'tags',
+	    'prompt'
 	];
 
 	public static $aiModels = [
