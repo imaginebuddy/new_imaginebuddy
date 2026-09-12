@@ -38,6 +38,8 @@
       </div>
     </div><!-- container-fluid -->
 
+    {{-- Client Logos Slider Section --}}
+    @include('includes.client-logos-slider', ['clientLogos' => $clientLogos])
 
 <div class="container py-5 py-large">
 

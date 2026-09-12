@@ -28,4 +28,7 @@ return array(
     // Testimonials
     'testimonials' => 'testimonials/',
 
+    // Client Logos
+    'client_logos' => 'uploads/logos/',
+
 );

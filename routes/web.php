@@ -36,6 +36,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\RolesAndPermissionsController;
 use App\Http\Controllers\TestimonialsController;
+use App\Http\Controllers\ClientLogosController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -613,6 +614,15 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/testimonials/update/{id}', [TestimonialsController::class, 'update']);
 	Route::post('panel/admin/testimonials/delete/{id}', [TestimonialsController::class, 'destroy']);
 	Route::post('panel/admin/testimonials/toggle-status/{id}', [TestimonialsController::class, 'toggleStatus']);
+
+	// Client Logos
+	Route::get('panel/admin/client-logos', [ClientLogosController::class, 'index'])->name('client_logos');
+	Route::get('panel/admin/client-logos/add', [ClientLogosController::class, 'create'])->name('client_logos');
+	Route::post('panel/admin/client-logos/add', [ClientLogosController::class, 'store']);
+	Route::get('panel/admin/client-logos/edit/{id}', [ClientLogosController::class, 'edit'])->name('client_logos');
+	Route::post('panel/admin/client-logos/update/{id}', [ClientLogosController::class, 'update']);
+	Route::post('panel/admin/client-logos/delete/{id}', [ClientLogosController::class, 'destroy']);
+	Route::post('panel/admin/client-logos/toggle-status/{id}', [ClientLogosController::class, 'toggleStatus']);
 
 });//<--- End Group Role
 

@@ -17,6 +17,7 @@ return array(
 	'upload' 		            => 		'Upload',
 	'creators_testimonials_heading' => 'What Creators Say About Imaginebuddy',
 	'creators_testimonials_subtitle' => 'Discover how creators and prompt engineers use Imaginebuddy to power their visual projects.',
+	'trusted_by_heading'        => 'Trusted by leading creators & creative teams worldwide',
 	'error_oops'			    =>		'Oops...',
 	'error'					    =>		'Error occurred',
 	'popular'				    =>		'Popular',

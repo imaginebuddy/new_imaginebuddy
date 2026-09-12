@@ -14,6 +14,7 @@ use App\Models\Categories;
 use App\Models\Collections;
 use App\Models\Photoshoot;
 use App\Models\Testimonial;
+use App\Models\ClientLogo;
 use Illuminate\Http\Request;
 use App\Models\AdminSettings;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +61,7 @@ class HomeController extends Controller
     }
 
     $testimonials = Testimonial::active()->ordered()->get();
+    $clientLogos  = ClientLogo::active()->ordered()->get();
 
     return view(
       'index.home',
@@ -68,7 +70,8 @@ class HomeController extends Controller
         'images' => $images,
         'featured' => $featured,
         'categoryPopular' => $categoryPopular,
-        'testimonials' => $testimonials
+        'testimonials' => $testimonials,
+        'clientLogos' => $clientLogos
       ]
     );
   }
