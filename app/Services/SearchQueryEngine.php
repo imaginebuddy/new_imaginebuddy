@@ -12,14 +12,70 @@ class SearchQueryEngine
     public static function getStopWords()
     {
         return [
+            // Prepositions, articles, conjunctions
             'in', 'at', 'on', 'the', 'with', 'a', 'an', 'by', 'for', 'of', 'to',
-            'is', 'and', 'or', 'from', 'this', 'that', 'it', 'set', 'photo',
-            'image', 'picture', 'photography', 'shot'
+            'is', 'and', 'or', 'from', 'this', 'that', 'it', 'set', 'into', 'over',
+            'onto', 'via', 'as', 'be', 'are', 'was', 'were',
+            // Image metadata nouns with zero distinguishing value
+            'photo', 'image', 'picture', 'photography', 'shot',
+            // Common conversational action/interaction verbs in visual prompts
+            'using', 'use', 'uses', 'used',
+            'wearing', 'wear', 'wears',
+            'holding', 'hold', 'holds',
+            'having', 'has', 'have',
+            'showing', 'shows', 'shown',
+            'featuring', 'features', 'featured',
+            'looking', 'looks', 'look',
+            'view', 'views',
+            'taking', 'takes', 'take'
         ];
     }
 
     /**
-     * Clean raw query input by stripping reserved MySQL symbols and extra spaces.
+     * Common two-word phrases that represent single compound concepts.
+     *
+     * @return array
+     */
+    public static function getCompoundMap()
+    {
+        return [
+            'life style' => 'lifestyle',
+            'ear buds' => 'earbuds',
+            'ear bud' => 'earbuds',
+            'head phones' => 'headphones',
+            'head phone' => 'headphones',
+            'pack shot' => 'packshot',
+            'flat lay' => 'flatlay',
+            'close up' => 'closeup',
+            'top down' => 'topdown',
+            'water splash' => 'watersplash',
+            'water drops' => 'waterdrops',
+            'water droplet' => 'waterdroplets',
+            'water droplets' => 'waterdroplets',
+            'ice cubes' => 'icecubes',
+            'ice cube' => 'icecubes',
+            'smart phone' => 'smartphone',
+            'e commerce' => 'ecommerce'
+        ];
+    }
+
+    /**
+     * Normalize multi-word compounds into canonical single-word tokens.
+     *
+     * @param string $term
+     * @return string
+     */
+    public static function normalizeCompounds($term)
+    {
+        $map = static::getCompoundMap();
+        foreach ($map as $split => $compound) {
+            $term = preg_replace('/\b' . preg_quote($split, '/') . '\b/iu', $compound, $term);
+        }
+        return $term;
+    }
+
+    /**
+     * Clean raw query input by stripping reserved MySQL symbols, normalizing compounds, and extra spaces.
      *
      * @param string $term
      * @return string
@@ -27,6 +83,7 @@ class SearchQueryEngine
     public static function cleanQuery($term)
     {
         $term = mb_strtolower(trim($term));
+        $term = static::normalizeCompounds($term);
         $reservedSymbols = ['-', '+', '<', '>', '@', '(', ')', '~', '*', '"', "'", '?', '!', '.', ','];
         $cleaned = str_replace($reservedSymbols, ' ', $term);
         return preg_replace('/\s+/', ' ', $cleaned);
@@ -105,6 +162,30 @@ class SearchQueryEngine
         foreach ($tokens as $token) {
             if (strlen($token) >= 2) {
                 $fulltextWords[] = '+' . $token . '*';
+            }
+        }
+
+        return implode(' ', $fulltextWords);
+    }
+
+    /**
+     * Build MySQL FULLTEXT Boolean mode search string without mandatory (+) operators.
+     * Matches any combination of terms, ranked by relevance score.
+     *
+     * @param string $term
+     * @return string
+     */
+    public static function buildRelaxedBooleanQuery($term)
+    {
+        $tokens = static::tokenize($term);
+        if (empty($tokens)) {
+            return static::cleanQuery($term);
+        }
+
+        $fulltextWords = [];
+        foreach ($tokens as $token) {
+            if (strlen($token) >= 2) {
+                $fulltextWords[] = $token . '*';
             }
         }
 

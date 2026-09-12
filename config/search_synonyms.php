@@ -63,4 +63,24 @@ return [
     'summer campaign' => ['summer ad', 'seasonal campaign', 'sunlit ad'],
     'advertisement' => ['ad', 'commercial', 'promotional visual'],
     'ad' => ['advertisement', 'commercial', 'promo visual'],
+
+    // 6. People, Models & Demographics
+    'woman' => ['women', 'female', 'girl'],
+    'women' => ['woman', 'female', 'girl'],
+    'girl' => ['woman', 'female'],
+    'man' => ['men', 'male', 'boy'],
+    'men' => ['man', 'male', 'boy'],
+    'boy' => ['man', 'male'],
+    'person' => ['human model', 'people'],
+
+    // 7. Tech & Audio Devices
+    'earbuds' => ['earbud', 'earphones', 'earphone', 'wireless earbuds', 'headphones'],
+    'earbud' => ['earbuds', 'earphones', 'earphone', 'headphones'],
+    'earphones' => ['earbuds', 'earbud', 'earphone', 'headphones'],
+    'headphones' => ['headphone', 'earphones', 'earbuds'],
+    'smartphone' => ['phone', 'mobile phone', 'cell phone'],
+
+    // 8. Visual Styles
+    'lifestyle' => ['life style', 'lifestyle portrait', 'lifestyle shot'],
+    'life style' => ['lifestyle', 'lifestyle portrait', 'lifestyle shot'],
 ];

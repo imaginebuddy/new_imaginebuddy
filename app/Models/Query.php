@@ -69,50 +69,45 @@ class Query extends Model
 		$tier    = request()->get('tier');
 		$aiModel = request()->get('ai_model');
 
-		try {
-			$query = Images::search($q)
-				->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution'])
+		$applyFilters = function ($builder) use ($tier, $aiModel, $sort) {
+			$builder->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution'])
 				->where('images.status', 'active');
 
 			if ($tier == 'free') {
-				$query->where('images.item_for_sale', 'free');
+				$builder->where('images.item_for_sale', 'free');
 			} else if ($tier == 'premium' || $tier == 'sale') {
-				$query->where('images.item_for_sale', 'sale');
+				$builder->where('images.item_for_sale', 'sale');
 			}
 
 			if (!empty($aiModel)) {
-				$query->where('images.ai_model', $aiModel);
+				$builder->where('images.ai_model', $aiModel);
 			}
 
 			if ($sort == 'oldest') {
-				$query->reorder()->orderBy('images.id', 'asc');
+				$builder->reorder()->orderBy('images.id', 'asc');
 			} else if ($sort == 'latest') {
-				$query->reorder()->orderBy('images.id', 'desc');
-			} // Default retains orderByDesc('relevance') from scopeSearch
+				$builder->reorder()->orderBy('images.id', 'desc');
+			}
 
+			return $builder;
+		};
+
+		try {
+			// Tier 1: Strict Boolean FULLTEXT Search across unified (title, tags, prompt)
+			$query = $applyFilters(Images::search($q));
 			$images = $query->paginate(config('settings.result_request', 12))->onEachSide(1);
+
+			// Tier 2: Relaxed Boolean FULLTEXT Fallback (if strict search returns 0)
+			if ($images->total() == 0) {
+				$relaxedQuery = $applyFilters(Images::searchRelaxed($q));
+				$relaxedImages = $relaxedQuery->paginate(config('settings.result_request', 12))->onEachSide(1);
+				if ($relaxedImages->total() > 0) {
+					$images = $relaxedImages;
+				}
+			}
 		} catch (\Exception $e) {
-			// Fallback to LIKE search if MySQL/MariaDB FULLTEXT index is missing or throws 1064
-			$query = Images::searchLike($q)
-				->selectFieldsRelation()
-				->where('images.status', 'active');
-
-			if ($tier == 'free') {
-				$query->where('images.item_for_sale', 'free');
-			} else if ($tier == 'premium' || $tier == 'sale') {
-				$query->where('images.item_for_sale', 'sale');
-			}
-
-			if (!empty($aiModel)) {
-				$query->where('images.ai_model', $aiModel);
-			}
-
-			if ($sort == 'oldest') {
-				$query->reorder()->orderBy('images.id', 'asc');
-			} else {
-				$query->reorder()->orderBy('images.id', 'desc');
-			}
-
+			// Tier 3: SQL LIKE Fallback
+			$query = $applyFilters(Images::searchLike($q)->selectFieldsRelation());
 			$images = $query->paginate(config('settings.result_request', 12))->onEachSide(1);
 		}
 
