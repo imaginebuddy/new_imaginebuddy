@@ -4,6 +4,7 @@
     $categoryName = Lang::has('categories.' . $category->slug) ? __('categories.' . $category->slug) : $category->name;
     // Get first character safely
     $firstLetter = mb_substr(trim($categoryName), 0, 1);
+    $promptCount = $category->images_count ?? ($category->id ? $category->images()->count() : 0);
   @endphp
 
   <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
@@ -24,7 +25,7 @@
           {{-- Prompt Count Pill --}}
           <span class="badge border rounded-pill px-3 py-2 fw-normal badge-custom" 
                 style="font-size: 0.78rem;">
-            {{ $category->images_count ?? $category->images()->count() ?? 0 }} {{ __('misc.prompts') ?? 'Prompts' }}
+            {{ $promptCount }} {{ $promptCount == 1 ? (__('misc.prompt') ?? 'Prompt') : (__('misc.prompts') ?? 'Prompts') }}
           </span>
 
         </div>

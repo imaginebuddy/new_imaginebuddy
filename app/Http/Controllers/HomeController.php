@@ -41,7 +41,13 @@ class HomeController extends Controller
 
     Helper::seo()->setPage('home');
 
-    $categories = Categories::select(['name', 'slug', 'thumbnail'])->where('mode', 'on')->orderBy('name')->simplePaginate(4);
+    $categories = Categories::where('mode', 'on')
+      ->withCount(['images' => function ($q) {
+        $q->where('status', 'active');
+      }])
+      ->orderBy('name')
+      ->take(4)
+      ->get();
     $images     = Query::latestImagesHome();
     $featured   = in_array(config('settings.show_images_index'), ['featured', 'both']) ? Query::featuredImages() : null;
     $popularCategories = Categories::withCount('images')

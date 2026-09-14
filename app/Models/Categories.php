@@ -11,7 +11,7 @@ class Categories extends Model
 
 	public function images()
 	{
-		return $this->hasMany(Images::class)->where('status','active');
+		return $this->hasMany(Images::class, 'categories_id')->where('status', 'active');
 	}
 
 	public function subcategories()
