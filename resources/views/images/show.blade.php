@@ -31,6 +31,93 @@
     z-index: 10 !important;
   }
 }
+
+/* --- Photoshoot CTA Banner (Option B) --- */
+.photoshoot-cta-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+}
+.photoshoot-cta-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+  border-color: #00d690 !important;
+}
+.photoshoot-icon-badge {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #00d690 0%, #00b377 100%);
+  color: #ffffff;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 214, 144, 0.3);
+  transition: transform 0.3s ease;
+}
+.photoshoot-cta-card:hover .photoshoot-icon-badge {
+  transform: scale(1.08) rotate(-4deg);
+}
+.bg-mint-pill {
+  background-color: rgba(0, 214, 144, 0.12) !important;
+  color: #009e69 !important;
+}
+.btn-photoshoot-action {
+  background-color: #0f172a;
+  color: #ffffff;
+  font-size: 0.82rem;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+  transition: all 0.25s ease;
+}
+.photoshoot-cta-card:hover .btn-photoshoot-action {
+  background-color: #00d690;
+  color: #000000;
+  transform: translateX(2px);
+  box-shadow: 0 6px 16px rgba(0, 214, 144, 0.35);
+}
+.btn-photoshoot-action i {
+  transition: transform 0.25s ease;
+}
+.photoshoot-cta-card:hover .btn-photoshoot-action i {
+  transform: translateX(3px);
+}
+
+/* Dark Mode Overrides */
+[data-bs-theme="dark"] .photoshoot-cta-card {
+  background: linear-gradient(135deg, #1e2227 0%, #16191d 100%) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+[data-bs-theme="dark"] .photoshoot-cta-card:hover {
+  border-color: rgba(0, 214, 144, 0.5) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+[data-bs-theme="dark"] .btn-photoshoot-action {
+  background-color: #2a2f37;
+  color: #ffffff;
+}
+[data-bs-theme="dark"] .photoshoot-cta-card:hover .btn-photoshoot-action {
+  background-color: #00d690;
+  color: #000000;
+}
+[data-bs-theme="dark"] .bg-mint-pill {
+  background-color: rgba(0, 214, 144, 0.2) !important;
+  color: #00d690 !important;
+}
+[data-bs-theme="dark"] .photoshoot-prompt-counter {
+  color: #94a3b8 !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 575.98px) {
+  .photoshoot-cta-card .d-flex.align-items-center.justify-content-between {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .btn-photoshoot-action {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+}
 </style>
 @endsection
 
@@ -257,6 +344,39 @@
             @endif
 
           </div>
+
+          @if ($response->photoshoot)
+            @php
+              $photoshootCount = $response->photoshoot->prompts_count ?: ($response->photoshoot->images ? $response->photoshoot->images->count() : 0);
+            @endphp
+            <div class="photoshoot-cta-widget mt-3">
+              <a href="{{ url('photoshoots', $response->photoshoot->slug) }}" class="photoshoot-cta-card d-block p-3 rounded-4 text-decoration-none shadow-sm position-relative overflow-hidden" title="{{ $response->photoshoot->title }}">
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                  <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="photoshoot-icon-badge rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                      <i class="bi bi-camera-reels-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <span class="badge bg-mint-pill rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.4px;">PHOTOSHOOT SET</span>
+                        @if ($photoshootCount > 0)
+                          <span class="photoshoot-prompt-counter text-muted small fw-medium" style="font-size: 0.75rem;">• {{ $photoshootCount }} {{ str_plural('Prompt', $photoshootCount) }}</span>
+                        @endif
+                      </div>
+                      <h6 class="mb-0 fw-bold text-dark text-break title-custom" style="font-size: 0.95rem; line-height: 1.35;">
+                        {{ $response->photoshoot->title }}
+                      </h6>
+                    </div>
+                  </div>
+
+                  <div class="btn-photoshoot-action rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                    <span>View Entire Photoshoot</span>
+                    <i class="bi bi-arrow-right-short fs-5 lh-1"></i>
+                  </div>
+                </div>
+              </a>
+            </div>
+          @endif
         </div>
       </div>
 

@@ -454,6 +454,10 @@
   display: block !important;
 }
 
+#header.header-home-transparent .logo {
+  display: none !important;
+}
+
 .navbar-search-form {
   transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease !important;
 }
