@@ -17,6 +17,8 @@
             <!-- Start Nav -->
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 navbar-session">
 
+              <li><a href="{{url('prompts/free')}}" class="nav-link px-2 link-dark">{{__('misc.free')}} Prompts</a></li>
+
               @if ($plansActive != 0 && $settings->sell_option == 'on')
                 <li><a href="{{url('pricing')}}" class="nav-link px-2 link-dark">{{__('misc.pricing')}}</a></li>
               @endif
@@ -37,8 +39,10 @@
                 <li><a class="dropdown-item" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
                 <li><a class="dropdown-item" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
+                <li><a class="dropdown-item" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
+
                 @if ($settings->sell_option == 'on')
-                <li><a class="dropdown-item" href="{{ url('photos/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
+                <li><a class="dropdown-item" href="{{ url('prompts/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
                 @endif
 
                 <li><hr class="dropdown-divider"></li>
@@ -136,6 +140,12 @@
     <div class="offcanvas-body px-0">
         <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start" id="menu">
 
+          <li>
+            <a href="{{url('prompts/free')}}" class="nav-link link-dark text-truncate">
+              {{__('misc.free')}} Prompts
+            </a>
+          </li>
+
           @if ($plansActive != 0 && $settings->sell_option == 'on')
             <li>
               <a href="{{url('pricing')}}" class="nav-link link-dark text-truncate">
@@ -166,8 +176,10 @@
               <li><a class="nav-link text-truncate text-muted" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
               <li><a class="nav-link text-truncate text-muted" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
+              <li><a class="nav-link text-truncate text-muted" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
+
               @if ($settings->sell_option == 'on')
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('photos/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted" href="{{ url('prompts/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
               @endif
 
               <li><a class="nav-link text-truncate text-muted" href="{{ url('featured') }}">{{ __('misc.featured') }}</a></li>

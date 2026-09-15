@@ -495,6 +495,18 @@ class Query extends Model
 		return $images;
 	}
 
+	public static function freeImages()
+	{
+		$data = Images::selectFieldsRelation()
+			->where('item_for_sale', 'free')
+			->where('status', 'active')
+			->orderBy('id', 'DESC')
+			->paginate(config('settings.result_request'))
+			->onEachSide(1);
+
+		return $data;
+	}
+
 	public static function premiumImages()
 	{
 		$data = Images::selectFieldsRelation()

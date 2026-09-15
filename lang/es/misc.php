@@ -431,6 +431,7 @@ return array(
 	'desc_footer_social' => '¡Sigue conectado con nosotros! Síguenos en cualquiera de estas plataformas',
 	'title_section_home' => 'Descarga recursos de alta calidad',
 	'desc_section_home' => 'Explora nuestros recursos de la más alta calidad de nuestros colaboradores, desde recursos totalmente gratuitos hasta recursos premium para tus proyectos.',
+	'free_desc' => 'Explore nuestra colección de recursos y prompts de IA 100% gratuitos de la más alta calidad.',
 	'premium_desc' => 'Explore nuestros recursos premium de la más alta calidad.',
 	'latest_desc' => 'Explore nuestros últimos recursos de la más alta calidad.',
 	'featured_desc' => 'Explore nuestros recursos destacados de alta calidad, elegidos por nuestro equipo',

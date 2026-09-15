@@ -72,9 +72,12 @@
         <div class="col-md-3">
            <h6 class="text-uppercase">{{__('misc.links')}}</h6>
            <ul class="list-unstyled">
+              <li>
+                 <a class="text-white text-decoration-none" href="{{ url('prompts/free') }}">{{ __('misc.free') }} Prompts</a>
+              </li>
               @if ($settings->sell_option == 'on')
               <li>
-                 <a class="text-white text-decoration-none" href="{{ url('photos/premium') }}">{{ __('misc.premium') }}</a>
+                 <a class="text-white text-decoration-none" href="{{ url('prompts/premium') }}">{{ __('misc.premium') }}</a>
               </li>
               @endif
               <li>

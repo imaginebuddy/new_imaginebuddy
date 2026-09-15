@@ -70,7 +70,13 @@ Route::get('most/commented', [HomeController::class, 'commented']);
 Route::get('most/viewed', [HomeController::class, 'viewed']);
 Route::get('most/downloads', [HomeController::class, 'downloads']);
 Route::get('most/copied', [HomeController::class, 'copied']);
-Route::get('photos/premium', [HomeController::class, 'premium']);
+Route::get('prompts/free', [HomeController::class, 'free'])->name('prompts_free');
+Route::get('prompts/premium', [HomeController::class, 'premium'])->name('prompts_premium');
+Route::get('photos/premium', function (\Illuminate\Http\Request $request) {
+	$queryString = $request->getQueryString();
+	$target = 'prompts/premium' . ($queryString ? '?' . $queryString : '');
+	return redirect($target, 301);
+});
 Route::get('explore/vectors', [HomeController::class, 'vectors']);
 Route::post('prompt/copy/{id}', [ImagesController::class, 'copyPrompt']);
 

@@ -436,6 +436,7 @@ return array(
 	'desc_footer_social' => 'Keep connect with us! Follow us on any of these platforms',
 	'title_section_home' => 'Your Product, Our AI Prompts. Get Campaign-Ready Product Images. No Shoot Needed.',
 	'desc_section_home' => 'Save the lakhs you spend on traditional photoshoots. Our professionally crafted AI product photoshoot prompts help you transform simple product photos into stunning studio, lifestyle, model, e-commerce, and advertising visuals using Gemini and ChatGPT.',
+	'free_desc' => 'Explore our collection of 100% free AI prompts and high-quality creative resources.',
 	'premium_desc' => 'Explore our premium resources of the highest quality.',
 	'latest_desc' => 'Discover professionally crafted prompts for creating premium product photography, campaign visuals, and scroll-stopping ad creatives.',
 	'featured_desc' => 'Explore our top-quality featured resources, chosen by our team',

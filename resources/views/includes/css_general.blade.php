@@ -569,7 +569,7 @@
 <script type="text/javascript">
 var URL_BASE = "{{ url('/') }}";
 var lang = '{{ session('locale') }}';
-var _title = '@section("title")@show {{e($settings->title.' - '.__('seo.welcome_subtitle'))}}';
+var _title = document.title ? document.title.replace(/^\(\d+\)\s*/, '') : '{{ e($settings->title) }}';
 var session_status = "{{ auth()->check() ? 'on' : 'off' }}";
 var colorStripe = '#000000';
 var copiedSuccess = "{{ __('misc.copied_success') }}";

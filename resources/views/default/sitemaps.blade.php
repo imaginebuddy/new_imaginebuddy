@@ -15,9 +15,15 @@
          </url>
          @endif
 
+         <url>
+            <loc>{{ url('prompts/free') }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.8</priority>
+         </url>
+
          @if ($settings->sell_option == 'on')
          <url>
-            <loc>{{ url('photos/premium') }}</loc>
+            <loc>{{ url('prompts/premium') }}</loc>
             <lastmod>{{$date}}</lastmod>
             <priority>0.8</priority>
          </url>

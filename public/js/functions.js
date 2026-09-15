@@ -1110,9 +1110,17 @@
 	});//<<<-------- * END FUNCTION CLICK * ---->>>>
 
 	//<----- Notifications
+	var baseDocumentTitle = null;
+	function getBaseDocumentTitle() {
+		if (!baseDocumentTitle) {
+			baseDocumentTitle = (document.title || '').replace(/^\(\d+\)\s*/, '');
+		}
+		return baseDocumentTitle;
+	}
+
 	function Notifications() {
 
-		var title = _title;
+		var title = getBaseDocumentTitle() || (typeof _title !== 'undefined' ? _title : document.title);
 
 		console.time('cache');
 
@@ -1137,11 +1145,11 @@
 
 				if (data.notifications == 0) {
 					$('.notify').removeClass('d-block').addClass('display-none').hide();
-					$('title').html(title);
+					document.title = title;
 				}
 
 				if (data.notifications != 0) {
-					$('title').html("(" + totalGlobal + ") " + title);
+					document.title = "(" + totalGlobal + ") " + title;
 				}
 
 			}//<-- DATA

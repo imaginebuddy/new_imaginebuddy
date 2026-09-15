@@ -147,13 +147,29 @@ class HomeController extends Controller
     return view('default.members')->withUsers($users);
   }
 
+  public function free()
+  {
+    Helper::seo()->setPage('prompts_free');
+    $images = Query::freeImages();
+
+    if (request()->ajax()) {
+      return view('includes.images', ['images' => $images])->render();
+    }
+
+    return view('index.explore', [
+      'images' => $images,
+      'title' => __('misc.free') . ' Prompts',
+      'description' => __('misc.free_desc'),
+    ]);
+  }
+
   public function premium()
   {
     if (config('settings.sell_option') == 'off') {
       abort(404);
     }
 
-    Helper::seo()->setPage('photos_premium');
+    Helper::seo()->setPage('prompts_premium');
     $images = Query::premiumImages();
 
     if (request()->ajax()) {
