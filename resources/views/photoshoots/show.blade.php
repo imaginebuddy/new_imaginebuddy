@@ -92,16 +92,24 @@
           <h3 class="fw-bold text-dark title-custom m-0">Prompts in this Photoshoot</h3>
         </div>
         <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 fw-medium" style="font-size: 0.85rem;">
-          <i class="bi bi-grid-fill text-mint me-1"></i> Showing {{ $images->count() }} of {{ $images->total() }} {{ str_plural('Prompt', $images->total()) }}
+          <i class="bi bi-grid-fill text-mint me-1"></i> Showing <span id="showingCount">{{ $images->count() }}</span> of {{ $images->total() }} {{ str_plural('Prompt', $images->total()) }}
         </span>
       </div>
 
       @if ($images->total() != 0)
         <div class="dataResult">
           @include('includes.images', ['images' => $images])
-          <div class="mt-5 d-flex justify-content-center">
+          <div id="linkPagination" class="d-none">
             {{ $images->onEachSide(0)->links() }}
           </div>
+        </div>
+
+        <!-- Infinite Scroll Loader -->
+        <div id="infiniteScrollLoader" class="text-center py-4 my-3 d-none">
+          <div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-muted small mt-2 mb-0">Loading more prompts...</p>
         </div>
       @else
         <div class="text-center py-5 my-4 bg-card-custom rounded-4 border border-custom p-5">
@@ -121,5 +129,100 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+#linkPagination {
+  display: none !important;
+}
 </style>
+@endsection
+
+@section('javascript')
+<script type="text/javascript">
+(function($) {
+  "use strict";
+
+  if ($('#imagesFlex').length && $.fn.flexImages) {
+    $('#imagesFlex').flexImages({ rowHeight: 580 });
+  }
+
+  var state = {
+    page: {{ $images->hasMorePages() ? 2 : 'null' }},
+    hasMore: {{ $images->hasMorePages() ? 'true' : 'false' }},
+    loading: false
+  };
+
+  $('#linkPagination').hide();
+
+  function checkScrollLoad() {
+    if (state.loading || !state.hasMore || !state.page) return;
+
+    var scrollTop = $(window).scrollTop();
+    var windowHeight = $(window).height();
+    var docHeight = $(document).height();
+
+    if (scrollTop + windowHeight >= docHeight - 500) {
+      loadNextPage();
+    }
+  }
+
+  function loadNextPage() {
+    state.loading = true;
+    $('#infiniteScrollLoader').removeClass('d-none');
+
+    var currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('page', state.page);
+
+    $.ajax({
+      url: currentUrl.toString(),
+      type: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: function(response) {
+        if (response) {
+          var htmlContent = typeof response === 'object' && response.html ? response.html : response;
+          var $wrapper = $('<div>').html(htmlContent);
+          var $newItems = $wrapper.find('.item');
+
+          if ($newItems.length > 0) {
+            $('#imagesFlex').append($newItems);
+            if ($('#imagesFlex').length && $.fn.flexImages) {
+              $('#imagesFlex').flexImages({ rowHeight: 580 });
+            }
+            state.page++;
+
+            if (typeof response === 'object' && typeof response.hasMore !== 'undefined') {
+              state.hasMore = response.hasMore;
+            } else {
+              var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;
+              state.hasMore = hasNext;
+            }
+
+            var currentCount = $('#imagesFlex').find('.item').length;
+            $('#showingCount').text(currentCount);
+          } else {
+            state.hasMore = false;
+          }
+        } else {
+          state.hasMore = false;
+        }
+
+        state.loading = false;
+        $('#infiniteScrollLoader').addClass('d-none');
+        $('#linkPagination').hide();
+      },
+      error: function() {
+        state.loading = false;
+        $('#infiniteScrollLoader').addClass('d-none');
+      }
+    });
+  }
+
+  $(window).on('scroll resize', checkScrollLoad);
+
+  $(document).ready(function() {
+    $('#linkPagination').hide();
+    checkScrollLoad();
+  });
+})(jQuery);
+</script>
 @endsection

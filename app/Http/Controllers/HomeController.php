@@ -675,6 +675,20 @@ class HomeController extends Controller
     $photoshoot->setRelation('images', $images->getCollection());
     Helper::seo()->setEntity($photoshoot);
 
+    if (request()->ajax()) {
+      if (request()->wantsJson()) {
+        return response()->json([
+          'html' => view('includes.images', ['images' => $images])->render(),
+          'hasMore' => $images->hasMorePages(),
+          'nextPage' => $images->hasMorePages() ? ($images->currentPage() + 1) : null,
+          'total' => $images->total(),
+          'count' => $images->count(),
+        ]);
+      }
+
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
+    }
+
     return view('photoshoots.show', compact('photoshoot', 'images'));
   }
 }

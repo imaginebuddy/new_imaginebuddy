@@ -203,7 +203,17 @@
                 @if (isset($images) && $images->total() != 0)
                     <div class="dataResult">
                         @include('includes.images')
-                        @include('includes.pagination-links')
+                        <div id="linkPagination" class="d-none">
+                            @include('includes.pagination-links')
+                        </div>
+                    </div>
+
+                    <!-- Infinite Scroll Loader -->
+                    <div id="infiniteScrollLoader" class="text-center py-4 my-3 d-none">
+                        <div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted small mt-2 mb-0">Loading more prompts...</p>
                     </div>
                 @elseif (isset($followers) && $followers->count() != 0)
                     <div class="row dataResult">
@@ -289,6 +299,11 @@
     @endauth
 
     <!-- container wrap-ui -->
+<style>
+#linkPagination {
+    display: none !important;
+}
+</style>
 @endsection
 
 @section('javascript')
@@ -296,6 +311,85 @@
         $('#imagesFlex').flexImages({
             rowHeight: 580
         });
+
+        @if (isset($images))
+        var state = {
+            page: {{ $images->hasMorePages() ? 2 : 'null' }},
+            hasMore: {{ $images->hasMorePages() ? 'true' : 'false' }},
+            loading: false
+        };
+
+        $('#linkPagination').hide();
+
+        function checkScrollLoad() {
+            if (state.loading || !state.hasMore || !state.page) return;
+
+            var scrollTop = $(window).scrollTop();
+            var windowHeight = $(window).height();
+            var docHeight = $(document).height();
+
+            if (scrollTop + windowHeight >= docHeight - 500) {
+                loadNextPage();
+            }
+        }
+
+        function loadNextPage() {
+            state.loading = true;
+            $('#infiniteScrollLoader').removeClass('d-none');
+
+            var currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('page', state.page);
+
+            $.ajax({
+                url: currentUrl.toString(),
+                type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response) {
+                        var htmlContent = typeof response === 'object' && response.html ? response.html : response;
+                        var $wrapper = $('<div>').html(htmlContent);
+                        var $newItems = $wrapper.find('.item');
+
+                        if ($newItems.length > 0) {
+                            $('#imagesFlex').append($newItems);
+                            if ($('#imagesFlex').length && $.fn.flexImages) {
+                                $('#imagesFlex').flexImages({ rowHeight: 580 });
+                            }
+                            state.page++;
+
+                            if (typeof response === 'object' && typeof response.hasMore !== 'undefined') {
+                                state.hasMore = response.hasMore;
+                            } else {
+                                var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;
+                                state.hasMore = hasNext;
+                            }
+                        } else {
+                            state.hasMore = false;
+                        }
+                    } else {
+                        state.hasMore = false;
+                    }
+
+                    state.loading = false;
+                    $('#infiniteScrollLoader').addClass('d-none');
+                    $('#linkPagination').hide();
+                },
+                error: function() {
+                    state.loading = false;
+                    $('#infiniteScrollLoader').addClass('d-none');
+                }
+            });
+        }
+
+        $(window).on('scroll resize', checkScrollLoad);
+
+        $(document).ready(function() {
+            $('#linkPagination').hide();
+            checkScrollLoad();
+        });
+        @endif
 
         let share = document.querySelector('#shareBtn');
 

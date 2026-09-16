@@ -110,7 +110,17 @@ class UserController extends Controller
 		}
 
 		if (request()->ajax()) {
-			return view('includes.images', ['images' => $images])->render();
+			if (request()->wantsJson()) {
+				return response()->json([
+					'html' => view('includes.images', ['images' => $images])->render(),
+					'hasMore' => $images->hasMorePages(),
+					'nextPage' => $images->hasMorePages() ? ($images->currentPage() + 1) : null,
+					'total' => $images->total(),
+					'count' => $images->count(),
+				]);
+			}
+
+			return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
 		}
 
 		return view('users.profile', [
