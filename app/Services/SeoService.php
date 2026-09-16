@@ -46,6 +46,17 @@ class SeoService
     }
 
     /**
+     * Reset the service state for testing or new cycle.
+     */
+    public function reset(): self
+    {
+        $this->pageKey = null;
+        $this->entity = null;
+        $this->resolved = null;
+        return $this;
+    }
+
+    /**
      * Get cached registry of all active SEO records.
      */
     public function getRegistry()
@@ -123,8 +134,8 @@ class SeoService
             'keywords' => $defaultKeywords,
             'canonical' => url()->current(),
             'robots' => 'index, follow',
-            'og_title' => $siteTitle,
-            'og_description' => $defaultDesc,
+            'og_title' => null,
+            'og_description' => null,
             'og_image' => url('public/img', config('settings.logo_light', 'logo.png')),
             'og_type' => 'website',
             'twitter_card' => 'summary_large_image',
@@ -133,6 +144,8 @@ class SeoService
             'has_custom_title' => false,
             'has_custom_desc' => false,
             'has_custom_keywords' => false,
+            'has_custom_og_title' => false,
+            'has_custom_og_desc' => false,
         ];
 
         return $this->resolved;
@@ -190,6 +203,8 @@ class SeoService
             'has_custom_title' => !empty($record->meta_title),
             'has_custom_desc' => !empty($record->meta_description),
             'has_custom_keywords' => !empty($record->meta_keywords),
+            'has_custom_og_title' => !empty($record->og_title),
+            'has_custom_og_desc' => !empty($record->og_description),
         ];
     }
 
@@ -325,6 +340,65 @@ class SeoService
                 'has_custom_title' => true,
                 'has_custom_desc' => true,
                 'has_custom_keywords' => true,
+                'has_custom_og_title' => true,
+                'has_custom_og_desc' => true,
+            ];
+        }
+
+        // Case D: Photoshoot
+        if ($className === 'Photoshoot') {
+            $template = $registry->firstWhere('page_key', 'photoshoot_template');
+            $titlePattern = $template && !empty($template->meta_title) ? $template->meta_title : '{title} - AI Photoshoot Set | {site_name}';
+            $descPattern = $template && !empty($template->meta_description) ? $template->meta_description : 'Explore the {title} AI photoshoot session with consistent models and prompt recipes on {site_name}.';
+            $keywordsPattern = $template && !empty($template->meta_keywords) ? $template->meta_keywords : '{title}, {category}, AI photoshoot, consistent AI characters, photoshoot prompts';
+
+            $categoryName = $entity->category ? $entity->category->name : 'General';
+            $authorName = $entity->user ? $entity->user->username : 'ImagineBuddy';
+
+            $tokens = [
+                '{title}' => $entity->title,
+                '{category}' => $categoryName,
+                '{author}' => $authorName,
+                '{site_name}' => $siteTitle,
+                '{year}' => date('Y'),
+            ];
+
+            $finalTitle = !empty($entity->meta_title) ? $entity->meta_title : str_replace(array_keys($tokens), array_values($tokens), $titlePattern);
+
+            $finalDesc = !empty($entity->meta_description)
+                ? $entity->meta_description
+                : (!empty($entity->description)
+                    ? $entity->description
+                    : str_replace(array_keys($tokens), array_values($tokens), $descPattern));
+
+            $finalKeywords = !empty($entity->meta_keywords)
+                ? $entity->meta_keywords
+                : str_replace(array_keys($tokens), array_values($tokens), $keywordsPattern);
+
+            $firstImage = $entity->relationLoaded('images') ? $entity->images->first() : $entity->images()->first();
+            $coverUrl = ($firstImage && $firstImage->preview)
+                ? url('public/uploads/preview', $firstImage->preview)
+                : url('public/img', config('settings.logo_light', 'logo.png'));
+
+            return [
+                'title' => $finalTitle,
+                'description' => $finalDesc,
+                'keywords' => $finalKeywords,
+                'canonical' => url('photoshoots/' . $entity->slug),
+                'robots' => 'index, follow',
+                'og_title' => $finalTitle,
+                'og_description' => $finalDesc,
+                'og_image' => $coverUrl,
+                'og_type' => 'website',
+                'twitter_card' => 'summary_large_image',
+                'schema_type' => 'ImageGallery',
+                'schema_custom' => null,
+                'entity' => $entity,
+                'has_custom_title' => true,
+                'has_custom_desc' => true,
+                'has_custom_keywords' => true,
+                'has_custom_og_title' => true,
+                'has_custom_og_desc' => true,
             ];
         }
 
@@ -405,6 +479,53 @@ class SeoService
                             'name' => $img->author ? $img->author->username : 'ImagineBuddy',
                         ],
                         'datePublished' => $img->date ? date('c', strtotime($img->date)) : date('c'),
+                    ];
+                }
+                break;
+
+            case 'ImageGallery':
+                if (isset($data['entity']) && class_basename($data['entity']) === 'Photoshoot') {
+                    $photoshoot = $data['entity'];
+                    $gallerySchema = [
+                        '@context' => 'https://schema.org',
+                        '@type' => 'ImageGallery',
+                        'name' => $data['title'],
+                        'description' => $data['description'],
+                        'url' => $data['canonical'],
+                        'datePublished' => $photoshoot->created_at ? date('c', strtotime($photoshoot->created_at)) : date('c'),
+                        'author' => [
+                            '@type' => 'Person',
+                            'name' => $photoshoot->user ? $photoshoot->user->username : $siteName,
+                        ],
+                    ];
+                    if (!empty($data['og_image'])) {
+                        $gallerySchema['image'] = $data['og_image'];
+                    }
+
+                    $photoshootImages = $photoshoot->relationLoaded('images') ? $photoshoot->images : $photoshoot->images()->take(10)->get();
+                    if ($photoshootImages && $photoshootImages->count() > 0) {
+                        $itemList = [];
+                        foreach ($photoshootImages as $idx => $img) {
+                            $imgPreview = $img->preview ? url('public/uploads/preview', $img->preview) : null;
+                            $itemList[] = [
+                                '@type' => 'ImageObject',
+                                'position' => $idx + 1,
+                                'name' => $img->title,
+                                'url' => url('prompt/' . $img->slug),
+                                'contentUrl' => $imgPreview ?: $data['og_image'],
+                            ];
+                        }
+                        $gallerySchema['associatedMedia'] = $itemList;
+                    }
+
+                    $schemas[] = $gallerySchema;
+                } else {
+                    $schemas[] = [
+                        '@context' => 'https://schema.org',
+                        '@type' => 'ImageGallery',
+                        'name' => $data['title'],
+                        'description' => $data['description'],
+                        'url' => $data['canonical'],
                     ];
                 }
                 break;

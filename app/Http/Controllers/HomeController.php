@@ -672,6 +672,9 @@ class HomeController extends Controller
       ->orderBy('id', 'desc')
       ->paginate(12);
 
+    $photoshoot->setRelation('images', $images->getCollection());
+    Helper::seo()->setEntity($photoshoot);
+
     return view('photoshoots.show', compact('photoshoot', 'images'));
   }
 }

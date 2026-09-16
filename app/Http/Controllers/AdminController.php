@@ -1854,8 +1854,9 @@ class AdminController extends Controller
 		$staticPages = SeoMetadata::staticPages()->orderBy('id', 'asc')->get();
 		$promptTemplate = SeoMetadata::where('page_key', 'prompt_template')->first();
 		$categoryTemplate = SeoMetadata::where('page_key', 'category_template')->first();
+		$photoshootTemplate = SeoMetadata::where('page_key', 'photoshoot_template')->first();
 
-		return view('admin.seo-settings', compact('staticPages', 'promptTemplate', 'categoryTemplate'));
+		return view('admin.seo-settings', compact('staticPages', 'promptTemplate', 'categoryTemplate', 'photoshootTemplate'));
 	}
 
 	public function editSeoPage($id)
@@ -1904,6 +1905,8 @@ class AdminController extends Controller
 
 		$page->save();
 
+		\Illuminate\Support\Facades\Cache::forget(\App\Models\SeoMetadata::CACHE_KEY);
+
 		\Session::flash('success_message', trans('admin.success_update'));
 
 		return redirect('panel/admin/settings/seo');
@@ -1922,6 +1925,9 @@ class AdminController extends Controller
 			'category_title' => 'nullable|string|max:255',
 			'category_description' => 'nullable|string|max:500',
 			'category_keywords' => 'nullable|string|max:500',
+			'photoshoot_title' => 'nullable|string|max:255',
+			'photoshoot_description' => 'nullable|string|max:500',
+			'photoshoot_keywords' => 'nullable|string|max:500',
 		]);
 
 		$prompt = SeoMetadata::where('page_key', 'prompt_template')->first();
@@ -1939,6 +1945,16 @@ class AdminController extends Controller
 			$category->meta_keywords = $request->category_keywords ? strip_tags(trim($request->category_keywords)) : null;
 			$category->save();
 		}
+
+		$photoshoot = SeoMetadata::where('page_key', 'photoshoot_template')->first();
+		if ($photoshoot) {
+			$photoshoot->meta_title = $request->photoshoot_title ? strip_tags(trim($request->photoshoot_title)) : null;
+			$photoshoot->meta_description = $request->photoshoot_description ? strip_tags(trim($request->photoshoot_description)) : null;
+			$photoshoot->meta_keywords = $request->photoshoot_keywords ? strip_tags(trim($request->photoshoot_keywords)) : null;
+			$photoshoot->save();
+		}
+
+		\Illuminate\Support\Facades\Cache::forget(\App\Models\SeoMetadata::CACHE_KEY);
 
 		\Session::flash('success_message', trans('admin.success_update'));
 

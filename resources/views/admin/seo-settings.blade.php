@@ -161,6 +161,27 @@
                             </div>
                         </div>
 
+                        <!-- Photoshoot Pages Template -->
+                        <div class="border rounded-3 p-3 mb-4 bg-light">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="bi-camera-reels me-1 text-info"></i> Photoshoot Detail Pages Pattern (<code>/photoshoots/{slug}</code>)
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Meta Title Pattern</label>
+                                    <input type="text" name="photoshoot_title" class="form-control" value="{{ $photoshootTemplate ? $photoshootTemplate->meta_title : '{title} - AI Photoshoot Set | {site_name}' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Meta Keywords Pattern</label>
+                                    <input type="text" name="photoshoot_keywords" class="form-control" value="{{ $photoshootTemplate ? $photoshootTemplate->meta_keywords : '{category}, AI photoshoot, consistent AI characters, photoshoot prompts' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold small">Meta Description Pattern</label>
+                                    <textarea name="photoshoot_description" class="form-control" rows="2">{{ $photoshootTemplate ? $photoshootTemplate->meta_description : 'Explore the {title} AI photoshoot session with consistent models and prompt recipes on {site_name}.' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="text-end">
                             <button type="submit" class="btn btn-dark px-4 rounded-pill">
                                 <i class="bi-save me-1"></i> Save Dynamic Patterns

@@ -43,6 +43,23 @@
     $finalKeywords = rtrim($finalKeywords, ",");
 
     $finalRobots = View::hasSection('robots') ? trim(View::yieldContent('robots')) : $seoData['robots'];
+
+    // OG Title & Description priority:
+    if (View::hasSection('og_title')) {
+        $finalOgTitle = trim(View::yieldContent('og_title'));
+    } elseif (!empty($seoData['og_title'])) {
+        $finalOgTitle = $seoData['og_title'];
+    } else {
+        $finalOgTitle = $finalTitle;
+    }
+
+    if (View::hasSection('og_description')) {
+        $finalOgDesc = trim(View::yieldContent('og_description'));
+    } elseif (!empty($seoData['og_description'])) {
+        $finalOgDesc = $seoData['og_description'];
+    } else {
+        $finalOgDesc = $finalDesc;
+    }
 @endphp
 
 {{-- Primary Meta Tags --}}
@@ -61,8 +78,8 @@
 {{-- Open Graph / Facebook --}}
 <meta property="og:type" content="{{ $seoData['og_type'] }}">
 <meta property="og:site_name" content="{{ config('settings.title', 'ImagineBuddy') }}">
-<meta property="og:title" content="{{ $seoData['og_title'] ?: $finalTitle }}">
-<meta property="og:description" content="{{ $seoData['og_description'] ?: $finalDesc }}">
+<meta property="og:title" content="{{ $finalOgTitle }}">
+<meta property="og:description" content="{{ $finalOgDesc }}">
 <meta property="og:url" content="{{ $seoData['canonical'] }}">
 @if (!empty($seoData['og_image']))
 <meta property="og:image" content="{{ $seoData['og_image'] }}">
@@ -70,8 +87,8 @@
 
 {{-- Twitter Cards --}}
 <meta name="twitter:card" content="{{ $seoData['twitter_card'] }}">
-<meta name="twitter:title" content="{{ $seoData['og_title'] ?: $finalTitle }}">
-<meta name="twitter:description" content="{{ $seoData['og_description'] ?: $finalDesc }}">
+<meta name="twitter:title" content="{{ $finalOgTitle }}">
+<meta name="twitter:description" content="{{ $finalOgDesc }}">
 @if (!empty($seoData['og_image']))
 <meta name="twitter:image" content="{{ $seoData['og_image'] }}">
 @endif
