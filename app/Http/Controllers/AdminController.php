@@ -26,6 +26,7 @@ use App\Models\ImagesReported;
 use App\Models\PaymentGateways;
 use Illuminate\Validation\Rule;
 use App\Models\CollectionsImages;
+use App\Models\ImageExample;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Notifications\DepositVerification;
@@ -467,47 +468,248 @@ class AdminController extends Controller
 		$sort = request()->get('sort');
 		$pagination = 15;
 
-		$data = Images::orderBy('id', 'desc')->paginate($pagination);
+		$builder = Images::with(['category', 'user'])->withCount('examples');
 
 		// Search
 		if (isset($query)) {
-			$data = Images::where('title', 'LIKE', '%' . $query . '%')
-				->orWhere('tags', 'LIKE', '%' . $query . '%')
-				->orderBy('id', 'desc')->paginate($pagination);
+			$builder->where(function ($q) use ($query) {
+				$q->where('title', 'LIKE', '%' . $query . '%')
+					->orWhere('tags', 'LIKE', '%' . $query . '%');
+			});
 		}
 
 		// Sort
 		if (isset($sort) && $sort == 'title') {
-			$data = Images::orderBy('title', 'asc')->paginate($pagination);
-		}
-
-		if (isset($sort) && $sort == 'pending') {
-			$data = Images::where('status', 'pending')->paginate($pagination);
-		}
-
-		if (isset($sort) && $sort == 'downloads') {
-			$data = Images::join('downloads', 'images.id', '=', 'downloads.images_id')
+			$builder->orderBy('title', 'asc');
+		} elseif (isset($sort) && $sort == 'pending') {
+			$builder->where('status', 'pending')->orderBy('id', 'desc');
+		} elseif (isset($sort) && $sort == 'featured') {
+			$builder->where('featured', 'yes')->orderBy('id', 'desc');
+		} elseif (isset($sort) && $sort == 'downloads') {
+			$builder->join('downloads', 'images.id', '=', 'downloads.images_id')
 				->groupBy('downloads.images_id')
 				->orderBy(\DB::raw('COUNT(downloads.images_id)'), 'desc')
-				->select('images.*')
-				->paginate($pagination);
-		}
-
-		if (isset($sort) && $sort == 'likes') {
-			$data = Images::join('likes', function ($join) {
+				->select('images.*');
+		} elseif (isset($sort) && $sort == 'likes') {
+			$builder->join('likes', function ($join) {
 				$join->on('likes.images_id', '=', 'images.id')->where('likes.status', '=', '1');
 			})
 				->groupBy('likes.images_id')
 				->orderBy(\DB::raw('COUNT(likes.images_id)'), 'desc')
-				->select('images.*')
-				->paginate($pagination);
+				->select('images.*');
+		} else {
+			$builder->orderBy('id', 'desc');
 		}
 
-		if (isset($sort) && $sort == 'featured') {
-			$data = Images::where('featured', 'yes')->orderBy('id', 'desc')->paginate($pagination);
-		}
+		$data = $builder->paginate($pagination);
 
 		return view('admin.images', ['data' => $data, 'query' => $query, 'sort' => $sort]);
+	}
+
+	public function toggleFeatured(Request $request)
+	{
+		if (!auth()->user()->hasPermission('images')) {
+			return response()->json(['success' => false, 'message' => __('admin.unauthorized_action')], 403);
+		}
+
+		$request->validate([
+			'id' => 'required|integer|exists:images,id'
+		]);
+
+		$image = Images::findOrFail($request->id);
+		$isFeatured = ($image->featured == 'yes');
+		$newFeatured = $isFeatured ? 'no' : 'yes';
+
+		$image->featured = $newFeatured;
+		$image->featured_date = ($newFeatured == 'yes') ? Carbon::now() : '';
+		$image->save();
+
+		return response()->json([
+			'success' => true,
+			'featured' => $newFeatured,
+			'is_featured' => ($newFeatured == 'yes'),
+			'message' => ($newFeatured == 'yes') ? 'Prompt marked as Featured.' : 'Prompt removed from Featured.'
+		]);
+	}
+
+	public function toggleSale(Request $request)
+	{
+		if (!auth()->user()->hasPermission('images')) {
+			return response()->json(['success' => false, 'message' => __('admin.unauthorized_action')], 403);
+		}
+
+		$request->validate([
+			'id' => 'required|integer|exists:images,id'
+		]);
+
+		$image = Images::findOrFail($request->id);
+		$newSale = ($image->item_for_sale == 'sale') ? 'free' : 'sale';
+
+		$image->item_for_sale = $newSale;
+		$image->save();
+
+		return response()->json([
+			'success' => true,
+			'item_for_sale' => $newSale,
+			'is_sale' => ($newSale == 'sale'),
+			'label' => ($newSale == 'sale') ? trans('misc.sale') : trans('misc.free'),
+			'badge_class' => ($newSale == 'sale') ? 'bg-warning' : 'bg-secondary',
+			'message' => ($newSale == 'sale') ? 'Prompt set to For Sale (Premium).' : 'Prompt set to Free.'
+		]);
+	}
+
+	public function getExamples($id)
+	{
+		if (!auth()->user()->hasPermission('images')) {
+			return response()->json(['success' => false, 'message' => __('admin.unauthorized_action')], 403);
+		}
+
+		$image = Images::findOrFail($id);
+		$pathExamples = config('path.examples');
+
+		$examples = $image->examples()->orderBy('id', 'desc')->get()->map(function ($ex) use ($pathExamples) {
+			return [
+				'id' => $ex->id,
+				'file' => $ex->file,
+				'url' => Storage::url($pathExamples . $ex->file),
+				'created_at' => $ex->created_at ? $ex->created_at->format('M d, Y H:i') : null,
+			];
+		});
+
+		return response()->json([
+			'success' => true,
+			'prompt' => [
+				'id' => $image->id,
+				'title' => $image->title,
+				'thumbnail' => Storage::url(config('path.thumbnail') . $image->thumbnail),
+			],
+			'examples' => $examples,
+			'count' => $examples->count(),
+			'max' => 5,
+		]);
+	}
+
+	public function uploadExamples(Request $request, $id)
+	{
+		if (!auth()->user()->hasPermission('images')) {
+			return response()->json(['success' => false, 'message' => __('admin.unauthorized_action')], 403);
+		}
+
+		$image = Images::findOrFail($id);
+
+		$uploadedFiles = $request->file('files');
+		if (!$uploadedFiles) {
+			return response()->json([
+				'success' => false,
+				'message' => 'Please select at least one image file.'
+			], 422);
+		}
+
+		if (!is_array($uploadedFiles)) {
+			$uploadedFiles = [$uploadedFiles];
+		}
+
+		$validator = Validator::make(['files' => $uploadedFiles], [
+			'files' => 'required|array|min:1',
+			'files.*' => 'required|file|image|mimes:jpeg,png,jpg,webp|max:10240',
+		], [
+			'files.required' => 'Please select at least one image file.',
+			'files.*.image' => 'Uploaded file must be a valid image.',
+			'files.*.mimes' => 'Images must be in JPG, PNG, or WebP format.',
+			'files.*.max' => 'Each image must not exceed 10MB.',
+		]);
+
+		if ($validator->fails()) {
+			return response()->json([
+				'success' => false,
+				'message' => $validator->errors()->first(),
+				'errors' => $validator->errors()
+			], 422);
+		}
+
+		$currentCount = $image->examples()->count();
+		$maxAllowed = 5;
+		$remainingSlots = $maxAllowed - $currentCount;
+
+		if ($remainingSlots <= 0) {
+			return response()->json([
+				'success' => false,
+				'message' => 'Maximum limit of 5 example images already reached for this prompt.'
+			], 422);
+		}
+
+		$files = array_slice($uploadedFiles, 0, $remainingSlots);
+		$uploaded = [];
+		$pathExamples = config('path.examples');
+
+		foreach ($files as $file) {
+			if ($file && $file->isValid()) {
+				$ext = strtolower($file->getClientOriginalExtension());
+				if (empty($ext)) $ext = 'jpg';
+
+				$fileName = strtolower('ex-' . $image->id . '-' . time() . '-' . str_random(15) . '.' . $ext);
+
+				$dimensions = @getimagesize($file);
+				$w = $dimensions[0] ?? 800;
+				$scale = (850 / $w);
+				$previewWidth = ceil($w * min(1, $scale));
+
+				$img = Image::make($file)->orientate()->resize($previewWidth, null, function ($constraint) {
+					$constraint->aspectRatio();
+					$constraint->upsize();
+				})->encode($ext);
+
+				Storage::put($pathExamples . $fileName, $img, 'public');
+
+				if (is_object($img) && method_exists($img, 'destroy')) {
+					$img->destroy();
+				}
+
+				$record = ImageExample::create([
+					'images_id' => $image->id,
+					'file' => $fileName,
+				]);
+
+				$uploaded[] = [
+					'id' => $record->id,
+					'file' => $record->file,
+					'url' => Storage::url($pathExamples . $record->file),
+					'created_at' => $record->created_at ? $record->created_at->format('M d, Y H:i') : null,
+				];
+			}
+		}
+
+		$newTotal = $image->examples()->count();
+
+		return response()->json([
+			'success' => true,
+			'message' => count($uploaded) . ' example image(s) uploaded successfully.',
+			'uploaded' => $uploaded,
+			'total_count' => $newTotal,
+			'max' => $maxAllowed,
+		]);
+	}
+
+	public function deleteExample($exampleId)
+	{
+		if (!auth()->user()->hasPermission('images')) {
+			return response()->json(['success' => false, 'message' => __('admin.unauthorized_action')], 403);
+		}
+
+		$example = ImageExample::findOrFail($exampleId);
+		$imageId = $example->images_id;
+
+		Storage::delete(config('path.examples') . $example->file);
+		$example->delete();
+
+		$remainingCount = ImageExample::where('images_id', $imageId)->count();
+
+		return response()->json([
+			'success' => true,
+			'message' => 'Example image deleted successfully.',
+			'image_id' => $imageId,
+			'remaining_count' => $remainingCount,
+		]);
 	}
 
 	public function delete_image(Request $request)
@@ -548,6 +750,15 @@ class AdminController extends Controller
 			}
 		}
 
+		// Example Images Cleanup
+		$examples = ImageExample::where('images_id', '=', $request->id)->get();
+		if (isset($examples)) {
+			foreach ($examples as $example) {
+				Storage::delete(config('path.examples') . $example->file);
+				$example->delete();
+			}
+		}
+
 		//<---- ALL RESOLUTIONS IMAGES
 		$stocks = Stock::where('images_id', '=', $request->id)->get();
 
@@ -575,7 +786,7 @@ class AdminController extends Controller
 
 	public function edit_image($id)
 	{
-		$data = Images::findOrFail($id);
+		$data = Images::with('examples')->findOrFail($id);
 
 		return view('admin.edit-image', ['data' => $data]);
 	}
@@ -590,6 +801,7 @@ class AdminController extends Controller
 			'meta_title'       => 'nullable|string|max:255',
 			'meta_description' => 'nullable|string|max:500',
 			'meta_keywords'    => 'nullable|string|max:255',
+			'item_for_sale'    => 'nullable|in:free,sale',
 		];
 
 		if ($request->featured && $sql->featured == 'no') {
@@ -608,13 +820,64 @@ class AdminController extends Controller
 		$sql->meta_description = $request->meta_description ? trim($request->meta_description) : null;
 		$sql->meta_keywords    = $request->meta_keywords ? trim($request->meta_keywords) : null;
 		$sql->tags             = $request->tags;
-		$sql->description   = $request->description;
-		$sql->categories_id = $request->categories_id;
+		$sql->description      = $request->description;
+		$sql->categories_id    = $request->categories_id;
 		$sql->subcategories_id = $request->subcategories_id;
-		$sql->status        = $request->status ?? 'pending';
-		$sql->featured      = $request->featured ?? 'no';
-		$sql->featured_date = $featuredDate;
+		$sql->status           = $request->status ?? 'pending';
+		$sql->featured         = $request->featured ?? 'no';
+		$sql->featured_date    = $featuredDate;
+		$sql->item_for_sale    = $request->item_for_sale == 'sale' ? 'sale' : 'free';
 		$sql->save();
+
+		// Delete selected example images if requested
+		if ($request->has('delete_examples') && is_array($request->delete_examples)) {
+			$pathExamples = config('path.examples');
+			foreach ($request->delete_examples as $exId) {
+				$exItem = ImageExample::where('id', $exId)->where('images_id', $sql->id)->first();
+				if ($exItem) {
+					Storage::delete($pathExamples . $exItem->file);
+					$exItem->delete();
+				}
+			}
+		}
+
+		// Handle new example photos upload (max total 5 example images)
+		if ($request->hasFile('example_photos')) {
+			$currentCount = $sql->examples()->count();
+			$allowedNew = 5 - $currentCount;
+			if ($allowedNew > 0) {
+				$newExFiles = array_slice($request->file('example_photos'), 0, $allowedNew);
+				$pathExamples = config('path.examples');
+				foreach ($newExFiles as $exPhoto) {
+					if ($exPhoto && $exPhoto->isValid()) {
+						$exExt = strtolower($exPhoto->getClientOriginalExtension());
+						if (empty($exExt)) $exExt = 'jpg';
+						$exFileName = strtolower('ex-' . $sql->id . '-' . time() . '-' . str_random(15) . '.' . $exExt);
+
+						$exDimensions = @getimagesize($exPhoto);
+						$exW = $exDimensions[0] ?? 800;
+						$exScale = (850 / $exW);
+						$exPreviewWidth = ceil($exW * min(1, $exScale));
+
+						$imgExPreview = Image::make($exPhoto)->orientate()->resize($exPreviewWidth, null, function ($constraint) {
+							$constraint->aspectRatio();
+							$constraint->upsize();
+						})->encode($exExt);
+
+						Storage::put($pathExamples . $exFileName, $imgExPreview, 'public');
+
+						if (is_object($imgExPreview) && method_exists($imgExPreview, 'destroy')) {
+							$imgExPreview->destroy();
+						}
+
+						ImageExample::create([
+							'images_id' => $sql->id,
+							'file' => $exFileName,
+						]);
+					}
+				}
+			}
+		}
 
 		return redirect('panel/admin/images')->withSuccessMessage(__('admin.success_update'));
 	}

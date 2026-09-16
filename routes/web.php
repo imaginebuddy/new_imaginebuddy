@@ -459,6 +459,11 @@ Route::group(['middleware' => 'role'], function() {
 	// Images
 	Route::get('panel/admin/images',[AdminController::class, 'images'])->name('images');
 	Route::post('panel/admin/images/delete',[AdminController::class, 'delete_image']);
+	Route::post('panel/admin/images/toggle-featured', [AdminController::class, 'toggleFeatured'])->name('images');
+	Route::post('panel/admin/images/toggle-sale', [AdminController::class, 'toggleSale'])->name('images');
+	Route::get('panel/admin/images/{id}/examples', [AdminController::class, 'getExamples'])->name('images');
+	Route::post('panel/admin/images/{id}/examples/upload', [AdminController::class, 'uploadExamples'])->name('images');
+	Route::post('panel/admin/images/examples/{exampleId}/delete', [AdminController::class, 'deleteExample'])->name('images');
 
 	Route::get('panel/admin/images/{id}',[AdminController::class, 'edit_image'])->name('images');
 	Route::post('panel/admin/images/update',[AdminController::class, 'update_image']);
