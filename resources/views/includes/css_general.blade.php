@@ -786,6 +786,42 @@ body.dark-mode .prompt-copy-icon-bg {
   background-color: #e2e8f0 !important;
 }
 
+/* Guest copy protection for prompt detail text */
+.prompt-guest-protected {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  cursor: default !important;
+}
+
+.prompt-guest-protected * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.prompt-guest-protected::selection,
+.prompt-guest-protected *::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.prompt-guest-protected::-moz-selection,
+.prompt-guest-protected *::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+@media print {
+  .prompt-guest-protected {
+    display: none !important;
+  }
+}
+
 /* Force zero margin on flex-images items */
 .flex-images .item {
   margin: 0px 0px !important;

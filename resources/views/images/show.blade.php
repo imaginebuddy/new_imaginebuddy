@@ -493,14 +493,14 @@
 
           <!-- Prompt Text Content -->
           @if ($canViewPrompt)
-            <div class="p-4 prompt-inner-content-box mb-4">
+            <div class="p-4 prompt-inner-content-box mb-4 @guest prompt-guest-protected @endguest" id="promptBox">
               <p class="mb-0 text-secondary font-monospace title-custom" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.7;" id="promptText">{{ $response->prompt ?: $response->title }}</p>
             </div>
             
             <!-- Bottom Action Buttons Row -->
             <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
               <div class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-dark rounded-pill ps-4 pe-2 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-copy-prompt shadow-sm" data-id="{{ $response->id }}" style="height: 44px;">
+                <button type="button" class="btn btn-dark rounded-pill ps-4 pe-2 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-copy-prompt shadow-sm" data-id="{{ $response->id }}" data-auth="{{ auth()->check() ? '1' : '0' }}" style="height: 44px;">
                   <span class="fs-6 btn-copy-text">Copy</span>
                   <span class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center ms-1" style="width: 30px; height: 30px;">
                     <i class="bi bi-copy" style="font-size: 13px;"></i>
@@ -511,6 +511,11 @@
                   <div class="small text-muted d-inline-flex align-items-center gap-1">
                     <i class="bi bi-lightning-charge text-warning"></i>
                     <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / {{ auth()->user()->totalDailyPromptLimit() }}</span>
+                  </div>
+                @else
+                  <div class="small text-muted d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-stars text-warning"></i>
+                    <span>Free sign up gives you <strong>20 daily prompt copies</strong></span>
                   </div>
                 @endauth
               </div>
@@ -659,5 +664,53 @@
 
   </div>
 </section>
+
+@guest
+<!-- Guest Copy Prompt Conversion Modal -->
+<div class="modal fade" id="authCopyModal" tabindex="-1" aria-labelledby="authCopyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-0 pb-0 pt-4 px-4 position-relative">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 pt-2 pb-4 text-center">
+        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
+          <i class="bi bi-stars text-warning fs-2"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2" id="authCopyModalLabel">Sign Up to Copy This Prompt</h4>
+        <p class="text-secondary small mb-4 px-2" style="line-height: 1.6;">
+          Join ImagineBuddy for free to copy this full prompt, unlock <strong>20 free prompt copies daily</strong>, and discover thousands of top-tier AI prompts.
+        </p>
+
+        @php
+          $returnUrl = url()->current() . '?autocopy=1';
+        @endphp
+
+        @if ($settings->google_login == 'on')
+          <div class="mb-3">
+            <a href="{{ url('oauth/google') }}?return={{ urlencode($returnUrl) }}" class="btn btn-lg btn-outline-dark w-100 rounded-pill py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm" style="font-size: 0.95rem; font-weight: 600; border-color: #e2e8f0;">
+              <img src="{{ url('public/img/google.svg') }}" width="20" height="20" alt="Google">
+              <span>Continue with Google</span>
+            </a>
+          </div>
+        @endif
+
+        <div class="d-grid gap-2">
+          <a href="{{ url('register') }}?return={{ urlencode($returnUrl) }}" class="btn btn-dark btn-lg rounded-pill py-2.5 fw-bold shadow-sm" style="font-size: 0.95rem;">
+            Create Free Account
+          </a>
+          <a href="{{ url('login') }}?return={{ urlencode($returnUrl) }}" class="btn btn-light btn-lg rounded-pill py-2.5 fw-semibold border" style="font-size: 0.95rem;">
+            Log In
+          </a>
+        </div>
+
+        <div class="mt-4 pt-2 border-top text-muted small">
+          <i class="bi bi-shield-check text-success me-1"></i> Free forever &bull; No credit card required
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endguest
 
 @endsection

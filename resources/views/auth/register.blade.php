@@ -23,11 +23,15 @@
       						</div>
       					@endif
 
+                @php
+                  $returnUrl = request('return') ?: (url()->previous() != url()->current() ? url()->previous() : url('/'));
+                @endphp
+
                 @if ($settings->facebook_login == 'on' || $settings->twitter_login == 'on' || $settings->google_login == 'on')
                 <div class="d-flex mb-2">
                   @if ($settings->facebook_login == 'on')
             					<div class="w-100 d-block position-relative mb-2 me-2">
-            						<a href="{{url('oauth/facebook')}}" class="btn btn-lg btn-facebook w-100">
+            						<a href="{{url('oauth/facebook')}}?return={{ urlencode($returnUrl) }}" class="btn btn-lg btn-facebook w-100">
                           <i class="fab fa-facebook me-1"></i> <span class="d-none d-lg-inline-block">Facebook</span>
                         </a>
             					</div>
@@ -35,7 +39,7 @@
 
                     @if ($settings->twitter_login == 'on')
               					<div class="w-100 d-block position-relative mb-2 me-2">
-              						<a href="{{url('oauth/twitter')}}" class="btn btn-lg btn-twitter w-100">
+              						<a href="{{url('oauth/twitter')}}?return={{ urlencode($returnUrl) }}" class="btn btn-lg btn-twitter w-100">
                             <i class="fab fa-twitter me-1"></i> <span class="d-none d-lg-inline-block">Twitter</span>
                           </a>
               					</div>
@@ -43,7 +47,7 @@
 
                       @if ($settings->google_login == 'on')
                         <div class="w-100 d-block position-relative mb-2">
-              						<a href="{{url('oauth/google')}}" class="btn btn-lg btn-google w-100">
+              						<a href="{{url('oauth/google')}}?return={{ urlencode($returnUrl) }}" class="btn btn-lg btn-google w-100">
                             <img src="{{ url('public/img/google.svg') }}" class="me-1" width="18" height="18" /> <span class="d-none d-lg-inline-block">Google</span>
                           </a>
               					</div>
@@ -59,6 +63,7 @@
               <form action="{{ url('register') }}" method="post" id="signup_form">
 
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="_url" value="{{ $returnUrl }}">
                 <div class="row">
 
                   <div class="col-md-6">
@@ -124,7 +129,7 @@
 
               @if ($settings->registration_active == 1)
               <p class="login-wrapper-footer-text mt-3">
-                {{ trans('auth.already_have_an_account') }} <a href="{{ url('login') }}" class="text-reset text-decoration-underline">{{ trans('auth.login') }}</a>
+                {{ trans('auth.already_have_an_account') }} <a href="{{ url('login') }}{{ $returnUrl ? '?return=' . urlencode($returnUrl) : '' }}" class="text-reset text-decoration-underline">{{ trans('auth.login') }}</a>
               </p>
             @endif
 

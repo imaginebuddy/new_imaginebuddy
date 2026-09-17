@@ -201,6 +201,10 @@ class RegisterController extends Controller
 
         } else {
             $this->guard()->login($user);
+            $urlReturn = $request->input('_url');
+            if (isset($urlReturn) && url()->isValidUrl($urlReturn) && Helper::checkSourceURL($urlReturn)) {
+              return redirect($urlReturn);
+            }
             return $this->registered($request, $user)
                   ?: redirect($this->redirectPath());
         }

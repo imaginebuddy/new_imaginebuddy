@@ -80,6 +80,18 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
   var id = btn.data('id');
   var originalHtml = btn.html();
 
+  @guest
+    if ($('#authCopyModal').length > 0) {
+      var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
+      authModal.show();
+      return false;
+    } else {
+      var currentTarget = window.location.href;
+      window.location.href = URL_BASE + '/login?return=' + encodeURIComponent(currentTarget);
+      return false;
+    }
+  @endguest
+
   btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i> Copying...');
 
   $.ajax({
@@ -122,7 +134,13 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
       btn.prop('disabled', false).html(originalHtml);
       var res = xhr.responseJSON;
       if (res && res.require_login) {
-        window.location.href = URL_BASE + '/login';
+        if ($('#authCopyModal').length > 0) {
+          var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
+          authModal.show();
+        } else {
+          var currentTarget = window.location.href;
+          window.location.href = URL_BASE + '/login?return=' + encodeURIComponent(currentTarget);
+        }
       } else if (res && res.require_subscription) {
         window.location.href = URL_BASE + '/pricing';
       } else if (res && res.limit_reached) {
@@ -133,6 +151,102 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
     }
   });
 });
+
+@guest
+// Guest Copy Protection: Scoped event listeners on .prompt-guest-protected
+$(document).on('selectstart', '.prompt-guest-protected', function(e) {
+  e.preventDefault();
+  return false;
+});
+
+$(document).on('copy cut', '.prompt-guest-protected', function(e) {
+  e.preventDefault();
+  if (e.originalEvent && e.originalEvent.clipboardData) {
+    e.originalEvent.clipboardData.clearData();
+  }
+  if ($('#authCopyModal').length > 0) {
+    var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
+    authModal.show();
+  }
+  return false;
+});
+
+document.addEventListener('copy', function(e) {
+  var protectedEl = document.querySelector('.prompt-guest-protected');
+  if (protectedEl) {
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      var range = sel.getRangeAt(0);
+      if (protectedEl.contains(range.commonAncestorContainer) || protectedEl.contains(document.activeElement)) {
+        e.preventDefault();
+        if (e.clipboardData) {
+          e.clipboardData.clearData();
+        }
+        if ($('#authCopyModal').length > 0) {
+          var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
+          authModal.show();
+        }
+      }
+    }
+  }
+});
+
+$(document).on('contextmenu', '.prompt-guest-protected', function(e) {
+  e.preventDefault();
+  if ($('#authCopyModal').length > 0) {
+    var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
+    authModal.show();
+  }
+  return false;
+});
+
+$(document).on('keydown', function(e) {
+  var isCtrlOrCmd = e.ctrlKey || e.metaKey;
+  if (isCtrlOrCmd && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X')) {
+    var protectedEl = document.querySelector('.prompt-guest-protected');
+    if (protectedEl) {
+      var sel = window.getSelection();
+      var isWithin = false;
+      if (sel && sel.rangeCount > 0) {
+        var container = sel.getRangeAt(0).commonAncestorContainer;
+        if (protectedEl.contains(container)) {
+          isWithin = true;
+        }
+      }
+      if (protectedEl.contains(document.activeElement) || isWithin) {
+        e.preventDefault();
+        if ($('#authCopyModal').length > 0) {
+          var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
+          authModal.show();
+        }
+        return false;
+      }
+    }
+  }
+});
+
+$(document).on('dragstart', '.prompt-guest-protected', function(e) {
+  e.preventDefault();
+  return false;
+});
+@else
+$(document).ready(function() {
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('autocopy') === '1') {
+    urlParams.delete('autocopy');
+    var newSearch = urlParams.toString();
+    var newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+    window.history.replaceState({}, document.title, newUrl);
+
+    var copyBtn = $('.btn-copy-prompt');
+    if (copyBtn.length > 0) {
+      setTimeout(function() {
+        copyBtn.trigger('click');
+      }, 350);
+    }
+  }
+});
+@endguest
 
 $(document).on('click', '.btn-share-prompt', function(e) {
   e.preventDefault();

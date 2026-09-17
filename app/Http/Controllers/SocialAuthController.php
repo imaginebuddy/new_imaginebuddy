@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\SocialAccountService;
+use App\Helper;
 use Socialite; // socialite namespace
 
 class SocialAuthController extends Controller
 {
     // redirect function
-    public function redirect($provider){
+    public function redirect(Request $request, $provider){
+      if ($request->has('return')) {
+        session(['url.intended' => $request->input('return')]);
+      }
       return Socialite::driver($provider)->redirect();
     }
     // callback function
@@ -28,6 +32,11 @@ class SocialAuthController extends Controller
 
       } catch (\Exception $e) {
            return redirect('login')->with(['login_required' => trans('misc.error').' - '.$e->getMessage() ]);
+      }
+
+      $returnUrl = session()->pull('url.intended', '/');
+      if ($returnUrl && (url()->isValidUrl($returnUrl) || str_starts_with($returnUrl, '/'))) {
+        return redirect()->to($returnUrl);
       }
 
       return redirect()->to('/');
