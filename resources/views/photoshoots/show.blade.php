@@ -60,7 +60,7 @@
             </span>
           </div>
 
-          <h1 class="fw-bold text-dark title-custom display-5 mb-3">{{ $photoshoot->title }}</h1>
+          <h1 class="fw-bold text-dark title-custom display-7 mb-3">{{ $photoshoot->title }}</h1>
 
           @if ($photoshoot->description)
             <p class="lead text-muted mb-4" style="font-size: 1.05rem; line-height: 1.6;">
