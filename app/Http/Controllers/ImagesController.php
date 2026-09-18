@@ -591,12 +591,13 @@ class ImagesController extends Controller
 		if (auth()->check()) {
 
 			$downloadCheckUser = $image->downloads()->whereUserId(auth()->id())->whereSize($type)->first();
-			$dailyDownloads    = auth()->user()->freeDailyDownloads();
+			$dailyDownloads    = auth()->user()->dailyImageDownloadsCount();
+			$downloadLimit     = auth()->user()->totalDailyImageDownloadLimit();
 
 			if (
 				!$downloadCheckUser
-				&& $this->settings->daily_limit_downloads != 0
-				&& $dailyDownloads == $this->settings->daily_limit_downloads
+				&& $downloadLimit != 0
+				&& $dailyDownloads >= $downloadLimit
 				&& auth()->id() != $image->user_id
 				&& !auth()->user()->isSuperAdmin()
 			) {
@@ -608,8 +609,9 @@ class ImagesController extends Controller
 				$download->images_id = $image->id;
 				$download->user_id   = auth()->id();
 				$download->ip        = $user_IP;
-				$download->type      = 'free';
+				$download->type      = auth()->user()->getSubscription() ? 'subscription' : 'free';
 				$download->size      = $type;
+				$download->action_type = 'download';
 				$download->save();
 			}
 		} // Auth check
@@ -744,7 +746,8 @@ class ImagesController extends Controller
 			?: Stock::where('images_id', $image->id)->firstOrFail();
 
 		$downloadCheckUser = $image->downloads()->whereUserId(auth()->id())->whereType('subscription')->whereSize($type)->first();
-		$dailyDownloads    = auth()->user()->subscriptionDailyDownloads();
+		$dailyDownloads    = auth()->user()->dailyImageDownloadsCount();
+		$downloadLimit     = auth()->user()->totalDailyImageDownloadLimit();
 
 		if (!auth()->user()->getSubscription() && !$downloadCheckUser) {
 			return back()->withError(__('misc.not_subscribed'));
@@ -760,7 +763,7 @@ class ImagesController extends Controller
 				? Helper::calculatePriceGrossByDownloads($planPrice, $planUser->plan->downloads_per_month, true)
 				: Helper::calculatePriceGrossByDownloads($planPrice, $planUser->plan->downloads_per_month);
 
-			if ($planUser->plan->download_limits != 0 && $dailyDownloads >= $planUser->plan->download_limits) {
+			if ($downloadLimit != 0 && $dailyDownloads >= $downloadLimit) {
 				return back()->withError(__('misc.reached_daily_download'));
 			}
 
@@ -802,6 +805,7 @@ class ImagesController extends Controller
 			$download->ip        = request()->ip();
 			$download->type      = 'subscription';
 			$download->size      = $type;
+			$download->action_type = 'download';
 			$download->save();
 
 			// Subtract download to user
@@ -1105,7 +1109,7 @@ class ImagesController extends Controller
 		}
 
 		// Record copy action in downloads table
-		$type = ($image->item_for_sale == 'sale') ? 'subscription' : 'free';
+		$type = ($image->item_for_sale == 'sale' || $user->getSubscription()) ? 'subscription' : 'free';
 		$download            = new Downloads();
 		$download->images_id = $image->id;
 		$download->user_id   = $user->id;
@@ -1120,12 +1124,15 @@ class ImagesController extends Controller
 
 		$remaining = $user->remainingDailyPromptCopies();
 		$limit = $user->totalDailyPromptLimit();
+		$used = $user->dailyPromptCopiesCount();
 
 		return response()->json([
 			'success' => true,
 			'prompt' => $image->prompt ?: $image->title,
 			'remaining_copies' => $remaining,
 			'total_limit' => $limit,
+			'copies_used' => $used,
+			'total_copies' => $image->totalPromptCopies(),
 			'message' => __('misc.prompt_copied_success') ?: "Prompt copied! ($remaining remaining today)"
 		]);
 	}

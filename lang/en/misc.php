@@ -640,6 +640,7 @@ return array(
 	'limit_daily_downloads_available' => 'Limit of daily downloads available',
 	'limit_daily_copies_available' => 'Limit of daily prompt copies available',
 	'prompt_copied_success' => 'Prompt copied to clipboard successfully!',
+	'daily_limit_reached' => 'Daily Limit Reached',
 	'reached_daily_copy_limit' => 'You have reached your daily prompt copy limit.',
 	'subscribe_save' => 'Subscribe and save',
 	'included_your_subscription' => 'Included in your subscription',

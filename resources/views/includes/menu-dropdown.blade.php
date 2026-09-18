@@ -19,11 +19,16 @@
 @endif
 @endif
 
-@if ($settings->daily_limit_downloads != 0 && auth()->user()->role != 'admin')
+@if (auth()->user()->role != 'admin')
     <li>
         <span class="dropdown-item disable-item">
-        <i class="bi bi-download me-2"></i> {{ __('misc.downloads') }}: {{ auth()->user()->freeDailyDownloads() }}/{{ $settings->daily_limit_downloads }}
-    </span>
+            <i class="bi bi-download me-2"></i> {{ __('misc.downloads') }}: {{ auth()->user()->dailyImageDownloadsCount() }}/{{ auth()->user()->totalDailyImageDownloadLimit() }}
+        </span>
+    </li>
+    <li>
+        <span class="dropdown-item disable-item">
+            <i class="bi bi-copy me-2"></i> Prompt copies: {{ auth()->user()->dailyPromptCopiesCount() }}/{{ auth()->user()->totalDailyPromptLimit() }}
+        </span>
     </li>
 @endif
 

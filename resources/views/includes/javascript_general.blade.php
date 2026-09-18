@@ -107,6 +107,12 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
         if (response.remaining_copies !== undefined) {
           $('.remaining-copies-count').text(response.remaining_copies);
         }
+        if (response.total_limit !== undefined) {
+          $('.total-copies-limit').text(response.total_limit);
+        }
+        if (response.total_copies !== undefined) {
+          $('.total-copies-stat').text(response.total_copies);
+        }
 
         var applyCopiedState = function() {
           btn.removeClass('btn-primary btn-dark').addClass('btn-success').html('<i class="bi bi-check-lg me-1"></i> Copied!' + remainingMsg);
@@ -144,9 +150,29 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
       } else if (res && res.require_subscription) {
         window.location.href = URL_BASE + '/pricing';
       } else if (res && res.limit_reached) {
-        alert(res.message || 'Daily prompt copy limit reached.');
+        if (typeof swal === 'function') {
+          swal({
+            title: "{{ \Lang::has('misc.daily_limit_reached') ? __('misc.daily_limit_reached') : 'Daily Limit Reached' }}",
+            text: res.message || 'You have reached your daily prompt copy limit.',
+            type: "warning",
+            confirmButtonText: "{{ \Lang::has('users.ok') ? __('users.ok') : 'OK' }}",
+            confirmButtonColor: "#101828"
+          });
+        } else {
+          alert(res.message || 'You have reached your daily prompt copy limit.');
+        }
       } else {
-        alert(res && res.message ? res.message : 'An error occurred while copying the prompt.');
+        if (typeof swal === 'function') {
+          swal({
+            title: "{{ \Lang::has('misc.error_oops') ? __('misc.error_oops') : 'Oops...' }}",
+            text: (res && res.message) ? res.message : 'An error occurred while copying the prompt.',
+            type: "error",
+            confirmButtonText: "{{ \Lang::has('users.ok') ? __('users.ok') : 'OK' }}",
+            confirmButtonColor: "#101828"
+          });
+        } else {
+          alert(res && res.message ? res.message : 'An error occurred while copying the prompt.');
+        }
       }
     }
   });

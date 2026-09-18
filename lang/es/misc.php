@@ -636,6 +636,7 @@ return array(
 	'limit_daily_downloads_available' => 'Límite de descargas diarias disponibles',
 	'limit_daily_copies_available' => 'Límite de copias diarias de prompts disponibles',
 	'prompt_copied_success' => '¡Prompt copiado al portapapeles con éxito!',
+	'daily_limit_reached' => 'Límite diario alcanzado',
 	'reached_daily_copy_limit' => 'Has alcanzado tu límite diario de copias de prompts.',
 	'subscribe_save' => 'Suscríbete y ahorra',
 	'included_your_subscription' => 'Incluido en tu suscripción',

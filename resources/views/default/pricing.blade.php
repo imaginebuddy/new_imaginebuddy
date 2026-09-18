@@ -72,11 +72,11 @@
               </li>
               <li class="mb-3 d-flex align-items-center">
                 <i class="bi bi-check2 text-success fs-5 me-2"></i>
-                <span>Copy up to <strong>20 free prompts</strong> / day</span>
+                <span>Copy up to <strong>10 free prompts</strong> / day</span>
               </li>
               <li class="mb-3 d-flex align-items-center">
                 <i class="bi bi-check2 text-success fs-5 me-2"></i>
-                <span>Up to <strong>{{ $settings->daily_limit_downloads ?: 20 }} free photo downloads</strong> / day</span>
+                <span>Up to <strong>{{ $settings->daily_limit_downloads ?: 10 }} free photo downloads</strong> / day</span>
               </li>
               <li class="mb-3 d-flex align-items-center">
                 <i class="bi bi-check2 text-success fs-5 me-2"></i>

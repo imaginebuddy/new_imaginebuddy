@@ -32,26 +32,26 @@
 
 		<div class="col-md-12">
 			<!-- Search Filter Dropdowns (Clean Design matching Explore Page) -->
-			<div class="d-block w-100 mb-3 text-end">
+			<div class="explore-filters-wrap mb-4">
+				<!-- Sort Order Filter -->
+				<select class="form-select filter filter-primary" onchange="window.location.href=this.value;">
+					<option value="{{ buildSearchFilterUrl(['sort' => 'latest']) }}" @if(empty($currentSort) || $currentSort == 'latest') selected @endif>{{ trans('misc.latest') }}</option>
+					<option value="{{ buildSearchFilterUrl(['sort' => 'oldest']) }}" @if($currentSort == 'oldest') selected @endif>{{ trans('misc.oldest') }}</option>
+				</select>
+
 				<!-- Free vs Premium Filter -->
-				<select class="ms-2 form-select d-inline-block w-auto filter" onchange="window.location.href=this.value;">
+				<select class="form-select filter" onchange="window.location.href=this.value;">
 					<option value="{{ buildSearchFilterUrl(['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
 					<option value="{{ buildSearchFilterUrl(['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
 					<option value="{{ buildSearchFilterUrl(['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
 				</select>
 
 				<!-- AI Model Filter -->
-				<select class="ms-2 form-select d-inline-block w-auto filter" onchange="window.location.href=this.value;">
+				<select class="form-select filter" onchange="window.location.href=this.value;">
 					<option value="{{ buildSearchFilterUrl(['ai_model' => '']) }}" @if(empty($currentAiModel)) selected @endif>All AI Models</option>
 					@foreach (App\Models\Images::getAiModels() as $model)
 						<option value="{{ buildSearchFilterUrl(['ai_model' => $model]) }}" @if($currentAiModel == $model) selected @endif>{{ $model }}</option>
 					@endforeach
-				</select>
-
-				<!-- Sort Order Filter -->
-				<select class="ms-2 form-select d-inline-block w-auto filter" onchange="window.location.href=this.value;">
-					<option value="{{ buildSearchFilterUrl(['sort' => 'latest']) }}" @if(empty($currentSort) || $currentSort == 'latest') selected @endif>{{ trans('misc.latest') }}</option>
-					<option value="{{ buildSearchFilterUrl(['sort' => 'oldest']) }}" @if($currentSort == 'oldest') selected @endif>{{ trans('misc.oldest') }}</option>
 				</select>
 			</div>
 

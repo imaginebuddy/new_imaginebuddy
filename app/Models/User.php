@@ -155,65 +155,56 @@ class User extends Authenticatable
     return $this->new_notifications_count;
   }
 
-  public function freeDailyDownloads()
+  public function dailyImageDownloadsCount()
   {
     return $this->downloads()
       ->where('date', '>=', today())
-      ->where('action_type', 'download')
-      ->whereType('free')
+      ->where(function ($q) {
+        $q->where('action_type', 'download')
+          ->orWhere(function ($sq) {
+            $sq->whereNull('action_type')->where('size', '!=', 'prompt');
+          });
+      })
       ->count();
+  }
+
+  public function totalDailyImageDownloadLimit()
+  {
+    $subscription = $this->getSubscription();
+    if ($subscription) {
+      return ($subscription->plan && $subscription->plan->download_limits)
+        ? $subscription->plan->download_limits
+        : 100;
+    }
+
+    $settings = AdminSettings::first();
+    return $settings ? ($settings->daily_limit_downloads ?: 10) : 10;
+  }
+
+  public function remainingDailyImageDownloads()
+  {
+    return max(0, $this->totalDailyImageDownloadLimit() - $this->dailyImageDownloadsCount());
+  }
+
+  public function freeDailyDownloads()
+  {
+    return $this->dailyImageDownloadsCount();
   }
 
   public function subscriptionDailyDownloads()
   {
-    return $this->downloads()
-      ->where('date', '>=', today())
-      ->where('action_type', 'download')
-      ->whereType('subscription')
-      ->count();
+    return $this->dailyImageDownloadsCount();
   }
 
-  public function freeDailyPromptCopies()
+  public function dailyPromptCopiesCount()
   {
     return $this->downloads()
       ->where('date', '>=', today())
-      ->where('action_type', 'copy')
-      ->whereType('free')
+      ->where(function ($q) {
+        $q->where('action_type', 'copy')
+          ->orWhere('size', 'prompt');
+      })
       ->count();
-  }
-
-  public function subscriptionDailyPromptCopies()
-  {
-    return $this->downloads()
-      ->where('date', '>=', today())
-      ->where('action_type', 'copy')
-      ->whereType('subscription')
-      ->count();
-  }
-
-  public function freeDailyUsage()
-  {
-    return $this->freeDailyPromptCopies();
-  }
-
-  public function subscriptionDailyUsage()
-  {
-    return $this->subscriptionDailyPromptCopies();
-  }
-
-  public function remainingDailyPromptCopies()
-  {
-    $subscription = $this->getSubscription();
-    if ($subscription) {
-      $planLimit = ($subscription->plan && $subscription->plan->download_limits)
-        ? $subscription->plan->download_limits
-        : 100;
-      return max(0, $planLimit - $this->subscriptionDailyPromptCopies());
-    }
-
-    $settings = AdminSettings::first();
-    $limit = $settings ? ($settings->daily_limit_downloads ?: 20) : 20;
-    return max(0, $limit - $this->freeDailyPromptCopies());
   }
 
   public function totalDailyPromptLimit()
@@ -225,8 +216,32 @@ class User extends Authenticatable
         : 100;
     }
 
-    $settings = AdminSettings::first();
-    return $settings ? ($settings->daily_limit_downloads ?: 20) : 20;
+    return 10;
+  }
+
+  public function remainingDailyPromptCopies()
+  {
+    return max(0, $this->totalDailyPromptLimit() - $this->dailyPromptCopiesCount());
+  }
+
+  public function freeDailyPromptCopies()
+  {
+    return $this->dailyPromptCopiesCount();
+  }
+
+  public function subscriptionDailyPromptCopies()
+  {
+    return $this->dailyPromptCopiesCount();
+  }
+
+  public function freeDailyUsage()
+  {
+    return $this->dailyPromptCopiesCount();
+  }
+
+  public function subscriptionDailyUsage()
+  {
+    return $this->dailyPromptCopiesCount();
   }
 
   public function canCopyPrompt($image)
@@ -237,19 +252,13 @@ class User extends Authenticatable
 
     $subscription = $this->getSubscription();
 
-    if ($image->item_for_sale == 'free') {
-      $settings = AdminSettings::first();
-      $limit = $subscription ? 100 : ($settings->daily_limit_downloads ?: 20);
-      return $this->freeDailyPromptCopies() < $limit;
-    } else {
-      if (!$subscription) {
-        return false;
-      }
-      $planLimit = ($subscription->plan && $subscription->plan->download_limits)
-        ? $subscription->plan->download_limits
-        : 100;
-      return $this->subscriptionDailyPromptCopies() < $planLimit;
+    // Premium prompt requires an active subscription
+    if ($image->item_for_sale == 'sale' && !$subscription) {
+      return false;
     }
+
+    // Both free and premium prompt copies are bounded by totalDailyPromptLimit
+    return $this->dailyPromptCopiesCount() < $this->totalDailyPromptLimit();
   }
 
   public function dailyUploads()

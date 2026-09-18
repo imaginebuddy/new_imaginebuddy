@@ -81,6 +81,30 @@ class Images extends Model
 		return $this->hasMany(Downloads::class);
 	}
 
+	public function totalImageDownloads()
+	{
+		return $this->downloads()
+			->where(function ($q) {
+				$q->where('action_type', 'download')
+					->orWhere(function ($sq) {
+						$sq->whereNull('action_type')->where('size', '!=', 'prompt');
+					});
+			})
+			->count();
+	}
+
+	public function totalPromptCopies()
+	{
+		$copies = $this->downloads()
+			->where(function ($q) {
+				$q->where('action_type', 'copy')
+					->orWhere('size', 'prompt');
+			})
+			->count();
+
+		return max((int)$this->copies_count, $copies);
+	}
+
 	public function stock()
 	{
 		return $this->hasMany(Stock::class)->orderBy('type','asc');

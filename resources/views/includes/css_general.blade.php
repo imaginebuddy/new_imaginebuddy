@@ -827,6 +827,117 @@ body.dark-mode .prompt-copy-icon-bg {
   margin: 0px 0px !important;
 }
 
+/* Author Header & Follow Button Mobile Optimization */
+.btn-author-follow {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  border-radius: 50rem !important;
+  font-size: 14px !important;
+  height: 40px !important;
+  padding: 0 18px !important;
+  line-height: 1 !important;
+  gap: 6px !important;
+}
+
+.btn-author-follow i {
+  font-size: 15px !important;
+  line-height: 1 !important;
+}
+
+@media (max-width: 576px) {
+  .btn-author-follow {
+    font-size: 13px !important;
+    height: 36px !important;
+    padding: 0 14px !important;
+    gap: 4px !important;
+  }
+  .author-header-username {
+    font-size: 1.15rem !important;
+  }
+  .author-header-avatar {
+    width: 44px !important;
+    height: 44px !important;
+  }
+}
+
+/* ==========================================================================
+   Explore & Search Page Filter Dropdowns (Mobile & Desktop)
+   ========================================================================== */
+.explore-filters-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.explore-filters-wrap .form-select {
+  width: auto;
+  min-width: 140px;
+  height: 42px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 12px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  padding: 0.4rem 2.2rem 0.4rem 1rem !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.explore-filters-wrap .form-select:focus {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12) !important;
+  outline: none;
+}
+
+@media (max-width: 767.98px) {
+  .explore-filters-wrap {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .explore-filters-wrap .filter-primary,
+  .explore-filters-wrap .filter-timeframe {
+    grid-column: span 2 !important;
+  }
+
+  .explore-filters-wrap .form-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .explore-filters-wrap {
+    grid-template-columns: 1fr !important;
+  }
+  .explore-filters-wrap .filter-primary,
+  .explore-filters-wrap .filter-timeframe {
+    grid-column: span 1 !important;
+  }
+}
+
+[data-bs-theme="dark"] .explore-filters-wrap .form-select,
+[data-theme="dark"] .explore-filters-wrap .form-select,
+body.dark-mode .explore-filters-wrap .form-select {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
 /* ==========================================================================
    Transformation Showcase & Before/After Slider Section
    ========================================================================== */

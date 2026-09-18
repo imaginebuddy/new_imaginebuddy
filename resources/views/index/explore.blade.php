@@ -56,10 +56,10 @@ switch(request()->get('timeframe')) {
 		@if ($images->total() != 0)
 
 	@if (request()->is(['latest', 'featured', 'popular', 'most/commented', 'most/viewed', 'most/downloads', 'most/copied']))
-	<div class="d-block w-100 mb-3 text-end">
+	<div class="explore-filters-wrap mb-4">
 
 		<!-- 1. Explore Page Navigation Dropdown -->
-		<select class="ms-2 form-select d-inline-block w-auto me-2 filter filter-explore">
+		<select class="form-select filter filter-explore filter-primary">
 			<option @if (request()->is('latest')) selected @endif value="{{ url('latest') }}">{{__('misc.latest')}}</option>
 			<option @if (request()->is('featured')) selected @endif value="{{ url('featured') }}">{{__('misc.featured')}}</option>
 			<option @if (request()->is('popular')) selected @endif value="{{ url('popular') }}">{{__('misc.popular')}}</option>
@@ -72,14 +72,14 @@ switch(request()->get('timeframe')) {
 		</select>
 
 		<!-- 2. Free vs Premium Tier Filter Dropdown -->
-		<select class="ms-2 form-select d-inline-block w-auto me-2" onchange="window.location.href=this.value;">
+		<select class="form-select filter" onchange="window.location.href=this.value;">
 			<option value="{{ buildExploreFilterUrl(['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
 			<option value="{{ buildExploreFilterUrl(['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
 			<option value="{{ buildExploreFilterUrl(['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
 		</select>
 
 		<!-- 3. AI Model Filter Dropdown -->
-		<select class="ms-2 form-select d-inline-block w-auto me-2" onchange="window.location.href=this.value;">
+		<select class="form-select filter" onchange="window.location.href=this.value;">
 			<option value="{{ buildExploreFilterUrl(['ai_model' => '']) }}" @if(empty($currentAiModel)) selected @endif>All AI Models</option>
 			@foreach (App\Models\Images::$aiModels as $model)
 				<option value="{{ buildExploreFilterUrl(['ai_model' => $model]) }}" @if($currentAiModel == $model) selected @endif>{{ $model }}</option>
@@ -88,7 +88,7 @@ switch(request()->get('timeframe')) {
 
 		<!-- 4. Timeframe Filter Dropdown -->
 		@if (!request()->is(['latest', 'most/copied']))
-		<select class="ms-2 form-select d-inline-block w-auto" onchange="window.location.href=this.value;">
+		<select class="form-select filter filter-timeframe" onchange="window.location.href=this.value;">
 			<option value="{{ buildExploreFilterUrl(['timeframe' => '']) }}" @if(empty($currentTimeframe)) selected @endif>{{__('misc.all_time')}}</option>
 			<option value="{{ buildExploreFilterUrl(['timeframe' => 'today']) }}" @if($currentTimeframe == 'today') selected @endif>{{__('misc.today')}}</option>
 			<option value="{{ buildExploreFilterUrl(['timeframe' => 'week']) }}" @if($currentTimeframe == 'week') selected @endif>{{__('misc.this_week')}}</option>

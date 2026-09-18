@@ -397,13 +397,13 @@
         @endif
 
         <!-- 2. Author Profile Header Bar -->
-        <div class="d-flex align-items-center justify-content-between mb-4">
-          <div class="d-flex align-items-center gap-3">
-            <a href="{{ url($response->author->username) }}">
-              <img class="rounded-circle" src="{{ Storage::url(config('path.avatar').$response->author->avatar) }}" width="55" height="55" alt="{{ $response->author->username }}" style="object-fit: cover;">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-4">
+          <div class="d-flex align-items-center gap-3 overflow-hidden me-2">
+            <a href="{{ url($response->author->username) }}" class="flex-shrink-0">
+              <img class="rounded-circle author-header-avatar" src="{{ Storage::url(config('path.avatar').$response->author->avatar) }}" width="52" height="52" alt="{{ $response->author->username }}" style="object-fit: cover;">
             </a>
-            <div>
-              <a href="{{ url($response->author->username) }}" class="text-decoration-none link-dark fw-bold fs-4 d-block title-custom" style="line-height: 1.2;">
+            <div class="overflow-hidden">
+              <a href="{{ url($response->author->username) }}" class="text-decoration-none link-dark fw-bold fs-4 d-block title-custom author-header-username text-truncate" style="line-height: 1.2;">
                 {{ '@' . ($response->author->username ?: $response->author->name) }}
               </a>
               <small class="text-muted" style="font-size: 0.85rem;">{{ number_format(User::totalImages($response->author->id)) }} Prompts</small>
@@ -411,24 +411,27 @@
           </div>
 
           @if (auth()->check() && $response->author->id != auth()->id())
-            <button type="button" class="btn btn-dark rounded-pill px-4 py-2 me-1 fw-semibold btnFollow btn-follow {{ $activeFollow }}" data-id="{{ $response->author->id }}" data-follow="{{ __('users.follow') }}" data-following="{{ __('users.following') }}">
-              <i class="bi bi{{ $icoFollow }} me-1"></i> {{ $textFollow }}
+            <button type="button" class="btn btn-dark fw-semibold btnFollow btn-follow btn-author-follow {{ $activeFollow }}" data-id="{{ $response->author->id }}" data-follow="{{ __('users.follow') }}" data-following="{{ __('users.following') }}">
+              <i class="bi bi{{ $icoFollow }}"></i> <span>{{ $textFollow }}</span>
             </button>
           @endif
         </div>
 
         <!-- 3. Stats & Action Buttons Row -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
-          <!-- Left Stats (Views, Likes, Downloads) -->
+          <!-- Left Stats (Views, Likes, Downloads, Copies) -->
           <div class="d-flex align-items-center gap-4">
-            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;">
+            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;" title="Views">
               <i class="bi bi-eye fs-5"></i> {{ Helper::formatNumber($response->visits()->count()) }}
             </span>
-            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;">
+            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;" title="Likes">
               <i class="bi bi-heart fs-5"></i> <span id="countLikes">{{ Helper::formatNumber($response->likes()->count()) }}</span>
             </span>
-            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;">
-              <i class="bi bi-download fs-5"></i> {{ Helper::formatNumber($response->downloads()->count()) }}
+            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;" title="Downloads">
+              <i class="bi bi-download fs-5"></i> {{ Helper::formatNumber($response->totalImageDownloads()) }}
+            </span>
+            <span class="text-muted small d-inline-flex align-items-center gap-2" style="font-size: 0.95rem;" title="Prompt Copies">
+              <i class="bi bi-copy fs-5"></i> <span class="total-copies-stat">{{ Helper::formatNumber($response->totalPromptCopies()) }}</span>
             </span>
           </div>
 
@@ -510,12 +513,12 @@
                 @auth
                   <div class="small text-muted d-inline-flex align-items-center gap-1">
                     <i class="bi bi-lightning-charge text-warning"></i>
-                    <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / {{ auth()->user()->totalDailyPromptLimit() }}</span>
+                    <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / <span class="total-copies-limit">{{ auth()->user()->totalDailyPromptLimit() }}</span></span>
                   </div>
                 @else
                   <div class="small text-muted d-inline-flex align-items-center gap-1">
                     <i class="bi bi-stars text-warning"></i>
-                    <span>Free sign up gives you <strong>20 daily prompt copies</strong></span>
+                    <span>Free sign up gives you <strong>10 daily prompt copies</strong></span>
                   </div>
                 @endauth
               </div>
