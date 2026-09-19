@@ -236,12 +236,21 @@ class AnalyticsController extends Controller
 
         $activeRegistered = $liveSessions->whereNotNull('user_id')->count();
         $activeAnonymous = $liveSessions->whereNull('user_id')->count();
-        $activeTotal = $activeRegistered + $activeAnonymous;
+        $activeTotal = $liveSessions->count();
+
+        // Humans: stayed on site (>0s), engaged, viewed multiple pages, or logged in
+        $activeHumans = $liveSessions->filter(function ($s) {
+            return !empty($s->user_id) || $s->duration_seconds > 0 || $s->is_engaged == 1 || $s->page_views_count > 1;
+        })->count();
+
+        $activeCrawlers = $activeTotal - $activeHumans;
 
         return view('admin.analytics.live', [
             'settings' => $this->settings,
             'liveSessions' => $liveSessions,
             'activeTotal' => $activeTotal,
+            'activeHumans' => $activeHumans,
+            'activeCrawlers' => $activeCrawlers,
             'activeRegistered' => $activeRegistered,
             'activeAnonymous' => $activeAnonymous,
         ]);
@@ -260,31 +269,41 @@ class AnalyticsController extends Controller
             ->groupByRaw('CASE WHEN user_id IS NOT NULL THEN CONCAT("u_", user_id) ELSE CONCAT("v_", visitor_id) END')
             ->pluck('id');
 
-        $sessions = AnalyticsSession::whereIn('id', $latestSessionIds)
+        $rawSessions = AnalyticsSession::whereIn('id', $latestSessionIds)
             ->with('user:id,username,name,avatar')
             ->orderByDesc('last_activity_at')
-            ->get()
-            ->map(function ($s) {
-                return [
-                    'id' => $s->id,
-                    'is_logged_in' => !empty($s->user_id),
-                    'user_name' => $s->user ? ($s->user->name ?: $s->user->username) : 'Anonymous Visitor #' . substr($s->visitor_id, 0, 6),
-                    'user_avatar' => $s->user ? \Illuminate\Support\Facades\Storage::url(config('path.avatar') . $s->user->avatar) : null,
-                    'user_url' => $s->user ? url($s->user->username) : null,
-                    'current_page' => $s->exit_page ?: '/',
-                    'device_type' => ucfirst($s->device_type),
-                    'browser' => $s->browser,
-                    'country_code' => $s->country_code ?: 'UN',
-                    'duration_formatted' => gmdate('H:i:s', $s->duration_seconds),
-                    'last_seen_diff' => $s->last_activity_at ? $s->last_activity_at->diffForHumans() : 'Just now',
-                ];
-            });
+            ->get();
+
+        $sessions = $rawSessions->map(function ($s) {
+            $isHuman = !empty($s->user_id) || $s->duration_seconds > 0 || $s->is_engaged == 1 || $s->page_views_count > 1;
+            return [
+                'id' => $s->id,
+                'is_logged_in' => !empty($s->user_id),
+                'is_human' => $isHuman,
+                'is_engaged' => (bool)$s->is_engaged,
+                'user_name' => $s->user ? ($s->user->name ?: $s->user->username) : 'Anonymous Visitor #' . substr($s->visitor_id, 0, 6),
+                'user_avatar' => $s->user ? \Illuminate\Support\Facades\Storage::url(config('path.avatar') . $s->user->avatar) : null,
+                'user_url' => $s->user ? url($s->user->username) : null,
+                'current_page' => $s->exit_page ?: '/',
+                'device_type' => ucfirst($s->device_type),
+                'browser' => $s->browser,
+                'country_code' => $s->country_code ?: 'UN',
+                'duration_seconds' => (int)$s->duration_seconds,
+                'duration_formatted' => gmdate('H:i:s', $s->duration_seconds),
+                'last_seen_diff' => $s->last_activity_at ? $s->last_activity_at->diffForHumans() : 'Just now',
+            ];
+        });
+
+        $humansCount = $sessions->where('is_human', true)->count();
+        $crawlersCount = $sessions->where('is_human', false)->count();
 
         return response()->json([
             'total' => $sessions->count(),
+            'humans' => $humansCount,
+            'crawlers' => $crawlersCount,
             'registered' => $sessions->where('is_logged_in', true)->count(),
             'anonymous' => $sessions->where('is_logged_in', false)->count(),
-            'sessions' => $sessions,
+            'sessions' => $sessions->values(),
         ]);
     }
 

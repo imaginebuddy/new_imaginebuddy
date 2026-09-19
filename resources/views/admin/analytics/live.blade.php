@@ -15,19 +15,23 @@
           </div>
           <h2 class="display-5 fw-bold mb-0">
             <span id="liveTotalCount">{{ $activeTotal }}</span>
-            <small class="fs-5 text-white-50 fw-normal">Active Users on Site Right Now</small>
+            <small class="fs-5 text-white-50 fw-normal">Total Visitors in Last 5m</small>
           </h2>
           <small class="text-white-50">Active within the last 5 minutes &bull; Auto-refreshes every 10 seconds</small>
         </div>
 
-        <div class="d-flex gap-3 mt-3 mt-md-0">
-          <div class="bg-white bg-opacity-10 rounded px-4 py-2 text-center">
-            <span class="d-block small text-white-50">Logged-In Members</span>
-            <span class="fs-4 fw-bold text-success" id="liveRegisteredCount">{{ $activeRegistered }}</span>
+        <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+          <div class="bg-white bg-opacity-10 rounded px-3 py-2 text-center" style="min-width: 110px;">
+            <span class="d-block small text-white-50">Verified Humans</span>
+            <span class="fs-4 fw-bold text-success" id="liveHumansCount">{{ $activeHumans }}</span>
           </div>
-          <div class="bg-white bg-opacity-10 rounded px-4 py-2 text-center">
-            <span class="d-block small text-white-50">Anonymous Visitors</span>
-            <span class="fs-4 fw-bold text-info" id="liveAnonymousCount">{{ $activeAnonymous }}</span>
+          <div class="bg-white bg-opacity-10 rounded px-3 py-2 text-center" style="min-width: 110px;">
+            <span class="d-block small text-white-50">Single-Hit / Bots</span>
+            <span class="fs-4 fw-bold text-warning" id="liveCrawlersCount">{{ $activeCrawlers }}</span>
+          </div>
+          <div class="bg-white bg-opacity-10 rounded px-3 py-2 text-center" style="min-width: 110px;">
+            <span class="d-block small text-white-50">Members</span>
+            <span class="fs-4 fw-bold text-info" id="liveRegisteredCount">{{ $activeRegistered }}</span>
           </div>
           <button class="btn btn-outline-light d-flex align-items-center" id="btnManualRefresh" onclick="fetchLiveData()">
             <i class="bi bi-arrow-clockwise me-1" id="refreshIcon"></i> Refresh
@@ -39,8 +43,24 @@
 
   <!-- Real-Time Active Sessions Feed Table -->
   <div class="card shadow-custom border-0">
-    <div class="card-header bg-transparent border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
-      <h5 class="card-title m-0 fw-light"><i class="bi bi-broadcast text-danger me-2"></i> Active Visitors Stream</h5>
+    <div class="card-header bg-transparent border-0 pt-4 pb-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <h5 class="card-title m-0 fw-light"><i class="bi bi-broadcast text-danger me-2"></i> Active Visitors Stream</h5>
+
+        <!-- Filter Toggle Buttons -->
+        <div class="btn-group btn-group-sm" role="group" id="liveFilterGroup">
+          <button type="button" class="btn btn-outline-primary active" id="btnFilterAll" onclick="setLiveFilter('all')">
+            All Traffic (<span id="badgeFilterAll">{{ $activeTotal }}</span>)
+          </button>
+          <button type="button" class="btn btn-outline-success" id="btnFilterHumans" onclick="setLiveFilter('humans')">
+            <i class="bi bi-person-check-fill me-1"></i> Humans Only (<span id="badgeFilterHumans">{{ $activeHumans }}</span>)
+          </button>
+          <button type="button" class="btn btn-outline-secondary" id="btnFilterCrawlers" onclick="setLiveFilter('crawlers')">
+            <i class="bi bi-robot me-1"></i> Single-Hit Crawlers (<span id="badgeFilterCrawlers">{{ $activeCrawlers }}</span>)
+          </button>
+        </div>
+      </div>
+
       <span class="badge bg-light text-dark border" id="lastUpdatedBadge">Updated just now</span>
     </div>
     <div class="card-body p-0">
@@ -49,6 +69,7 @@
           <thead class="table-light small">
             <tr>
               <th>Visitor / User</th>
+              <th>Traffic Type</th>
               <th>Current Page / Activity</th>
               <th>Device &amp; Browser</th>
               <th>Country</th>
@@ -58,7 +79,10 @@
           </thead>
           <tbody id="liveSessionsTableBody">
             @forelse($liveSessions as $session)
-              <tr>
+              @php
+                $isHuman = !empty($session->user_id) || $session->duration_seconds > 0 || $session->is_engaged == 1 || $session->page_views_count > 1;
+              @endphp
+              <tr data-is-human="{{ $isHuman ? '1' : '0' }}">
                 <td>
                   <div class="d-flex align-items-center">
                     @if($session->user)
@@ -79,6 +103,17 @@
                       </div>
                     @endif
                   </div>
+                </td>
+                <td>
+                  @if($isHuman)
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      <i class="bi bi-person-check-fill me-1"></i> Human
+                    </span>
+                  @else
+                    <span class="badge bg-light text-muted border">
+                      <i class="bi bi-robot me-1"></i> Crawler
+                    </span>
+                  @endif
                 </td>
                 <td>
                   <span class="badge bg-light text-dark border text-truncate" style="max-width: 250px;" title="{{ $session->exit_page }}">
@@ -109,7 +144,7 @@
               </tr>
             @empty
               <tr id="emptyLiveRow">
-                <td colspan="6" class="text-center text-muted py-4">No active visitors right now. Waiting for new traffic...</td>
+                <td colspan="7" class="text-center text-muted py-4">No active visitors right now. Waiting for new traffic...</td>
               </tr>
             @endforelse
           </tbody>
@@ -122,6 +157,74 @@
 
 @section('javascript')
 <script>
+var currentLiveFilter = 'all';
+var cachedLiveSessions = [];
+
+function setLiveFilter(filterType) {
+  currentLiveFilter = filterType;
+
+  // Update button classes
+  document.getElementById('btnFilterAll').classList.toggle('active', filterType === 'all');
+  document.getElementById('btnFilterHumans').classList.toggle('active', filterType === 'humans');
+  document.getElementById('btnFilterCrawlers').classList.toggle('active', filterType === 'crawlers');
+
+  renderLiveTable();
+}
+
+function renderLiveTable() {
+  var tbody = document.getElementById('liveSessionsTableBody');
+  if (!cachedLiveSessions || cachedLiveSessions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No active visitors right now.</td></tr>';
+    return;
+  }
+
+  var filtered = cachedLiveSessions.filter(function(s) {
+    if (currentLiveFilter === 'humans') return s.is_human;
+    if (currentLiveFilter === 'crawlers') return !s.is_human;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    var msg = currentLiveFilter === 'humans' 
+      ? 'No active human visitors in the last 5 minutes.' 
+      : (currentLiveFilter === 'crawlers' ? 'No single-hit crawlers.' : 'No active visitors.');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">' + msg + '</td></tr>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(s) {
+    var userHtml = '';
+    if (s.is_logged_in) {
+      userHtml = '<div class="d-flex align-items-center">' +
+        (s.user_avatar ? '<img src="' + s.user_avatar + '" width="32" height="32" class="rounded-circle me-2" />' : '') +
+        '<div><a href="' + s.user_url + '" target="_blank" class="fw-bold text-dark text-decoration-none d-block">' + s.user_name + '</a>' +
+        '<small class="text-success"><i class="bi bi-check-circle-fill"></i> Member</small></div></div>';
+    } else {
+      userHtml = '<div class="d-flex align-items-center">' +
+        '<div class="avatar-placeholder rounded-circle bg-light border text-muted d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;"><i class="bi bi-person"></i></div>' +
+        '<div><span class="fw-medium text-dark">' + s.user_name + '</span></div></div>';
+    }
+
+    var deviceIcon = s.device_type === 'Mobile' ? 'bi-phone' : (s.device_type === 'Tablet' ? 'bi-tablet' : 'bi-laptop');
+    var badgeType = s.is_human
+      ? '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-person-check-fill me-1"></i> Human</span>'
+      : '<span class="badge bg-light text-muted border"><i class="bi bi-robot me-1"></i> Crawler</span>';
+
+    html += '<tr>' +
+      '<td>' + userHtml + '</td>' +
+      '<td>' + badgeType + '</td>' +
+      '<td><span class="badge bg-light text-dark border text-truncate" style="max-width: 250px;" title="' + s.current_page + '">' + s.current_page + '</span></td>' +
+      '<td><i class="bi ' + deviceIcon + ' text-muted me-1"></i> <span class="small">' + (s.browser || 'Browser') + '</span></td>' +
+      '<td><span class="fw-bold">' + s.country_code + '</span></td>' +
+      '<td><small class="text-muted">' + s.duration_formatted + '</small></td>' +
+      '<td class="text-end"><span class="badge bg-success-subtle text-success">' + s.last_seen_diff + '</span></td>' +
+      '</tr>';
+  });
+
+  tbody.innerHTML = html;
+}
+
 function fetchLiveData() {
   var icon = document.getElementById('refreshIcon');
   if (icon) icon.classList.add('spin-icon');
@@ -131,52 +234,29 @@ function fetchLiveData() {
     .then(data => {
       if (icon) icon.classList.remove('spin-icon');
       document.getElementById('liveTotalCount').textContent = data.total;
+      document.getElementById('liveHumansCount').textContent = data.humans;
+      document.getElementById('liveCrawlersCount').textContent = data.crawlers;
       document.getElementById('liveRegisteredCount').textContent = data.registered;
-      document.getElementById('liveAnonymousCount').textContent = data.anonymous;
+
+      document.getElementById('badgeFilterAll').textContent = data.total;
+      document.getElementById('badgeFilterHumans').textContent = data.humans;
+      document.getElementById('badgeFilterCrawlers').textContent = data.crawlers;
 
       var navBadge = document.getElementById('navLiveBadge');
       if (navBadge) navBadge.textContent = data.total;
 
       document.getElementById('lastUpdatedBadge').textContent = 'Updated ' + new Date().toLocaleTimeString();
 
-      var tbody = document.getElementById('liveSessionsTableBody');
-      if (data.sessions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No active visitors right now.</td></tr>';
-        return;
-      }
-
-      var html = '';
-      data.sessions.forEach(function(s) {
-        var userHtml = '';
-        if (s.is_logged_in) {
-          userHtml = '<div class="d-flex align-items-center">' +
-            (s.user_avatar ? '<img src="' + s.user_avatar + '" width="32" height="32" class="rounded-circle me-2" />' : '') +
-            '<div><a href="' + s.user_url + '" target="_blank" class="fw-bold text-dark text-decoration-none d-block">' + s.user_name + '</a>' +
-            '<small class="text-success"><i class="bi bi-check-circle-fill"></i> Member</small></div></div>';
-        } else {
-          userHtml = '<div class="d-flex align-items-center">' +
-            '<div class="avatar-placeholder rounded-circle bg-light border text-muted d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;"><i class="bi bi-person"></i></div>' +
-            '<div><span class="fw-medium text-dark">' + s.user_name + '</span></div></div>';
-        }
-
-        var deviceIcon = s.device_type === 'Mobile' ? 'bi-phone' : (s.device_type === 'Tablet' ? 'bi-tablet' : 'bi-laptop');
-
-        html += '<tr>' +
-          '<td>' + userHtml + '</td>' +
-          '<td><span class="badge bg-light text-dark border text-truncate" style="max-width: 250px;">' + s.current_page + '</span></td>' +
-          '<td><i class="bi ' + deviceIcon + ' text-muted me-1"></i> <span class="small">' + (s.browser || 'Browser') + '</span></td>' +
-          '<td><span class="fw-bold">' + s.country_code + '</span></td>' +
-          '<td><small class="text-muted">' + s.duration_formatted + '</small></td>' +
-          '<td class="text-end"><span class="badge bg-success-subtle text-success">' + s.last_seen_diff + '</span></td>' +
-          '</tr>';
-      });
-
-      tbody.innerHTML = html;
+      cachedLiveSessions = data.sessions || [];
+      renderLiveTable();
     })
     .catch(err => {
       if (icon) icon.classList.remove('spin-icon');
     });
 }
+
+// Initial fetch to load cachedLiveSessions for filtering
+fetchLiveData();
 
 // Auto-poll every 10 seconds
 setInterval(fetchLiveData, 10000);
@@ -185,5 +265,6 @@ setInterval(fetchLiveData, 10000);
 <style>
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .spin-icon { animation: spin 0.8s linear infinite; }
+.btn-group .btn.active { font-weight: 600; }
 </style>
 @endsection
