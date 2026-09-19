@@ -41,6 +41,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\Language::class,
             \App\Http\Middleware\UserCountry::class,
             \App\Http\Middleware\Referred::class,
+            \App\Http\Middleware\TrackVisitorSession::class,
         ],
 
         'api' => [

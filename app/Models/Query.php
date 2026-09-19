@@ -114,6 +114,16 @@ class Query extends Model
 		$title = __('misc.result_of') . ' ' . $q . ' - ';
 		$total = $images->total();
 
+		if (empty($page) || $page == 1) {
+			\App\Services\AnalyticsService::logSearch($q, (int)$total, $tier, $aiModel);
+			\App\Services\AnalyticsService::logEvent('search', request()->fullUrl(), null, [
+				'query' => $q,
+				'results_count' => (int)$total,
+				'tier' => $tier,
+				'ai_model' => $aiModel,
+			]);
+		}
+
 		return ['images' => $images, 'page' => $page, 'title' => $title, 'total' => $total, 'q' => $q];
 	}
 

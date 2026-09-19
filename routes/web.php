@@ -37,6 +37,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\RolesAndPermissionsController;
 use App\Http\Controllers\TestimonialsController;
 use App\Http\Controllers\ClientLogosController;
+use App\Http\Controllers\AnalyticsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -79,6 +80,8 @@ Route::get('photos/premium', function (\Illuminate\Http\Request $request) {
 });
 Route::get('explore/vectors', [HomeController::class, 'vectors']);
 Route::post('prompt/copy/{id}', [ImagesController::class, 'copyPrompt']);
+Route::post('analytics/ping', [AnalyticsController::class, 'ping']);
+Route::post('analytics/event', [AnalyticsController::class, 'clientEvent']);
 
 /*
  |-----------------------------------
@@ -410,6 +413,16 @@ Route::group(['middleware' => 'role'], function() {
 
 	// Dashboard
 	Route::get('panel/admin',[AdminController::class, 'dashboard'])->name('dashboard');
+
+	// Analytics
+	Route::get('panel/admin/analytics', [AnalyticsController::class, 'overview'])->name('analytics');
+	Route::get('panel/admin/analytics/live', [AnalyticsController::class, 'live'])->name('analytics');
+	Route::get('panel/admin/analytics/live-data', [AnalyticsController::class, 'liveData'])->name('analytics');
+	Route::get('panel/admin/analytics/traffic', [AnalyticsController::class, 'traffic'])->name('analytics');
+	Route::get('panel/admin/analytics/searches', [AnalyticsController::class, 'searches'])->name('analytics');
+	Route::get('panel/admin/analytics/prompts', [AnalyticsController::class, 'prompts'])->name('analytics');
+	Route::get('panel/admin/analytics/funnel', [AnalyticsController::class, 'funnel'])->name('analytics');
+	Route::get('panel/admin/analytics/users', [AnalyticsController::class, 'users'])->name('analytics');
 
 	// Categories
 	Route::get('panel/admin/categories',[AdminController::class, 'categories'])->name('categories');

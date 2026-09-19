@@ -182,6 +182,12 @@ class ImagesController extends Controller
 			}
 		} //<--------- * Visits * ---------->
 
+		\App\Services\AnalyticsService::logEvent('prompt_view', request()->fullUrl(), $response->id, [
+			'prompt_title' => $response->title,
+			'ai_model' => $response->ai_model,
+			'tier' => $response->item_for_sale,
+		]);
+
 		if (auth()->check()) {
 
 			// FOLLOW ACTIVE
@@ -1108,19 +1114,35 @@ class ImagesController extends Controller
 			], 403);
 		}
 
-		// Record copy action in downloads table
-		$type = ($image->item_for_sale == 'sale' || $user->getSubscription()) ? 'subscription' : 'free';
-		$download            = new Downloads();
-		$download->images_id = $image->id;
-		$download->user_id   = $user->id;
-		$download->ip        = request()->ip();
-		$download->type      = $type;
-		$download->size      = 'prompt';
-		$download->action_type = 'copy';
-		$download->save();
+		// Check for debounced copy (within 10 seconds by same user for same image)
+		$isDuplicateCopy = Downloads::where('images_id', $image->id)
+			->where('user_id', $user->id)
+			->where('action_type', 'copy')
+			->where('date', '>=', \Carbon\Carbon::now()->subSeconds(10))
+			->exists();
 
-		// Increment copies count
-		$image->increment('copies_count');
+		if (!$isDuplicateCopy) {
+			// Record copy action in downloads table
+			$type = ($image->item_for_sale == 'sale' || $user->getSubscription()) ? 'subscription' : 'free';
+			$download            = new Downloads();
+			$download->images_id = $image->id;
+			$download->user_id   = $user->id;
+			$download->ip        = request()->ip();
+			$download->type      = $type;
+			$download->size      = 'prompt';
+			$download->action_type = 'copy';
+			$download->save();
+
+			// Increment copies count
+			$image->increment('copies_count');
+
+			// Log analytics event
+			\App\Services\AnalyticsService::logEvent('prompt_copy', request()->fullUrl(), $image->id, [
+				'prompt_title' => $image->title,
+				'ai_model' => $image->ai_model,
+				'tier' => $image->item_for_sale,
+			]);
+		}
 
 		$remaining = $user->remainingDailyPromptCopies();
 		$limit = $user->totalDailyPromptLimit();

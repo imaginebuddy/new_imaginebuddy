@@ -81,6 +81,8 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
   var originalHtml = btn.html();
 
   @guest
+    $.post(URL_BASE + '/analytics/event', { _token: '{{ csrf_token() }}', event: 'prompt_copy_attempt', image_id: id });
+
     if ($('#authCopyModal').length > 0) {
       var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
       authModal.show();
@@ -299,4 +301,19 @@ $(window).on('scroll resize', function() {
   }
 });
 @endif
+
+// Analytics Heartbeat Ping
+(function() {
+  var pingInterval = 45000;
+  setInterval(function() {
+    if (document.visibilityState === 'visible') {
+      $.ajax({
+        url: URL_BASE + '/analytics/ping',
+        type: 'POST',
+        data: { _token: '{{ csrf_token() }}', path: window.location.pathname },
+        dataType: 'json'
+      });
+    }
+  }, pingInterval);
+})();
 </script>

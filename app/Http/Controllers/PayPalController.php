@@ -562,6 +562,15 @@ class PayPalController extends Controller
 
             // Add downloads to user
             $subscriber->update(['downloads' => $plan->downloads_per_month]);
+
+            \App\Services\AnalyticsService::logEvent('payment_success', request()->fullUrl(), null, [
+              'subscription_id' => $subscription->id,
+              'plan_id' => $subscription->stripe_price,
+              'payment_gateway' => 'PayPal',
+              'amount' => (float)$planAmount,
+              'currency' => 'USD',
+              'interval' => $data['interval'],
+            ]);
           }
 
           // Create Invoice

@@ -47,6 +47,13 @@ class SubscriptionsController extends Controller
 					    ]);
 			    }
 
+			\App\Services\AnalyticsService::logEvent('payment_attempt', request()->fullUrl(), null, [
+				'plan_id' => $plan->plan_id,
+				'plan_name' => $plan->name,
+				'interval' => $this->request->interval,
+				'payment_gateway' => $this->request->payment_gateway,
+			]);
+
 					// Wallet
 	        if ($this->request->payment_gateway == 'wallet') {
 	          return $this->wallet();
@@ -143,6 +150,15 @@ class SubscriptionsController extends Controller
 
 			// Subtract user funds
       auth()->user()->decrement('funds', Helper::amountGross($planPrice));
+
+      \App\Services\AnalyticsService::logEvent('payment_success', request()->fullUrl(), null, [
+        'subscription_id' => $subscription->id,
+        'plan_id' => $subscription->stripe_price,
+        'payment_gateway' => 'wallet',
+        'amount' => (float)$planPrice,
+        'currency' => $currencyCode,
+        'interval' => $this->request->interval,
+      ]);
 
       return response()->json([
         "success" => true,

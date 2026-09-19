@@ -180,6 +180,9 @@ class RegisterController extends Controller
 
         event(new Registered($user = $this->create($request->all())));
 
+        \App\Services\AnalyticsService::stitchUser($user->id);
+        \App\Services\AnalyticsService::logEvent('user_register', url('register'), null, ['user_id' => $user->id]);
+
         // Check Referral
         if ($this->settings->referral_system == 'on') {
 

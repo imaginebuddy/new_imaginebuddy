@@ -41,6 +41,17 @@
 <div class="row mb-3">
 	<div class="col-sm-10 offset-sm-2">
 		<div class="form-check">
+			<input class="form-check-input check" name="permissions[]" value="analytics" @if (isset($permissions) && in_array('analytics', $permissions)) checked="checked" @endif type="checkbox" id="checkAnalytics">
+			<label class="form-check-label" for="checkAnalytics">
+				Analytics &amp; User Activity
+			</label>
+		</div>
+	</div>
+</div>
+
+<div class="row mb-3">
+	<div class="col-sm-10 offset-sm-2">
+		<div class="form-check">
 			<input class="form-check-input check" name="permissions[]" value="general_settings" @if (isset($permissions) && in_array('general_settings', $permissions)) checked="checked" @endif type="checkbox" id="gridCheck4">
 			<label class="form-check-label" for="gridCheck4">
 				{{ __('admin.general_settings') }}

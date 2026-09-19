@@ -127,6 +127,15 @@ class RazorpayController extends Controller
             'downloads' => $plan->downloads_per_month
         ]);
 
+        \App\Services\AnalyticsService::logEvent('payment_success', request()->fullUrl(), null, [
+            'subscription_id' => $subscription->id,
+            'plan_id' => $subscription->stripe_price,
+            'payment_gateway' => 'Razorpay',
+            'amount' => (float)$planPrice,
+            'currency' => $currency,
+            'interval' => $request->interval,
+        ]);
+
         return redirect('account/subscription')->withSuccess(__('misc.subscription_success'));
     }
 }

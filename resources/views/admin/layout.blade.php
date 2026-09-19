@@ -58,6 +58,14 @@
               </li><!-- /end list -->
             @endif
 
+            @if (auth()->user()->hasPermission('analytics'))
+              <li class="nav-item">
+                  <a href="{{ url('panel/admin/analytics') }}" class="nav-link text-truncate @if (request()->is('panel/admin/analytics*')) active @endif">
+                      <i class="bi-graph-up me-2"></i> Analytics &amp; Activity
+                  </a>
+              </li><!-- /end list -->
+            @endif
+
               @if (auth()->user()->hasPermission('general_settings'))
               <li class="nav-item">
                   <a href="#settings" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/settings') || request()->is('panel/admin/settings/limits') || request()->is('panel/admin/settings/seo*')) active @endif" @if (request()->is('panel/admin/settings') || request()->is('panel/admin/settings/limits') || request()->is('panel/admin/settings/seo*')) aria-expanded="true" @endif>

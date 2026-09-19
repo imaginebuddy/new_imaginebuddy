@@ -568,6 +568,11 @@ class HomeController extends Controller
 
     Helper::seo()->setPage('pricing');
 
+    \App\Services\AnalyticsService::logEvent('pricing_view', request()->fullUrl(), null, [
+      'currency' => Helper::currentCurrency()['code'] ?? 'USD',
+      'plans_count' => $plans->count(),
+    ]);
+
     return view('default.pricing')->with([
       'plans' => $plans,
       'getSubscription' => auth()->check() ? auth()->user()->getSubscription() : null
