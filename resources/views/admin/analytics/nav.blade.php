@@ -15,9 +15,9 @@
 
       <!-- Bot Filter -->
       <select name="bot_filter" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
-        <option value="exclude" @if(request('bot_filter', 'exclude') == 'exclude') selected @endif>Exclude Bots (Real Users)</option>
-        <option value="all" @if(request('bot_filter') == 'all') selected @endif>All Traffic (Inc. Bots)</option>
-        <option value="only" @if(request('bot_filter') == 'only') selected @endif>Bots Only</option>
+        <option value="exclude" @if(request('bot_filter', 'exclude') == 'exclude') selected @endif>Verified Humans (Real Users)</option>
+        <option value="all" @if(request('bot_filter') == 'all') selected @endif>All Traffic (Inc. Crawlers)</option>
+        <option value="only" @if(request('bot_filter') == 'only') selected @endif>Crawlers &amp; Bots Only</option>
       </select>
 
       <!-- User Type Filter -->

@@ -73,9 +73,25 @@ class AnalyticsController extends Controller
     {
         $botFilter = $request->get('bot_filter', 'exclude'); // exclude, only, all
         if ($botFilter === 'exclude') {
-            $query->where('is_bot', 0);
+            // Exclude declared bots AND single-hit unengaged anonymous crawlers
+            $query->where('is_bot', 0)
+                ->where(function ($q) {
+                    $q->whereNotNull('user_id')
+                      ->orWhere('duration_seconds', '>', 0)
+                      ->orWhere('is_engaged', 1)
+                      ->orWhere('page_views_count', '>', 1);
+                });
         } elseif ($botFilter === 'only') {
-            $query->where('is_bot', '>', 0);
+            // Include declared bots OR single-hit unengaged anonymous crawlers
+            $query->where(function ($q) {
+                $q->where('is_bot', '>', 0)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('user_id')
+                          ->where('duration_seconds', 0)
+                          ->where('is_engaged', 0)
+                          ->where('page_views_count', '<=', 1);
+                  });
+            });
         }
 
         $userType = $request->get('user_type', 'all'); // all, logged_in, anonymous
@@ -183,18 +199,18 @@ class AnalyticsController extends Controller
             ->take(5)
             ->get();
 
-        // Active live users count (distinct users/visitors)
+        // Active live users count (verified humans in last 5m)
         $thresholdLive = Carbon::now()->subMinutes(5);
         $liveUsersCount = AnalyticsSession::where('is_bot', 0)
             ->where('last_activity_at', '>=', $thresholdLive)
-            ->whereNotNull('user_id')
-            ->distinct('user_id')
-            ->count('user_id')
-            + AnalyticsSession::where('is_bot', 0)
-            ->where('last_activity_at', '>=', $thresholdLive)
-            ->whereNull('user_id')
-            ->distinct('visitor_id')
-            ->count('visitor_id');
+            ->where(function ($q) {
+                $q->whereNotNull('user_id')
+                  ->orWhere('duration_seconds', '>', 0)
+                  ->orWhere('is_engaged', 1)
+                  ->orWhere('page_views_count', '>', 1);
+            })
+            ->selectRaw('COUNT(DISTINCT CASE WHEN user_id IS NOT NULL THEN CONCAT("u_", user_id) ELSE CONCAT("v_", visitor_id) END) as total')
+            ->value('total') ?: 0;
 
         return view('admin.analytics.overview', [
             'settings' => $this->settings,
