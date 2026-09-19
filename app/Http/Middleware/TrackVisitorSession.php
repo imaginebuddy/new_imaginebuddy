@@ -13,8 +13,16 @@ class TrackVisitorSession
      */
     public function handle(Request $request, Closure $next)
     {
-        // Don't track admin panel requests or internal API pings
-        $isAdminOrInternal = $request->is('panel*', 'panel/admin*', 'analytics/ping', 'analytics/event');
+        // Don't track admin panel, image previews, static file routes, or internal API pings
+        $isAdminOrInternal = $request->is(
+            'panel*', 
+            'panel/admin*', 
+            'analytics/ping', 
+            'analytics/event', 
+            'files/*', 
+            'files/preview/*',
+            'sitemaps*.xml'
+        );
 
         if (!$isAdminOrInternal) {
             AnalyticsService::getVisitorId();

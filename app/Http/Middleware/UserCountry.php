@@ -21,7 +21,10 @@ class UserCountry
       if (! $request->expectsJson()) {
           try {
             $ip = request()->ip();
-            if ($ip != '127.0.0.1' && $ip != '::1' && !str_starts_with($ip, '192.168.') && !str_starts_with($ip, '10.')) {
+            $cfCountry = $request->header('cf-ipcountry');
+            if (!empty($cfCountry) && strlen($cfCountry) === 2 && $cfCountry !== 'XX' && $cfCountry !== 'T1') {
+                session()->put('user_country', strtoupper($cfCountry));
+            } elseif ($ip != '127.0.0.1' && $ip != '::1' && !str_starts_with($ip, '192.168.') && !str_starts_with($ip, '10.')) {
               if (! Cache::has('userCountry-'.$ip)) {
                 $data = Helper::getDatacURL("http://ip-api.com/json/".$ip);
                 if (isset($data->countryCode)) {
