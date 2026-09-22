@@ -19,7 +19,7 @@
 
           			@if (session('login_required'))
           			<div class="alert alert-danger">
-              		<i class="fa fa-exclamation-triangle me-1"></i> {{ __('auth.login_required') }}
+              		<i class="fa fa-exclamation-triangle me-1"></i> {{ is_string(session('login_required')) ? session('login_required') : __('auth.login_required') }}
               		</div>
                 @endif
 
