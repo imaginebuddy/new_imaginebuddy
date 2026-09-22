@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AdminSettings;
 use App\Models\Categories;
+use App\Models\Photoshoot;
 use App\Models\Subcategories;
 use App\Services\CsvBulkUploadProcessor;
 use Illuminate\Http\Request;
@@ -29,8 +30,14 @@ class BulkUploadController extends Controller
             return redirect('/');
         }
 
+        $photoshootsQuery = Photoshoot::query();
+        if (!auth()->user()->isSuperAdmin()) {
+            $photoshootsQuery->where('user_id', auth()->id());
+        }
+        $photoshoots = $photoshootsQuery->orderBy('title', 'asc')->get(['id', 'title', 'prompts_count', 'categories_id']);
+
         $categories = Categories::where('mode', 'on')->orderBy('name')->get();
-        return view('images.bulk-upload', compact('categories'));
+        return view('images.bulk-upload', compact('categories', 'photoshoots'));
     }
 
     /**
@@ -49,6 +56,8 @@ class BulkUploadController extends Controller
             'csv_file'       => 'required|file|mimes:csv,txt|max:10240',
             'categories_id'  => 'required',
             'ai_model'       => 'required',
+            'photoshoot_id'  => 'nullable',
+            'photoshoot_title' => 'nullable|string|max:255',
         ], [
             'csv_file.required'      => 'Please select a CSV file to upload.',
             'csv_file.mimes'         => 'The CSV file must be a file of type: .csv',
@@ -71,6 +80,7 @@ class BulkUploadController extends Controller
             $globalSettings = [
                 'categories_id'        => $request->categories_id,
                 'subcategories_id'     => $request->subcategory ?: null,
+                'photoshoot_id'        => $request->photoshoot_id ?: null,
                 'photoshoot_title'     => $request->photoshoot_title ?: null,
                 'ai_model'             => $request->ai_model,
                 'item_for_sale'        => $request->item_for_sale ?: 'free',

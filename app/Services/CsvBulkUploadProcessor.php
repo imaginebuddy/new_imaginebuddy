@@ -145,8 +145,16 @@ class CsvBulkUploadProcessor
 
         // Create/Identify Photoshoot for Batch
         $photoshoot = null;
+        $photoshootId = $globalSettings['photoshoot_id'] ?? null;
         $photoshootTitle = trim($globalSettings['photoshoot_title'] ?? '');
-        if (!empty($photoshootTitle)) {
+
+        if (!empty($photoshootId) && $photoshootId !== 'new' && is_numeric($photoshootId) && (int) $photoshootId > 0) {
+            $photoshootQuery = \App\Models\Photoshoot::where('id', (int) $photoshootId);
+            if (!$user->isSuperAdmin()) {
+                $photoshootQuery->where('user_id', $user->id);
+            }
+            $photoshoot = $photoshootQuery->first();
+        } elseif (($photoshootId === 'new' || empty($photoshootId)) && !empty($photoshootTitle)) {
             $photoshootSlug = \Illuminate\Support\Str::slug($photoshootTitle);
             $originalSlug = $photoshootSlug;
             $count = 1;

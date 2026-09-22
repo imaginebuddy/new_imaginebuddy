@@ -209,7 +209,7 @@
                   @foreach ($data as $image)
                     <tr id="prompt-row-{{ $image->id }}">
                       <td class="fw-bold text-muted">{{ $image->id }}</td>
-                      <td><img src="{{ Storage::url(config('path.thumbnail') . $image->thumbnail) }}" class="rounded shadow-sm" width="48" height="48" style="object-fit: cover;" /></td>
+                      <td><img src="{{ Storage::url(config('path.thumbnail') . $image->thumbnail) }}" class="rounded shadow-sm" width="100" height="120" style="object-fit: cover;" /></td>
                       <td>
                         <a href="{{ url('prompt', $image->slug) }}" title="{{ $image->title }}" target="_blank" class="fw-bold text-dark text-decoration-none">
                           {{ str_limit($image->title, 25, '...') }} <i class="bi bi-box-arrow-up-right small text-muted ms-1"></i>

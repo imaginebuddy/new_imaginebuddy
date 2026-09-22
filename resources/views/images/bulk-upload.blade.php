@@ -79,13 +79,34 @@
           <div class="card-body p-4">
             <div class="row g-3">
 
-              <!-- Photoshoot / Batch Name -->
+              <!-- Photoshoot / Batch Selection -->
               <div class="col-md-12">
                 <div class="form-floating">
-                  <input type="text" class="form-control" name="photoshoot_title" id="photoshoot_title" placeholder="e.g. Luxury Skincare Product Photography Set">
-                  <label for="photoshoot_title">Photoshoot / Batch Name (Optional)</label>
+                  <select name="photoshoot_id" class="form-select" id="photoshootSelect">
+                    <option value="">No Photoshoot (Standalone Prompts)</option>
+                    <option value="new">+ Create New Photoshoot...</option>
+                    @if (isset($photoshoots) && $photoshoots->count() > 0)
+                      <optgroup label="Existing Photoshoots">
+                        @foreach ($photoshoots as $ps)
+                          <option value="{{ $ps->id }}" data-category="{{ $ps->categories_id }}">
+                            {{ $ps->title }} ({{ $ps->prompts_count }} {{ str_plural('prompt', $ps->prompts_count) }})
+                          </option>
+                        @endforeach
+                      </optgroup>
+                    @endif
+                  </select>
+                  <label for="photoshootSelect"><i class="bi bi-collection-play me-1"></i> Photoshoot / Batch (Optional)</label>
                 </div>
-                <small class="text-muted d-block mt-1">If provided, all prompts imported in this CSV batch will be linked together as one photoshoot set.</small>
+                <small class="text-muted d-block mt-1">Select an existing photoshoot to append prompts to, create a new one, or leave as standalone prompts.</small>
+              </div>
+
+              <!-- New Photoshoot Name (shown when "+ Create New Photoshoot..." is selected) -->
+              <div class="col-md-12 display-none" id="newPhotoshootBox">
+                <div class="form-floating">
+                  <input type="text" class="form-control" name="photoshoot_title" id="photoshoot_title" placeholder="e.g. Luxury Skincare Product Photography Set">
+                  <label for="photoshoot_title">New Photoshoot Name</label>
+                </div>
+                <small class="text-muted d-block mt-1">All prompts imported in this CSV batch will be linked together under this new photoshoot set.</small>
               </div>
 
               <!-- AI Model -->
@@ -390,6 +411,23 @@ $(document).ready(function() {
           }
         }
       });
+    }
+  });
+
+  // Photoshoot Selection toggle
+  $('#photoshootSelect').on('change', function() {
+    if ($(this).val() === 'new') {
+      $('#newPhotoshootBox').slideDown();
+      $('#photoshoot_title').focus();
+    } else {
+      $('#newPhotoshootBox').slideUp();
+      $('#photoshoot_title').val('');
+
+      // Auto-select category if photoshoot has an associated category and none selected yet
+      var categoryId = $(this).find(':selected').data('category');
+      if (categoryId && !$('#category').val()) {
+        $('#category').val(categoryId).trigger('change');
+      }
     }
   });
 

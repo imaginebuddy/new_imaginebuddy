@@ -787,8 +787,12 @@ class AdminController extends Controller
 	public function edit_image($id)
 	{
 		$data = Images::with('examples')->findOrFail($id);
+		$photoshoots = Photoshoot::orderBy('title')->get();
 
-		return view('admin.edit-image', ['data' => $data]);
+		return view('admin.edit-image', [
+			'data' => $data,
+			'photoshoots' => $photoshoots,
+		]);
 	}
 
 	public function update_image(Request $request)
@@ -802,6 +806,8 @@ class AdminController extends Controller
 			'meta_description' => 'nullable|string|max:500',
 			'meta_keywords'    => 'nullable|string|max:255',
 			'item_for_sale'    => 'nullable|in:free,sale',
+			'photoshoot_id'    => 'nullable',
+			'photoshoot_title' => 'nullable|string|max:255',
 		];
 
 		if ($request->featured && $sql->featured == 'no') {
@@ -813,6 +819,47 @@ class AdminController extends Controller
 		}
 
 		$this->validate($request, $rules);
+
+		// Handle Photoshoot assignment
+		$oldPhotoshootId = $sql->photoshoot_id;
+		$newPhotoshootId = null;
+
+		if ($request->photoshoot_id == 'new' && !empty(trim($request->photoshoot_title))) {
+			$title = trim($request->photoshoot_title);
+			$slug = \Illuminate\Support\Str::slug($title);
+			$originalSlug = $slug;
+			$count = 1;
+			while (Photoshoot::where('slug', $slug)->exists()) {
+				$slug = $originalSlug . '-' . $count;
+				$count++;
+			}
+			$newPs = Photoshoot::create([
+				'uuid' => 'batch_' . uniqid(),
+				'title' => $title,
+				'slug' => $slug,
+				'user_id' => $sql->user_id ?? auth()->id(),
+				'categories_id' => $request->categories_id ?: null,
+			]);
+			$newPhotoshootId = $newPs->id;
+		} elseif (is_numeric($request->photoshoot_id) && $request->photoshoot_id > 0) {
+			$newPhotoshootId = (int) $request->photoshoot_id;
+		}
+
+		if ($oldPhotoshootId != $newPhotoshootId) {
+			if ($oldPhotoshootId) {
+				$oldPs = Photoshoot::find($oldPhotoshootId);
+				if ($oldPs && $oldPs->prompts_count > 0) {
+					$oldPs->decrement('prompts_count');
+				}
+			}
+			if ($newPhotoshootId) {
+				$newPs = Photoshoot::find($newPhotoshootId);
+				if ($newPs) {
+					$newPs->increment('prompts_count');
+				}
+			}
+			$sql->photoshoot_id = $newPhotoshootId;
+		}
 
 		$sql->title            = $request->title;
 		$sql->slug             = Helper::createImageSlug($request->slug ?: $request->title, $sql->id);

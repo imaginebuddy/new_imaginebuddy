@@ -63,6 +63,33 @@
 					</div>
 				  </div>
 
+				<div class="row mb-3">
+					<label class="col-sm-2 col-form-label text-lg-end">Photoshoot</label>
+					<div class="col-sm-10">
+					  <select name="photoshoot_id" class="form-select" id="photoshootSelect">
+						<option value="">No Photoshoot (Optional)</option>
+						<option value="new">+ Create New Photoshoot...</option>
+						@if (isset($photoshoots) && $photoshoots->count() > 0)
+							<optgroup label="Existing Photoshoots">
+								@foreach ($photoshoots as $ps)
+									<option value="{{ $ps->id }}" @selected($data->photoshoot_id == $ps->id)>
+										{{ $ps->title }} ({{ $ps->prompts_count }} {{ str_plural('prompt', $ps->prompts_count) }})
+									</option>
+								@endforeach
+							</optgroup>
+						@endif
+					  </select>
+					  <small class="text-muted d-block mt-1">Optionally assign this prompt to an existing photoshoot set or batch.</small>
+					</div>
+				</div>
+
+				<div class="row mb-3 display-none" id="newPhotoshootBox">
+					<label class="col-sm-2 col-form-label text-lg-end">New Photoshoot Name</label>
+					<div class="col-sm-10">
+					  <input type="text" class="form-control" name="photoshoot_title" id="photoshoot_title" placeholder="e.g. Luxury Skincare Product Set">
+					</div>
+				</div>
+
             <div class="row mb-3">
 		          <label class="col-sm-2 col-form-label text-lg-end">{{ trans('misc.tags') }}</label>
 		          <div class="col-sm-10">
@@ -209,6 +236,16 @@
 @section('javascript')
 <script type="text/javascript">
 $(document).ready(function() {
+  $('#photoshootSelect').on('change', function() {
+    if ($(this).val() === 'new') {
+      $('#newPhotoshootBox').slideDown();
+      $('#photoshoot_title').focus();
+    } else {
+      $('#newPhotoshootBox').slideUp();
+      $('#photoshoot_title').val('');
+    }
+  });
+
   $('#itemForSaleSwitch').on('change', function() {
     $('#itemForSaleLabel').text($(this).is(':checked') ? 'Premium (For Sale)' : 'Free Prompt');
   });
