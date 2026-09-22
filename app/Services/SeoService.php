@@ -80,7 +80,9 @@ class SeoService
 
         // 1. Check if an entity is provided (Prompt/Image, Category, Photoshoot)
         if ($this->entity) {
-            $this->resolved = $this->resolveEntityMetadata($this->entity, $registry, $siteTitle);
+            $payload = $this->resolveEntityMetadata($this->entity, $registry, $siteTitle);
+            $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+            $this->resolved = $payload;
             return $this->resolved;
         }
 
@@ -88,7 +90,9 @@ class SeoService
         if ($this->pageKey) {
             $record = $registry->firstWhere('page_key', $this->pageKey);
             if ($record) {
-                $this->resolved = $this->recordToPayload($record, $siteTitle);
+                $payload = $this->recordToPayload($record, $siteTitle);
+                $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+                $this->resolved = $payload;
                 return $this->resolved;
             }
         }
@@ -98,7 +102,9 @@ class SeoService
         if ($currentRoute) {
             $record = $registry->firstWhere('route_name', $currentRoute);
             if ($record) {
-                $this->resolved = $this->recordToPayload($record, $siteTitle);
+                $payload = $this->recordToPayload($record, $siteTitle);
+                $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+                $this->resolved = $payload;
                 return $this->resolved;
             }
         }
@@ -110,7 +116,9 @@ class SeoService
         }
         $record = $registry->firstWhere('path', $currentPath);
         if ($record) {
-            $this->resolved = $this->recordToPayload($record, $siteTitle);
+            $payload = $this->recordToPayload($record, $siteTitle);
+            $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+            $this->resolved = $payload;
             return $this->resolved;
         }
 
@@ -119,7 +127,9 @@ class SeoService
         if ($fallbackKey) {
             $record = $registry->firstWhere('page_key', $fallbackKey);
             if ($record) {
-                $this->resolved = $this->recordToPayload($record, $siteTitle);
+                $payload = $this->recordToPayload($record, $siteTitle);
+                $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+                $this->resolved = $payload;
                 return $this->resolved;
             }
         }
@@ -128,7 +138,7 @@ class SeoService
         $defaultDesc = trans('seo.description') !== 'seo.description' ? trans('seo.description') : 'AI Prompts, Stock Photos and Creative Assets';
         $defaultKeywords = trans('seo.keywords') !== 'seo.keywords' ? trans('seo.keywords') : 'AI prompts, stock photos, Midjourney';
 
-        $this->resolved = [
+        $payload = [
             'title' => $siteTitle . ' - ' . (trans('seo.welcome_subtitle') !== 'seo.welcome_subtitle' ? trans('seo.welcome_subtitle') : 'AI Image Prompts'),
             'description' => $defaultDesc,
             'keywords' => $defaultKeywords,
@@ -148,7 +158,33 @@ class SeoService
             'has_custom_og_desc' => false,
         ];
 
+        $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+        $this->resolved = $payload;
+
         return $this->resolved;
+    }
+
+    /**
+     * Determine whether the current request is a paginated page (page >= 2).
+     */
+    public function isPaginatedRequest(): bool
+    {
+        $page = Request::query('page');
+        return $page !== null && is_numeric($page) && (int) $page > 1;
+    }
+
+    /**
+     * Adjust robots directive for paginated requests.
+     */
+    public function adjustRobotsForPagination(string $currentRobots): string
+    {
+        if (!$this->isPaginatedRequest()) {
+            return $currentRobots;
+        }
+
+        return str_contains($currentRobots, 'nofollow')
+            ? 'noindex, nofollow'
+            : 'noindex, follow';
     }
 
     /**

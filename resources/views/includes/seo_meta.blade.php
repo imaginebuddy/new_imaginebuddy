@@ -44,6 +44,11 @@
 
     $finalRobots = View::hasSection('robots') ? trim(View::yieldContent('robots')) : $seoData['robots'];
 
+    $pageParam = request()->query('page');
+    if ($pageParam !== null && is_numeric($pageParam) && (int) $pageParam > 1) {
+        $finalRobots = (!empty($finalRobots) && str_contains($finalRobots, 'nofollow')) ? 'noindex, nofollow' : 'noindex, follow';
+    }
+
     // OG Title & Description priority:
     if (View::hasSection('og_title')) {
         $finalOgTitle = trim(View::yieldContent('og_title'));

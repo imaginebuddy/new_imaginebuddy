@@ -38,6 +38,7 @@ use App\Http\Controllers\RolesAndPermissionsController;
 use App\Http\Controllers\TestimonialsController;
 use App\Http\Controllers\ClientLogosController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\RedirectsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -502,6 +503,15 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/pages/edit/{id}',[PagesController::class, 'edit'])->name('pages');
 	Route::post('panel/admin/pages/edit/{id}', [PagesController::class, 'update']);
 	Route::post('panel/admin/pages/{id}', [PagesController::class, 'destroy'])->name('pages.destroy');
+
+	// URL Redirects
+	Route::get('panel/admin/redirects', [RedirectsController::class, 'index'])->name('redirects');
+	Route::get('panel/admin/redirects/add', [RedirectsController::class, 'create'])->name('redirects');
+	Route::post('panel/admin/redirects/add', [RedirectsController::class, 'store'])->name('redirects');
+	Route::get('panel/admin/redirects/edit/{id}', [RedirectsController::class, 'edit'])->name('redirects');
+	Route::post('panel/admin/redirects/update/{id}', [RedirectsController::class, 'update'])->name('redirects');
+	Route::post('panel/admin/redirects/delete/{id}', [RedirectsController::class, 'destroy'])->name('redirects');
+	Route::post('panel/admin/redirects/toggle/{id}', [RedirectsController::class, 'toggleStatus'])->name('redirects');
 
 	// Profiles Social
 	Route::get('panel/admin/profiles-social',[AdminController::class, 'profiles_social'])->name('profiles_social');

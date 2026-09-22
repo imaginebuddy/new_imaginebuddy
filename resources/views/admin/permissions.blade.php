@@ -362,6 +362,17 @@
 <div class="row mb-3">
 	<div class="col-sm-10 offset-sm-2">
 		<div class="form-check">
+			<input class="form-check-input check" name="permissions[]" value="redirects" @if (isset($permissions) && in_array('redirects', $permissions)) checked="checked" @endif type="checkbox" id="redirects">
+			<label class="form-check-label" for="redirects">
+				URL Redirects
+			</label>
+		</div>
+	</div>
+</div>
+
+<div class="row mb-3">
+	<div class="col-sm-10 offset-sm-2">
+		<div class="form-check">
 			<input class="form-check-input check" name="permissions[]" value="testimonials" @if (isset($permissions) && in_array('testimonials', $permissions)) checked="checked" @endif type="checkbox" id="testimonials">
 			<label class="form-check-label" for="testimonials">
 				{{ __('admin.testimonials') }}

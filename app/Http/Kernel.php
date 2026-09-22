@@ -42,6 +42,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\UserCountry::class,
             \App\Http\Middleware\Referred::class,
             \App\Http\Middleware\TrackVisitorSession::class,
+            \App\Http\Middleware\RedirectUrlsMiddleware::class,
         ],
 
         'api' => [

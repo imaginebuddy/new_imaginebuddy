@@ -346,6 +346,14 @@
               </li><!-- /end list -->
                 @endif
 
+              @if (auth()->user()->hasPermission('redirects'))
+              <li class="nav-item">
+                  <a href="{{ url('panel/admin/redirects') }}" class="nav-link text-truncate @if (request()->is('panel/admin/redirect*')) active @endif">
+                      <i class="bi-arrow-left-right me-2"></i> URL Redirects
+                  </a>
+              </li><!-- /end list -->
+              @endif
+
               @if (auth()->user()->hasPermission('testimonials'))
               <li class="nav-item">
                   <a href="{{ url('panel/admin/testimonials') }}" class="nav-link text-truncate @if (request()->is('panel/admin/testimonial*')) active @endif">
