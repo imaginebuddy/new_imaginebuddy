@@ -66,27 +66,68 @@
 				<div class="row mb-3">
 					<label class="col-sm-2 col-form-label text-lg-end">Photoshoot</label>
 					<div class="col-sm-10">
-					  <select name="photoshoot_id" class="form-select" id="photoshootSelect">
-						<option value="">No Photoshoot (Optional)</option>
-						<option value="new">+ Create New Photoshoot...</option>
-						@if (isset($photoshoots) && $photoshoots->count() > 0)
-							<optgroup label="Existing Photoshoots">
-								@foreach ($photoshoots as $ps)
-									<option value="{{ $ps->id }}" @selected($data->photoshoot_id == $ps->id)>
-										{{ $ps->title }} ({{ $ps->prompts_count }} {{ str_plural('prompt', $ps->prompts_count) }})
-									</option>
-								@endforeach
-							</optgroup>
-						@endif
-					  </select>
-					  <small class="text-muted d-block mt-1">Optionally assign this prompt to an existing photoshoot set or batch.</small>
-					</div>
-				</div>
+						<div class="card bg-white border p-3 rounded-3 shadow-none">
+							<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+								<span class="small fw-semibold text-muted">Photoshoot Assignment (Optional)</span>
+								<div class="btn-group btn-group-sm" role="group" id="photoshootModeGroup">
+									<input type="radio" class="btn-check" name="photoshoot_mode" id="modeNoneAdmin" value="none" @checked(empty($data->photoshoot_id))>
+									<label class="btn btn-outline-secondary" for="modeNoneAdmin">No Photoshoot</label>
 
-				<div class="row mb-3 display-none" id="newPhotoshootBox">
-					<label class="col-sm-2 col-form-label text-lg-end">New Photoshoot Name</label>
-					<div class="col-sm-10">
-					  <input type="text" class="form-control" name="photoshoot_title" id="photoshoot_title" placeholder="e.g. Luxury Skincare Product Set">
+									<input type="radio" class="btn-check" name="photoshoot_mode" id="modeExistingAdmin" value="existing" @checked(!empty($data->photoshoot_id))>
+									<label class="btn btn-outline-primary" for="modeExistingAdmin"><i class="bi bi-search me-1"></i>Search Existing</label>
+
+									<input type="radio" class="btn-check" name="photoshoot_mode" id="modeNewAdmin" value="new">
+									<label class="btn btn-outline-success" for="modeNewAdmin"><i class="bi bi-plus-lg me-1"></i>Create New</label>
+								</div>
+							</div>
+
+							<!-- Hidden photoshoot ID input -->
+							<input type="hidden" name="photoshoot_id" id="admin_photoshoot_id_val" value="{{ $data->photoshoot_id }}">
+
+							<!-- Mode: Existing Photoshoot Live Search -->
+							<div id="adminBoxExistingPhotoshoot" class="@if(empty($data->photoshoot_id)) display-none @endif mt-2">
+								<div class="position-relative">
+									<div class="input-group @if(!empty($data->photoshoot_id)) display-none @endif" id="adminSearchInputGroup">
+										<span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+										<input type="text" id="adminPhotoshootSearchInput" class="form-control border-start-0 ps-0" placeholder="Type to search photoshoot by title (e.g. 'Skincare', 'Perfume')..." autocomplete="off">
+										<span class="input-group-text bg-white border-start-0 display-none" id="adminPhotoshootSearchSpinner">
+											<span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+										</span>
+									</div>
+
+									<!-- Search Results Dropdown List -->
+									<div id="adminPhotoshootSearchResults" class="list-group position-absolute w-100 shadow-lg mt-1 display-none" style="z-index: 1050; max-height: 240px; overflow-y: auto;"></div>
+								</div>
+
+								<!-- Selected Photoshoot Confirmation Card -->
+								<div id="adminSelectedPhotoshootBox" class="@if(empty($data->photoshoot_id)) display-none @endif mt-2">
+									<div class="p-2 px-3 rounded-2 border border-success bg-success-subtle d-flex align-items-center justify-content-between">
+										<div class="d-flex align-items-center gap-2">
+											<i class="bi bi-check-circle-fill text-success fs-5"></i>
+											<div>
+												<span class="fw-bold text-dark d-block" id="adminSelectedPhotoshootTitle">{{ $data->photoshoot ? $data->photoshoot->title : 'Photoshoot #' . $data->photoshoot_id }}</span>
+												<small class="text-muted" id="adminSelectedPhotoshootMeta">
+													@if($data->photoshoot)
+														ID: #{{ $data->photoshoot->id }} • {{ $data->photoshoot->prompts_count }} prompts
+													@endif
+												</small>
+											</div>
+										</div>
+										<button type="button" class="btn btn-sm btn-outline-danger" id="adminBtnDeselectPhotoshoot">
+											<i class="bi bi-arrow-repeat me-1"></i> Change
+										</button>
+									</div>
+								</div>
+								<small class="text-muted d-block mt-1">Search and select an existing photoshoot to assign this prompt to.</small>
+							</div>
+
+							<!-- Mode: New Photoshoot -->
+							<div id="adminBoxNewPhotoshoot" class="display-none mt-2">
+								<input type="text" class="form-control" name="photoshoot_title" id="admin_photoshoot_title" placeholder="e.g. Luxury Skincare Product Set">
+								<small class="text-muted d-block mt-1">A new photoshoot will be created with this name and this prompt will be added to it.</small>
+							</div>
+
+						</div>
 					</div>
 				</div>
 
@@ -236,13 +277,107 @@
 @section('javascript')
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#photoshootSelect').on('change', function() {
-    if ($(this).val() === 'new') {
-      $('#newPhotoshootBox').slideDown();
-      $('#photoshoot_title').focus();
+  // Admin Photoshoot Mode switcher
+  $('input[name="photoshoot_mode"]').on('change', function() {
+    var mode = $(this).val();
+    if (mode === 'existing') {
+      $('#adminBoxNewPhotoshoot').slideUp();
+      $('#admin_photoshoot_title').val('');
+      $('#adminBoxExistingPhotoshoot').slideDown();
+      if (!$('#admin_photoshoot_id_val').val()) {
+        $('#adminSearchInputGroup').show();
+        $('#adminPhotoshootSearchInput').show().focus();
+        searchAdminPhotoshoots('');
+      }
+    } else if (mode === 'new') {
+      $('#adminBoxExistingPhotoshoot').slideUp();
+      $('#admin_photoshoot_id_val').val('new');
+      $('#adminSelectedPhotoshootBox').hide();
+      $('#adminPhotoshootSearchInput').val('');
+      $('#adminBoxNewPhotoshoot').slideDown();
+      $('#admin_photoshoot_title').focus();
     } else {
-      $('#newPhotoshootBox').slideUp();
-      $('#photoshoot_title').val('');
+      // none
+      $('#adminBoxExistingPhotoshoot').slideUp();
+      $('#adminBoxNewPhotoshoot').slideUp();
+      $('#admin_photoshoot_id_val').val('');
+      $('#admin_photoshoot_title').val('');
+      $('#adminSelectedPhotoshootBox').hide();
+      $('#adminPhotoshootSearchInput').val('');
+    }
+  });
+
+  // Admin Photoshoot Search Debounce & AJAX
+  var adminPhotoshootSearchTimer = null;
+  function searchAdminPhotoshoots(query) {
+    $('#adminPhotoshootSearchSpinner').show();
+    $.ajax({
+      url: "{{ url('ajax/photoshoots/search') }}",
+      type: 'GET',
+      data: { q: query },
+      dataType: 'json',
+      success: function(res) {
+        $('#adminPhotoshootSearchSpinner').hide();
+        var $results = $('#adminPhotoshootSearchResults');
+        $results.empty();
+        if (res.results && res.results.length > 0) {
+          $.each(res.results, function(i, item) {
+            var btn = $('<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 border-bottom">' +
+              '<div><strong class="d-block text-dark small">' + item.title + '</strong>' +
+              '<small class="text-muted" style="font-size: 0.75rem;">ID: #' + item.id + '</small></div>' +
+              '<span class="badge bg-primary-subtle text-primary rounded-pill">' + item.prompts_count + ' prompts</span>' +
+              '</button>');
+            btn.data('photoshoot', item);
+            $results.append(btn);
+          });
+          $results.slideDown(150);
+        } else {
+          $results.html('<div class="p-3 text-center text-muted small">No matching photoshoots found.</div>').slideDown(150);
+        }
+      },
+      error: function() {
+        $('#adminPhotoshootSearchSpinner').hide();
+      }
+    });
+  }
+
+  $('#adminPhotoshootSearchInput').on('keyup', function() {
+    var q = $(this).val().trim();
+    clearTimeout(adminPhotoshootSearchTimer);
+    adminPhotoshootSearchTimer = setTimeout(function() {
+      searchAdminPhotoshoots(q);
+    }, 250);
+  });
+
+  $('#adminPhotoshootSearchInput').on('focus', function() {
+    searchAdminPhotoshoots($(this).val().trim());
+  });
+
+  // Select Photoshoot from Search Results
+  $(document).on('click', '#adminPhotoshootSearchResults button', function() {
+    var item = $(this).data('photoshoot');
+    if (!item) return;
+    $('#admin_photoshoot_id_val').val(item.id);
+    $('#adminSelectedPhotoshootTitle').text(item.title);
+    $('#adminSelectedPhotoshootMeta').text('ID: #' + item.id + ' • ' + item.prompts_count + ' prompts');
+    $('#adminSelectedPhotoshootBox').slideDown();
+    $('#adminPhotoshootSearchResults').slideUp();
+    $('#adminSearchInputGroup').hide();
+  });
+
+  // Change selected photoshoot
+  $('#adminBtnDeselectPhotoshoot').on('click', function() {
+    $('#admin_photoshoot_id_val').val('');
+    $('#adminSelectedPhotoshootBox').hide();
+    $('#adminSearchInputGroup').show();
+    $('#adminPhotoshootSearchInput').val('').show().focus();
+    searchAdminPhotoshoots('');
+  });
+
+  // Close search results dropdown when clicking outside
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('#adminBoxExistingPhotoshoot').length) {
+      $('#adminPhotoshootSearchResults').hide();
     }
   });
 

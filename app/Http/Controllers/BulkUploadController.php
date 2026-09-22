@@ -30,14 +30,8 @@ class BulkUploadController extends Controller
             return redirect('/');
         }
 
-        $photoshootsQuery = Photoshoot::query();
-        if (!auth()->user()->isSuperAdmin()) {
-            $photoshootsQuery->where('user_id', auth()->id());
-        }
-        $photoshoots = $photoshootsQuery->orderBy('title', 'asc')->get(['id', 'title', 'prompts_count', 'categories_id']);
-
         $categories = Categories::where('mode', 'on')->orderBy('name')->get();
-        return view('images.bulk-upload', compact('categories', 'photoshoots'));
+        return view('images.bulk-upload', compact('categories'));
     }
 
     /**
@@ -111,6 +105,36 @@ class BulkUploadController extends Controller
                 'errors'  => ['error' => $e->getMessage()]
             ], 422);
         }
+    }
+
+    /**
+     * Search photoshoots via AJAX.
+     */
+    public function searchPhotoshoots(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+
+        $query = Photoshoot::select('id', 'title', 'prompts_count', 'categories_id');
+
+        if (!auth()->user()->isSuperAdmin()) {
+            $query->where('user_id', auth()->id());
+        }
+
+        if (!empty($q)) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('title', 'LIKE', "%{$q}%")
+                    ->orWhere('id', $q);
+            });
+        }
+
+        $results = $query->orderBy('title', 'asc')
+            ->take(15)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'results' => $results
+        ]);
     }
 
     /**

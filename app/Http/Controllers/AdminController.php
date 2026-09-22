@@ -786,12 +786,10 @@ class AdminController extends Controller
 
 	public function edit_image($id)
 	{
-		$data = Images::with('examples')->findOrFail($id);
-		$photoshoots = Photoshoot::orderBy('title')->get();
+		$data = Images::with(['examples', 'photoshoot'])->findOrFail($id);
 
 		return view('admin.edit-image', [
 			'data' => $data,
-			'photoshoots' => $photoshoots,
 		]);
 	}
 

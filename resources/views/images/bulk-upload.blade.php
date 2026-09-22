@@ -81,32 +81,70 @@
 
               <!-- Photoshoot / Batch Selection -->
               <div class="col-md-12">
-                <div class="form-floating">
-                  <select name="photoshoot_id" class="form-select" id="photoshootSelect">
-                    <option value="">No Photoshoot (Standalone Prompts)</option>
-                    <option value="new">+ Create New Photoshoot...</option>
-                    @if (isset($photoshoots) && $photoshoots->count() > 0)
-                      <optgroup label="Existing Photoshoots">
-                        @foreach ($photoshoots as $ps)
-                          <option value="{{ $ps->id }}" data-category="{{ $ps->categories_id }}">
-                            {{ $ps->title }} ({{ $ps->prompts_count }} {{ str_plural('prompt', $ps->prompts_count) }})
-                          </option>
-                        @endforeach
-                      </optgroup>
-                    @endif
-                  </select>
-                  <label for="photoshootSelect"><i class="bi bi-collection-play me-1"></i> Photoshoot / Batch (Optional)</label>
-                </div>
-                <small class="text-muted d-block mt-1">Select an existing photoshoot to append prompts to, create a new one, or leave as standalone prompts.</small>
-              </div>
+                <div class="card bg-white border shadow-sm p-3 rounded-3">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <label class="form-label fw-bold mb-0 text-dark">
+                      <i class="bi bi-collection-play me-1 text-primary"></i> Photoshoot / Batch (Optional)
+                    </label>
+                    <div class="btn-group btn-group-sm" role="group" id="photoshootModeGroup">
+                      <input type="radio" class="btn-check" name="photoshoot_mode" id="modeNone" value="none" checked>
+                      <label class="btn btn-outline-secondary" for="modeNone">No Photoshoot</label>
 
-              <!-- New Photoshoot Name (shown when "+ Create New Photoshoot..." is selected) -->
-              <div class="col-md-12 display-none" id="newPhotoshootBox">
-                <div class="form-floating">
-                  <input type="text" class="form-control" name="photoshoot_title" id="photoshoot_title" placeholder="e.g. Luxury Skincare Product Photography Set">
-                  <label for="photoshoot_title">New Photoshoot Name</label>
+                      <input type="radio" class="btn-check" name="photoshoot_mode" id="modeExisting" value="existing">
+                      <label class="btn btn-outline-primary" for="modeExisting"><i class="bi bi-search me-1"></i>Search Existing</label>
+
+                      <input type="radio" class="btn-check" name="photoshoot_mode" id="modeNew" value="new">
+                      <label class="btn btn-outline-success" for="modeNew"><i class="bi bi-plus-lg me-1"></i>Create New</label>
+                    </div>
+                  </div>
+
+                  <!-- Hidden photoshoot ID input -->
+                  <input type="hidden" name="photoshoot_id" id="photoshoot_id_val" value="">
+
+                  <!-- Mode: Existing Photoshoot Live Search -->
+                  <div id="boxExistingPhotoshoot" class="display-none mt-2">
+                    <div class="position-relative">
+                      <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" id="photoshootSearchInput" class="form-control border-start-0 ps-0" placeholder="Type to search photoshoot by title (e.g. 'Skincare', 'Perfume')..." autocomplete="off">
+                        <span class="input-group-text bg-white border-start-0 display-none" id="photoshootSearchSpinner">
+                          <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                        </span>
+                        <button class="btn btn-outline-secondary display-none" type="button" id="btnClearPhotoshootSearch" title="Clear search"><i class="bi bi-x-lg"></i></button>
+                      </div>
+
+                      <!-- Search Results Dropdown List -->
+                      <div id="photoshootSearchResults" class="list-group position-absolute w-100 shadow-lg mt-1 display-none" style="z-index: 1050; max-height: 240px; overflow-y: auto;"></div>
+                    </div>
+
+                    <!-- Selected Photoshoot Confirmation Card -->
+                    <div id="selectedPhotoshootBox" class="display-none mt-2">
+                      <div class="p-2 px-3 rounded-2 border border-success bg-success-subtle d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                          <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                          <div>
+                            <span class="fw-bold text-dark d-block" id="selectedPhotoshootTitle"></span>
+                            <small class="text-muted" id="selectedPhotoshootMeta"></small>
+                          </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="btnDeselectPhotoshoot">
+                          <i class="bi bi-x-lg me-1"></i> Change
+                        </button>
+                      </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">Search and select an existing photoshoot to append these prompts to.</small>
+                  </div>
+
+                  <!-- Mode: New Photoshoot -->
+                  <div id="boxNewPhotoshoot" class="display-none mt-2">
+                    <div class="form-floating">
+                      <input type="text" class="form-control" name="photoshoot_title" id="photoshoot_title" placeholder="e.g. Luxury Skincare Product Photography Set">
+                      <label for="photoshoot_title">New Photoshoot Name</label>
+                    </div>
+                    <small class="text-muted d-block mt-1">All prompts imported in this CSV batch will be linked together under this new photoshoot set.</small>
+                  </div>
+
                 </div>
-                <small class="text-muted d-block mt-1">All prompts imported in this CSV batch will be linked together under this new photoshoot set.</small>
               </div>
 
               <!-- AI Model -->
@@ -414,20 +452,122 @@ $(document).ready(function() {
     }
   });
 
-  // Photoshoot Selection toggle
-  $('#photoshootSelect').on('change', function() {
-    if ($(this).val() === 'new') {
-      $('#newPhotoshootBox').slideDown();
+  // Photoshoot Mode switcher
+  $('input[name="photoshoot_mode"]').on('change', function() {
+    var mode = $(this).val();
+    if (mode === 'existing') {
+      $('#boxNewPhotoshoot').slideUp();
+      $('#photoshoot_title').val('');
+      $('#boxExistingPhotoshoot').slideDown();
+      if (!$('#photoshoot_id_val').val()) {
+        $('#photoshootSearchInput').show().focus();
+        searchPhotoshoots('');
+      }
+    } else if (mode === 'new') {
+      $('#boxExistingPhotoshoot').slideUp();
+      $('#photoshoot_id_val').val('new');
+      $('#selectedPhotoshootBox').hide();
+      $('#photoshootSearchInput').val('');
+      $('#boxNewPhotoshoot').slideDown();
       $('#photoshoot_title').focus();
     } else {
-      $('#newPhotoshootBox').slideUp();
+      // none
+      $('#boxExistingPhotoshoot').slideUp();
+      $('#boxNewPhotoshoot').slideUp();
+      $('#photoshoot_id_val').val('');
       $('#photoshoot_title').val('');
+      $('#selectedPhotoshootBox').hide();
+      $('#photoshootSearchInput').val('');
+    }
+  });
 
-      // Auto-select category if photoshoot has an associated category and none selected yet
-      var categoryId = $(this).find(':selected').data('category');
-      if (categoryId && !$('#category').val()) {
-        $('#category').val(categoryId).trigger('change');
+  // Photoshoot Search Debounce & AJAX
+  var photoshootSearchTimer = null;
+  function searchPhotoshoots(query) {
+    $('#photoshootSearchSpinner').show();
+    $.ajax({
+      url: "{{ url('ajax/photoshoots/search') }}",
+      type: 'GET',
+      data: { q: query },
+      dataType: 'json',
+      success: function(res) {
+        $('#photoshootSearchSpinner').hide();
+        var $results = $('#photoshootSearchResults');
+        $results.empty();
+        if (res.results && res.results.length > 0) {
+          $.each(res.results, function(i, item) {
+            var btn = $('<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 border-bottom">' +
+              '<div><strong class="d-block text-dark small">' + item.title + '</strong>' +
+              '<small class="text-muted" style="font-size: 0.75rem;">ID: #' + item.id + '</small></div>' +
+              '<span class="badge bg-primary-subtle text-primary rounded-pill">' + item.prompts_count + ' prompts</span>' +
+              '</button>');
+            btn.data('photoshoot', item);
+            $results.append(btn);
+          });
+          $results.slideDown(150);
+        } else {
+          $results.html('<div class="p-3 text-center text-muted small">No matching photoshoots found.</div>').slideDown(150);
+        }
+      },
+      error: function() {
+        $('#photoshootSearchSpinner').hide();
       }
+    });
+  }
+
+  $('#photoshootSearchInput').on('keyup', function() {
+    var q = $(this).val().trim();
+    if (q.length > 0) {
+      $('#btnClearPhotoshootSearch').show();
+    } else {
+      $('#btnClearPhotoshootSearch').hide();
+    }
+    clearTimeout(photoshootSearchTimer);
+    photoshootSearchTimer = setTimeout(function() {
+      searchPhotoshoots(q);
+    }, 250);
+  });
+
+  $('#photoshootSearchInput').on('focus', function() {
+    searchPhotoshoots($(this).val().trim());
+  });
+
+  $('#btnClearPhotoshootSearch').on('click', function() {
+    $('#photoshootSearchInput').val('').focus();
+    $(this).hide();
+    searchPhotoshoots('');
+  });
+
+  // Select Photoshoot from Search Results
+  $(document).on('click', '#photoshootSearchResults button', function() {
+    var item = $(this).data('photoshoot');
+    if (!item) return;
+    $('#photoshoot_id_val').val(item.id);
+    $('#selectedPhotoshootTitle').text(item.title);
+    $('#selectedPhotoshootMeta').text('ID: #' + item.id + ' • ' + item.prompts_count + ' prompts');
+    $('#selectedPhotoshootBox').slideDown();
+    $('#photoshootSearchResults').slideUp();
+    $('#photoshootSearchInput').hide();
+    $('#btnClearPhotoshootSearch').hide();
+
+    // Auto-select category if photoshoot has one and user hasn't selected yet
+    if (item.categories_id && !$('#category').val()) {
+      $('#category').val(item.categories_id).trigger('change');
+    }
+  });
+
+  // Change selected photoshoot
+  $('#btnDeselectPhotoshoot').on('click', function() {
+    $('#photoshoot_id_val').val('');
+    $('#selectedPhotoshootBox').hide();
+    $('#photoshootSearchInput').val('').show().focus();
+    searchPhotoshoots('');
+  });
+
+  // Close search results dropdown when clicking outside
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('#boxExistingPhotoshoot').length) {
+      $('#photoshootSearchResults').hide();
     }
   });
 

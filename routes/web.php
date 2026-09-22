@@ -241,6 +241,7 @@ Route::group(['middleware' => 'auth'], function() {
 	Route::post('bulk-upload', [BulkUploadController::class, 'bulkUploadStore']);
 	Route::get('bulk-upload/template', [BulkUploadController::class, 'downloadTemplate']);
 	Route::post('bulk-upload/failed-rows', [BulkUploadController::class, 'downloadFailedRows']);
+	Route::get('ajax/photoshoots/search', [BulkUploadController::class, 'searchPhotoshoots']);
 
 	// Edit Photo
 	Route::get('edit/photo/{id}',[ImagesController::class, 'edit']);
