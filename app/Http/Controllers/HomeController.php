@@ -412,6 +412,156 @@ class HomeController extends Controller
     return $pagedTags;
   }
 
+  public function aiModels()
+  {
+    Helper::seo()->setPage('ai_models');
+
+    $page = (int) request()->get('page', 1);
+    $q = trim(request()->get('q', ''));
+    $initialLimit = 24;
+    $perPage = 16;
+
+    if (request()->ajax() || request()->wantsJson()) {
+      $models = $this->getPaginatedAiModels($page, $initialLimit, $perPage, $q, $hasMore, $nextPage);
+      return response()->json([
+        'html' => view('includes.ai-models-listing', ['models' => $models])->render(),
+        'hasMore' => $hasMore,
+        'nextPage' => $nextPage
+      ]);
+    }
+
+    $initialModels = $this->getPaginatedAiModels(1, $initialLimit, $perPage, $q, $modelsHasMore, $modelsNextPage);
+
+    return view('default.ai-models', [
+      'models' => $initialModels,
+      'modelsHasMore' => $modelsHasMore,
+      'modelsNextPage' => $modelsNextPage,
+    ]);
+  }
+
+  private function getPaginatedAiModels($page, $initialLimit, $perPage, $queryStr = '', &$hasMore = false, &$nextPage = null)
+  {
+    $configuredModels = Images::getAiModels();
+
+    $dbCounts = Images::where('status', 'active')
+      ->whereNotNull('ai_model')
+      ->where('ai_model', '!=', '')
+      ->select('ai_model', \DB::raw('count(*) as total'))
+      ->groupBy('ai_model')
+      ->pluck('total', 'ai_model')
+      ->toArray();
+
+    $countsMap = [];
+    foreach ($dbCounts as $mName => $c) {
+      $countsMap[strtolower(trim($mName))] = $c;
+    }
+
+    $allModelsList = [];
+    $seenSlugs = [];
+
+    foreach ($configuredModels as $modelName) {
+      $slug = \Illuminate\Support\Str::slug($modelName);
+      if (isset($seenSlugs[$slug])) continue;
+      $seenSlugs[$slug] = true;
+
+      $count = $countsMap[strtolower(trim($modelName))] ?? 0;
+
+      $allModelsList[] = [
+        'name' => $modelName,
+        'slug' => $slug,
+        'count' => $count,
+      ];
+    }
+
+    foreach ($dbCounts as $mName => $count) {
+      $slug = \Illuminate\Support\Str::slug($mName);
+      if (isset($seenSlugs[$slug]) || empty($slug)) continue;
+      $seenSlugs[$slug] = true;
+
+      $allModelsList[] = [
+        'name' => $mName,
+        'slug' => $slug,
+        'count' => $count,
+      ];
+    }
+
+    if ($queryStr !== '') {
+      $allModelsList = array_values(array_filter($allModelsList, function ($m) use ($queryStr) {
+        return stripos($m['name'], $queryStr) !== false;
+      }));
+    }
+
+    usort($allModelsList, function ($a, $b) {
+      return strcasecmp($a['name'], $b['name']);
+    });
+
+    $totalModels = count($allModelsList);
+
+    if ($page <= 1) {
+      $offset = 0;
+      $limit = $initialLimit;
+    } else {
+      $offset = $initialLimit + ($page - 2) * $perPage;
+      $limit = $perPage;
+    }
+
+    $pagedModels = array_slice($allModelsList, $offset, $limit);
+    $hasMore = ($offset + $limit) < $totalModels;
+    $nextPage = $hasMore ? ($page + 1) : null;
+
+    return $pagedModels;
+  }
+
+  public function aiModelDetail($slug)
+  {
+    $configuredModels = Images::getAiModels();
+    $distinctModels = Images::whereNotNull('ai_model')
+      ->where('ai_model', '!=', '')
+      ->distinct()
+      ->pluck('ai_model')
+      ->toArray();
+
+    $combined = array_unique(array_merge($configuredModels, $distinctModels));
+    $matchedModel = null;
+
+    foreach ($combined as $model) {
+      if (\Illuminate\Support\Str::slug($model) === $slug) {
+        $matchedModel = $model;
+        break;
+      }
+    }
+
+    if (!$matchedModel) {
+      abort(404);
+    }
+
+    $data = Query::aiModelImages($matchedModel);
+
+    $otherModels = [];
+    foreach ($configuredModels as $m) {
+      $otherModels[] = [
+        'name' => $m,
+        'slug' => \Illuminate\Support\Str::slug($m),
+        'active' => (\Illuminate\Support\Str::slug($m) === $slug),
+      ];
+    }
+    $data['otherModels'] = $otherModels;
+
+    $aiModelEntity = new \App\Models\AiModel([
+      'name' => $matchedModel,
+      'slug' => $slug,
+      'total_prompts' => $data['images']->total(),
+      'is_ai_model' => true,
+    ]);
+    Helper::seo()->setEntity($aiModelEntity);
+
+    if (request()->ajax()) {
+      return view('includes.images')->with($data)->render();
+    }
+
+    return view('default.ai-model')->with($data);
+  }
+
   public function category($slug)
   {
     $images = Query::categoryImages($slug);

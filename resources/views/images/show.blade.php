@@ -550,7 +550,7 @@
             <strong class="text-dark small text-uppercase title-custom" style="letter-spacing: 0.5px;">Model OR Tool</strong>
           </div>
           <div>
-            <div class="btn btn-outline-pill-action rounded-pill ps-4 pe-2 py-2 d-inline-flex align-items-center gap-3 bg-white" style="border: 1.5px solid #d1d5db; height: 46px;">
+            <a href="{{ url('ai-model', Str::slug($response->ai_model ?: 'Gemini')) }}" class="btn btn-outline-pill-action rounded-pill ps-4 pe-2 py-2 d-inline-flex align-items-center gap-3 bg-white text-decoration-none" style="border: 1.5px solid #d1d5db; height: 46px;" title="View all prompts for {{ $response->ai_model ?: 'Gemini' }}">
               <span class="fw-bold text-dark fs-6 title-custom">{{ $response->ai_model ?: 'Gemini' }}</span>
               <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #f1f5f9;">
                 @php
@@ -593,7 +593,7 @@
                   </svg>
                 @endif
               </span>
-            </div>
+            </a>
           </div>
         </div>
 

@@ -445,6 +445,29 @@ class Query extends Model
 		return ['images' => $images, 'subcategory' => $subcategory];
 	}
 
+	public static function aiModelImages($modelName)
+	{
+		$query = Images::selectFieldsRelation()
+			->where('images.status', 'active')
+			->whereRaw('LOWER(images.ai_model) = ?', [strtolower($modelName)]);
+
+		if (request('tier') == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if (request('tier') == 'premium' || request('tier') == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		$images = $query->orderBy('images.id', 'DESC')
+			->paginate(config('settings.result_request'))
+			->onEachSide(1);
+
+		return [
+			'images' => $images,
+			'modelName' => $modelName,
+			'slug' => \Illuminate\Support\Str::slug($modelName),
+		];
+	}
+
 	public static function tagsImages($tags)
 	{
 		$images = Images::where('tags', 'LIKE', '%' . $tags . '%')

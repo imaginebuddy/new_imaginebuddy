@@ -220,6 +220,9 @@ return array(
 	'photos_pending' => 'Photos Pending',
 	'photos_pending_text' => 'Photos awaiting approval',
 	'camera' => 'Camera',
+	'ai_models' => 'AI Models',
+	'ai_model' => 'AI Model',
+	'browse_by_ai_model' => 'Browse tested prompts by AI generator model',
 
 	// Size Images
 	's'                =>      'S', // SMALL

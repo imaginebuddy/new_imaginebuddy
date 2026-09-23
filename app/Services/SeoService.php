@@ -208,6 +208,7 @@ class SeoService
             '/page/terms-and-conditions' => 'page_terms',
             '/page/privacy-policy' => 'page_privacy',
             '/contact' => 'contact',
+            '/ai-models' => 'ai_models',
         ];
 
         return $map[$path] ?? null;
@@ -428,6 +429,54 @@ class SeoService
                 'og_type' => 'website',
                 'twitter_card' => 'summary_large_image',
                 'schema_type' => 'ImageGallery',
+                'schema_custom' => null,
+                'entity' => $entity,
+                'has_custom_title' => true,
+                'has_custom_desc' => true,
+                'has_custom_keywords' => true,
+                'has_custom_og_title' => true,
+                'has_custom_og_desc' => true,
+            ];
+        }
+
+        // Case E: AI Model
+        if ($className === 'AiModel' || (is_object($entity) && property_exists($entity, 'is_ai_model'))) {
+            $template = $registry->firstWhere('page_key', 'ai_model_template');
+            $titlePattern = $template && !empty($template->meta_title) ? $template->meta_title : '{model} AI Prompts & Images | {site_name}';
+            $descPattern = $template && !empty($template->meta_description) ? $template->meta_description : 'Explore tested {model} AI prompts. Generate realistic commercial visuals with tested prompts for {model} on {site_name}.';
+            $keywordsPattern = $template && !empty($template->meta_keywords) ? $template->meta_keywords : '{model} prompts, {model} AI art, {model} photography, commercial prompts';
+
+            $modelName = $entity->name ?? 'AI';
+            $modelSlug = $entity->slug ?? \Illuminate\Support\Str::slug($modelName);
+            $totalPrompts = isset($entity->total_prompts) ? number_format($entity->total_prompts) : '0';
+
+            $tokens = [
+                '{model}' => $modelName,
+                '{title}' => $modelName,
+                '{count}' => $totalPrompts,
+                '{total}' => $totalPrompts,
+                '{site_name}' => $siteTitle,
+                '{year}' => date('Y'),
+            ];
+
+            $finalTitle = str_replace(array_keys($tokens), array_values($tokens), $titlePattern);
+            $finalDesc = str_replace(array_keys($tokens), array_values($tokens), $descPattern);
+            $finalKeywords = str_replace(array_keys($tokens), array_values($tokens), $keywordsPattern);
+
+            $coverUrl = url('public/img', config('settings.logo_light', 'logo.png'));
+
+            return [
+                'title' => $finalTitle,
+                'description' => $finalDesc,
+                'keywords' => $finalKeywords,
+                'canonical' => url('ai-model/' . $modelSlug),
+                'robots' => 'index, follow',
+                'og_title' => $finalTitle,
+                'og_description' => $finalDesc,
+                'og_image' => $coverUrl,
+                'og_type' => 'website',
+                'twitter_card' => 'summary_large_image',
+                'schema_type' => 'CollectionPage',
                 'schema_custom' => null,
                 'entity' => $entity,
                 'has_custom_title' => true,

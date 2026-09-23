@@ -138,6 +138,10 @@ Route::get('members',[HomeController::class, 'members']);
 Route::get('category/{slug}',[HomeController::class, 'category']);
 Route::get('category/{slug}/{subcategory}', [HomeController::class, 'subcategory']);
 
+//<---- AI Models List & Detail
+Route::get('ai-models', [HomeController::class, 'aiModels'])->name('ai-models');
+Route::get('ai-model/{slug}', [HomeController::class, 'aiModelDetail'])->name('ai-model.detail');
+
 //<---- Tags
 Route::get('tags',[HomeController::class, 'tags']);
 Route::get('tags/{tags}',[HomeController::class, 'tagsShow']);

@@ -84,6 +84,9 @@
                  <a class="text-white text-decoration-none" href="{{ url('photoshoots') }}">Photoshoots</a>
               </li>
               <li>
+                 <a class="text-white text-decoration-none" href="{{ url('ai-models') }}">{{ __('misc.ai_models') }}</a>
+              </li>
+              <li>
                  <a class="text-white text-decoration-none" href="{{ url('featured') }}">{{ __('misc.featured') }}</a>
               </li>
               <li>

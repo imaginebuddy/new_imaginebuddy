@@ -2163,8 +2163,9 @@ class AdminController extends Controller
 		$promptTemplate = SeoMetadata::where('page_key', 'prompt_template')->first();
 		$categoryTemplate = SeoMetadata::where('page_key', 'category_template')->first();
 		$photoshootTemplate = SeoMetadata::where('page_key', 'photoshoot_template')->first();
+		$aiModelTemplate = SeoMetadata::where('page_key', 'ai_model_template')->first();
 
-		return view('admin.seo-settings', compact('staticPages', 'promptTemplate', 'categoryTemplate', 'photoshootTemplate'));
+		return view('admin.seo-settings', compact('staticPages', 'promptTemplate', 'categoryTemplate', 'photoshootTemplate', 'aiModelTemplate'));
 	}
 
 	public function editSeoPage($id)
@@ -2236,6 +2237,9 @@ class AdminController extends Controller
 			'photoshoot_title' => 'nullable|string|max:255',
 			'photoshoot_description' => 'nullable|string|max:500',
 			'photoshoot_keywords' => 'nullable|string|max:500',
+			'ai_model_title' => 'nullable|string|max:255',
+			'ai_model_description' => 'nullable|string|max:500',
+			'ai_model_keywords' => 'nullable|string|max:500',
 		]);
 
 		$prompt = SeoMetadata::where('page_key', 'prompt_template')->first();
@@ -2260,6 +2264,14 @@ class AdminController extends Controller
 			$photoshoot->meta_description = $request->photoshoot_description ? strip_tags(trim($request->photoshoot_description)) : null;
 			$photoshoot->meta_keywords = $request->photoshoot_keywords ? strip_tags(trim($request->photoshoot_keywords)) : null;
 			$photoshoot->save();
+		}
+
+		$aiModel = SeoMetadata::where('page_key', 'ai_model_template')->first();
+		if ($aiModel) {
+			$aiModel->meta_title = $request->ai_model_title ? strip_tags(trim($request->ai_model_title)) : null;
+			$aiModel->meta_description = $request->ai_model_description ? strip_tags(trim($request->ai_model_description)) : null;
+			$aiModel->meta_keywords = $request->ai_model_keywords ? strip_tags(trim($request->ai_model_keywords)) : null;
+			$aiModel->save();
 		}
 
 		\Illuminate\Support\Facades\Cache::forget(\App\Models\SeoMetadata::CACHE_KEY);

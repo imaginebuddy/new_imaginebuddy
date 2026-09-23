@@ -98,8 +98,8 @@
             <!-- Dynamic Pattern Templates Card -->
             <div class="card shadow-custom border-0">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi-magic me-2"></i> Programmatic Dynamic Patterns (Categories & Prompts)</h6>
-                    <small class="text-muted">Global automated pattern formulas applied dynamically when an individual prompt or category has no custom metadata.</small>
+                    <h6 class="mb-0 fw-bold"><i class="bi-magic me-2"></i> Programmatic Dynamic Patterns (Categories, Prompts & AI Models)</h6>
+                    <small class="text-muted">Global automated pattern formulas applied dynamically when an individual prompt, category, photoshoot, or AI model has no custom metadata.</small>
                 </div>
 
                 <div class="card-body p-4">
@@ -111,6 +111,8 @@
                             <p class="small mb-0">
                                 You can use these tokens in your patterns:
                                 <code>{title}</code> (item title),
+                                <code>{model}</code> (AI model name),
+                                <code>{count}</code> (prompts count),
                                 <code>{category}</code> (category name),
                                 <code>{tags}</code> (keywords/tags),
                                 <code>{author}</code> (creator username),
@@ -178,6 +180,27 @@
                                 <div class="col-12">
                                     <label class="form-label fw-semibold small">Meta Description Pattern</label>
                                     <textarea name="photoshoot_description" class="form-control" rows="2">{{ $photoshootTemplate ? $photoshootTemplate->meta_description : 'Explore the {title} AI photoshoot session with consistent models and prompt recipes on {site_name}.' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Model Pages Template -->
+                        <div class="border rounded-3 p-3 mb-4 bg-light">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="bi-cpu me-1 text-warning"></i> AI Model Detail Pages Pattern (<code>/ai-model/{slug}</code>)
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Meta Title Pattern</label>
+                                    <input type="text" name="ai_model_title" class="form-control" value="{{ $aiModelTemplate ? $aiModelTemplate->meta_title : '{model} AI Prompts & Images | {site_name}' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Meta Keywords Pattern</label>
+                                    <input type="text" name="ai_model_keywords" class="form-control" value="{{ $aiModelTemplate ? $aiModelTemplate->meta_keywords : '{model} prompts, {model} AI art, {model} photography, commercial prompts' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold small">Meta Description Pattern</label>
+                                    <textarea name="ai_model_description" class="form-control" rows="2">{{ $aiModelTemplate ? $aiModelTemplate->meta_description : 'Explore tested {model} AI prompts. Generate realistic commercial visuals with tested prompts for {model} on {site_name}.' }}</textarea>
                                 </div>
                             </div>
                         </div>

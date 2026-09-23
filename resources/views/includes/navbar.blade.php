@@ -37,6 +37,7 @@
               </a>
               <ul class="dropdown-menu dropdown-menu-macos dropdown-menu-lg-end arrow-dm" aria-labelledby="dropdownExplore">
                 <li><a class="dropdown-item" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
+                <li><a class="dropdown-item" href="{{ url('ai-models') }}"><i class="bi bi-cpu me-2"></i> {{ __('misc.ai_models') }}</a></li>
                 <li><a class="dropdown-item" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
                 <li><a class="dropdown-item" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
@@ -174,6 +175,7 @@
             <div class="collapse ps-3" id="explore">
 
               <li><a class="nav-link text-truncate text-muted" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
+              <li><a class="nav-link text-truncate text-muted" href="{{ url('ai-models') }}"><i class="bi bi-cpu me-2"></i> {{ __('misc.ai_models') }}</a></li>
               <li><a class="nav-link text-truncate text-muted" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
               <li><a class="nav-link text-truncate text-muted" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>

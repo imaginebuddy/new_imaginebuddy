@@ -59,6 +59,20 @@
             <priority>0.8</priority>
          </url>
 
+         <url>
+            <loc>{{ url('ai-models') }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.8</priority>
+         </url>
+
+         @foreach (App\Models\Images::getAiModels() as $aiModel)
+            <url>
+            <loc>{{ url('ai-model', Str::slug($aiModel)) }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.8</priority>
+            </url>
+         @endforeach
+
          @foreach (Categories::where('mode', 'on')->get() as $category)
             <url>
             <loc>{{ url('category', $category->slug) }}</loc>
