@@ -197,6 +197,7 @@ return array(
 		'regular_extended' => 'Regular y extendida',
 		'unused_downloads_rollover' => 'Transferencia de descargas no utilizadas',
 		'daily_limit_downloads' => 'Límite diario de descargas',
+		'daily_limit_prompts' => 'Límite diario de copias de prompts',
 		'subscriber' => 'Suscriptores',
 		'bulk_upload' => 'Carga masiva',
 		'notice_bulk_upload' => 'Estos atributos se aplicarán a todas las imágenes cargadas.',

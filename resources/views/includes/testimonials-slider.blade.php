@@ -28,7 +28,7 @@
 
             {{-- Review Content --}}
             <div class="testimonial-body flex-grow-1 mb-4">
-              <p class="testimonial-text text-dark fs-6 lh-base mb-0">
+              <p class="testimonial-text fs-6 lh-base mb-0">
                 “{{ $item->content }}”
               </p>
             </div>
@@ -45,7 +45,7 @@
                 @endif
               </div>
               <div class="testimonial-meta overflow-hidden">
-                <h6 class="fw-bold mb-0 text-dark text-truncate">{{ $item->name }}</h6>
+                <h6 class="fw-bold mb-0 title-custom text-truncate">{{ $item->name }}</h6>
                 @if ($item->designation || $item->company)
                   <small class="text-muted d-block text-truncate">
                     {{ $item->designation }}
@@ -137,10 +137,17 @@
   background-color: var(--bs-dark, #212529);
 }
 
+.testimonial-text {
+  color: #1e293b;
+}
+
 /* Dark mode compatibility */
 [data-bs-theme="dark"] .testimonial-card {
   background-color: #1a1e21 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+[data-bs-theme="dark"] .testimonial-text {
+  color: #e2e8f0 !important;
 }
 [data-bs-theme="dark"] .testimonial-nav-btn {
   border-color: rgba(255, 255, 255, 0.25) !important;

@@ -402,6 +402,7 @@ class AdminController extends Controller
 		$sql->result_request      = $request->result_request;
 		$sql->limit_upload_user   = $request->limit_upload_user;
 		$sql->daily_limit_downloads = $request->daily_limit_downloads;
+		$sql->daily_limit_prompts   = $request->daily_limit_prompts;
 		$sql->title_length        = $request->title_length;
 		$sql->message_length      = $request->message_length;
 		$sql->comment_length      = $request->comment_length;

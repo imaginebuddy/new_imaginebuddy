@@ -181,9 +181,8 @@
               </div>
               
               <div class="flex-shrink-0">
-                <a href="{{ url('pricing') }}" class="btn btn-main rounded-pill px-4 py-2.5 fw-bold arrow shadow-sm text-nowrap d-inline-flex align-items-center gap-2">
+                <a href="{{ url('pricing') }}" class="btn btn-main rounded-pill px-4 py-2.5 fw-bold arrow shadow-sm text-nowrap d-inline-flex align-items-center">
                   <span>Explore Premium Prompts</span>
-                  <i class="bi bi-arrow-right"></i>
                 </a>
               </div>
             </div>

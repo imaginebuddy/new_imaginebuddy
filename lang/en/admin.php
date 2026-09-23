@@ -224,6 +224,7 @@ return array(
 		'regular_extended' => 'Regular and Extended',
 		'unused_downloads_rollover' => 'Unused downloads rollover',
 		'daily_limit_downloads' => 'Daily limit of downloads',
+		'daily_limit_prompts' => 'Daily limit of copy prompts',
 		'subscriber' => 'Subscriber',
 		'bulk_upload' => 'Bulk Upload',
 		'notice_bulk_upload' => 'These attributes will be applied to all the uploaded images.',

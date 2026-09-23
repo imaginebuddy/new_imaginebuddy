@@ -105,12 +105,13 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
       btn.prop('disabled', false).html(originalHtml);
       if (response.success) {
         var promptText = response.prompt;
-        var remainingMsg = (response.remaining_copies !== undefined) ? ' (' + response.remaining_copies + ' left)' : '';
+        var isUnlimited = (response.total_limit === 0 || response.total_limit === '∞' || response.remaining_copies === '∞');
+        var remainingMsg = (response.remaining_copies !== undefined && !isUnlimited) ? ' (' + response.remaining_copies + ' left)' : '';
         if (response.remaining_copies !== undefined) {
           $('.remaining-copies-count').text(response.remaining_copies);
         }
         if (response.total_limit !== undefined) {
-          $('.total-copies-limit').text(response.total_limit);
+          $('.total-copies-limit').text(isUnlimited ? '∞' : response.total_limit);
         }
         if (response.total_copies !== undefined) {
           $('.total-copies-stat').text(response.total_copies);
@@ -152,16 +153,28 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
       } else if (res && res.require_subscription) {
         window.location.href = URL_BASE + '/pricing';
       } else if (res && res.limit_reached) {
+        var alertTitle = res.title || "{{ \Lang::has('misc.daily_limit_reached') ? __('misc.daily_limit_reached') : 'Daily Limit Reached' }}";
+        var alertText = res.message || 'You have reached your daily prompt copy limit.';
+        var upgradeUrl = res.upgrade_url || (URL_BASE + '/pricing');
         if (typeof swal === 'function') {
           swal({
-            title: "{{ \Lang::has('misc.daily_limit_reached') ? __('misc.daily_limit_reached') : 'Daily Limit Reached' }}",
-            text: res.message || 'You have reached your daily prompt copy limit.',
+            title: alertTitle,
+            text: alertText,
             type: "warning",
-            confirmButtonText: "{{ \Lang::has('users.ok') ? __('users.ok') : 'OK' }}",
-            confirmButtonColor: "#101828"
+            showCancelButton: true,
+            confirmButtonText: res.upgrade_text || "Upgrade Now",
+            cancelButtonText: "{{ \Lang::has('admin.cancel') ? __('admin.cancel') : 'Maybe Later' }}",
+            confirmButtonColor: "#101828",
+            closeOnConfirm: true
+          }, function(isConfirm) {
+            if (isConfirm) {
+              window.location.href = upgradeUrl;
+            }
           });
         } else {
-          alert(res.message || 'You have reached your daily prompt copy limit.');
+          if (confirm(alertTitle + "\n\n" + alertText)) {
+            window.location.href = upgradeUrl;
+          }
         }
       } else {
         if (typeof swal === 'function') {

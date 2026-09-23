@@ -513,12 +513,12 @@
                 @auth
                   <div class="small text-muted d-inline-flex align-items-center gap-1">
                     <i class="bi bi-lightning-charge text-warning"></i>
-                    <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / <span class="total-copies-limit">{{ auth()->user()->totalDailyPromptLimit() }}</span></span>
+                    <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / <span class="total-copies-limit">{{ auth()->user()->totalDailyPromptLimit() == 0 ? '∞' : auth()->user()->totalDailyPromptLimit() }}</span></span>
                   </div>
                 @else
                   <div class="small text-muted d-inline-flex align-items-center gap-1">
                     <i class="bi bi-stars text-warning"></i>
-                    <span>Free sign up gives you <strong>10 daily prompt copies</strong></span>
+                    <span>Free sign up gives you <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? 'unlimited' : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} daily prompt copies</strong></span>
                   </div>
                 @endauth
               </div>

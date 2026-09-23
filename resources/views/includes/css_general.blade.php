@@ -16,6 +16,20 @@
   --bg-auth: url('{{ url('public/img', $settings->image_header) }}');
 }
 
+.text-color-default,
+.text-theme-default,
+.text-mint {
+  color: var(--color-default) !important;
+}
+.bg-color-default,
+.bg-theme-default {
+  background-color: var(--color-default) !important;
+}
+.border-color-default,
+.border-theme-default {
+  border-color: var(--color-default) !important;
+}
+
 /* --- Theme Dynamic Styles for Cards --- */
 .item-category {
   background-color: var(--bs-card-bg, #ffffff) !important;

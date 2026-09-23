@@ -150,11 +150,13 @@ class AjaxController extends Controller {
 	}//<---- End Method
 
 	public function search() {
+		if (\App\Services\SearchSecurityGuard::isMalicious(request()->get('q'))) {
+			return '';
+		}
 
-	 $images = Query::searchImages();
+		$images = Query::searchImages();
 
-	 return view('ajax.images-ajax')->with($images)->render();
-
+		return view('ajax.images-ajax')->with($images)->render();
 	}//<---- End Method
 
 	public function latest() {

@@ -97,6 +97,28 @@
 		        </div><!-- end row -->
 
             <div class="row mb-3">
+		          <label class="col-sm-2 col-form-labe text-lg-end">{{ trans('misc.daily_limit_prompts') }}</label>
+		          <div class="col-sm-10">
+		            <select name="daily_limit_prompts" class="form-select">
+                  <option @if ($settings->daily_limit_prompts == 0) selected="selected" @endif value="0">{{ trans('admin.unlimited') }}</option>
+                  <option @if ($settings->daily_limit_prompts == 2) selected="selected" @endif value="2">2</option>
+									<option @if ($settings->daily_limit_prompts == 3) selected="selected" @endif value="3">3</option>
+									<option @if ($settings->daily_limit_prompts == 4) selected="selected" @endif value="4">4</option>
+									<option @if ($settings->daily_limit_prompts == 5) selected="selected" @endif value="5">5</option>
+									<option @if ($settings->daily_limit_prompts == 10) selected="selected" @endif value="10">10</option>
+                  <option @if ($settings->daily_limit_prompts == 15) selected="selected" @endif value="15">15</option>
+                  <option @if ($settings->daily_limit_prompts == 20) selected="selected" @endif value="20">20</option>
+                  <option @if ($settings->daily_limit_prompts == 25) selected="selected" @endif value="25">25</option>
+                  <option @if ($settings->daily_limit_prompts == 30) selected="selected" @endif value="30">30</option>
+                  <option @if ($settings->daily_limit_prompts == 40) selected="selected" @endif value="40">40</option>
+                  <option @if ($settings->daily_limit_prompts == 50) selected="selected" @endif value="50">50</option>
+                  <option @if ($settings->daily_limit_prompts == 100) selected="selected" @endif value="100">100</option>
+                  <option @if ($settings->daily_limit_prompts == 150) selected="selected" @endif value="150">150</option>
+		           </select>
+		          </div>
+		        </div><!-- end row -->
+
+            <div class="row mb-3">
 		          <label class="col-sm-2 col-form-labe text-lg-end">{{ trans('admin.result_request_images') }}</label>
 		          <div class="col-sm-10">
 		            <select name="result_request" class="form-select">

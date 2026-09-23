@@ -69,6 +69,29 @@ class Query extends Model
 		$tier    = request()->get('tier');
 		$aiModel = request()->get('ai_model');
 
+		// 1. Proactive Security Check: If malicious query detected, fail-safe immediately
+		if (\App\Services\SearchSecurityGuard::isMalicious($q)) {
+			\Illuminate\Support\Facades\Log::warning('Malicious search query blocked', [
+				'ip' => request()->ip(),
+				'user_agent' => request()->userAgent(),
+				'query' => $q
+			]);
+
+			request()->merge(['q' => '']);
+
+			$emptyImages = new \Illuminate\Pagination\LengthAwarePaginator(
+				collect([]),
+				0,
+				(int) config('settings.result_request', 12),
+				$page ?: 1,
+				['path' => url('search')]
+			);
+
+			$title = __('misc.result_of') . ' - ';
+
+			return ['images' => $emptyImages, 'page' => $page, 'title' => $title, 'total' => 0, 'q' => ''];
+		}
+
 		$applyFilters = function ($builder) use ($tier, $aiModel, $sort) {
 			$builder->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution'])
 				->where('images.status', 'active');

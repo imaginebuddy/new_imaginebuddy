@@ -178,12 +178,16 @@ class User extends Authenticatable
     }
 
     $settings = AdminSettings::first();
-    return $settings ? ($settings->daily_limit_downloads ?: 10) : 10;
+    return $settings ? (isset($settings->daily_limit_downloads) ? (int)$settings->daily_limit_downloads : 10) : 10;
   }
 
   public function remainingDailyImageDownloads()
   {
-    return max(0, $this->totalDailyImageDownloadLimit() - $this->dailyImageDownloadsCount());
+    $limit = $this->totalDailyImageDownloadLimit();
+    if ($limit == 0) {
+      return '∞';
+    }
+    return max(0, $limit - $this->dailyImageDownloadsCount());
   }
 
   public function freeDailyDownloads()
@@ -216,12 +220,17 @@ class User extends Authenticatable
         : 100;
     }
 
-    return 10;
+    $settings = AdminSettings::first();
+    return $settings ? (isset($settings->daily_limit_prompts) ? (int)$settings->daily_limit_prompts : 10) : 10;
   }
 
   public function remainingDailyPromptCopies()
   {
-    return max(0, $this->totalDailyPromptLimit() - $this->dailyPromptCopiesCount());
+    $limit = $this->totalDailyPromptLimit();
+    if ($limit == 0) {
+      return '∞';
+    }
+    return max(0, $limit - $this->dailyPromptCopiesCount());
   }
 
   public function freeDailyPromptCopies()
@@ -257,8 +266,13 @@ class User extends Authenticatable
       return false;
     }
 
+    $limit = $this->totalDailyPromptLimit();
+    if ($limit == 0) {
+      return true;
+    }
+
     // Both free and premium prompt copies are bounded by totalDailyPromptLimit
-    return $this->dailyPromptCopiesCount() < $this->totalDailyPromptLimit();
+    return $this->dailyPromptCopiesCount() < $limit;
   }
 
   public function dailyUploads()

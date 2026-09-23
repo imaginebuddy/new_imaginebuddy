@@ -415,6 +415,7 @@ return array(
 
 	// Version 3.7
 	'daily_limit_downloads' => 'Daily limit of downloads (free photos)',
+	'daily_limit_prompts' => 'Daily limit of copy prompts (free)',
 	'reached_daily_download' => 'You have reached the daily download limit',
 	'exclusive_author' => 'Exclusive Author',
 	'non_exclusive_author' => 'Non-exclusive author',
@@ -591,6 +592,7 @@ return array(
 	'faq_pricing_4' => 'Can I cancel my subscription?',
 	'faq_pricing_4_reply' => 'Yes, you can cancel your subscription at any time. You will be able to continue downloading until the end of your billing cycle.',
 	'prices_and_excludes_tax' => 'Prices is in :currency and excludes tax',// Not remove :currency
+	'prices_and_includes_tax' => 'Prices are in :currency and include tax',// Not remove :currency
 	'plan_name' => ':plan plan', // Not remove :plan
 	'billed_monthly' => 'Billed monthly',
 	'billed_yearly' => 'Billed yearly',

@@ -22,12 +22,12 @@
 @if (auth()->user()->role != 'admin')
     <li>
         <span class="dropdown-item disable-item">
-            <i class="bi bi-download me-2"></i> {{ __('misc.downloads') }}: {{ auth()->user()->dailyImageDownloadsCount() }}/{{ auth()->user()->totalDailyImageDownloadLimit() }}
+            <i class="bi bi-download me-2"></i> {{ __('misc.downloads') }}: {{ auth()->user()->dailyImageDownloadsCount() }}/{{ auth()->user()->totalDailyImageDownloadLimit() == 0 ? '∞' : auth()->user()->totalDailyImageDownloadLimit() }}
         </span>
     </li>
     <li>
         <span class="dropdown-item disable-item">
-            <i class="bi bi-copy me-2"></i> Prompt copies: {{ auth()->user()->dailyPromptCopiesCount() }}/{{ auth()->user()->totalDailyPromptLimit() }}
+            <i class="bi bi-copy me-2"></i> Prompt copies: {{ auth()->user()->dailyPromptCopiesCount() }}/{{ auth()->user()->totalDailyPromptLimit() == 0 ? '∞' : auth()->user()->totalDailyPromptLimit() }}
         </span>
     </li>
 @endif

@@ -1107,10 +1107,48 @@ class ImagesController extends Controller
 				], 403);
 			}
 
+			$used = $user->dailyPromptCopiesCount();
+			$limit = $user->totalDailyPromptLimit();
+
+			// Fetch active plan for upsell details
+			$plan = \App\Models\Plans::where('status', '1')->orderBy('popular', 'desc')->first();
+			$isIndia = Helper::isIndia();
+
+			if ($plan) {
+				$planName = $plan->name;
+				$currencySymbol = $isIndia ? '₹' : '$';
+				$monthlyPrice = $isIndia ? ($plan->price_inr ?: 250) : ($plan->price ?: 3);
+				$dailyPrice = $monthlyPrice / 30;
+
+				$monthlyFormatted = $currencySymbol . ($isIndia ? number_format($monthlyPrice, 0) : (float)$monthlyPrice) . '/month';
+				$dailyFormatted = '(' . $currencySymbol . number_format($dailyPrice, 2) . '/day)';
+				$priceFormatted = $monthlyFormatted . ' ' . $dailyFormatted;
+				$planLimit = $plan->download_limits ?: 100;
+			} else {
+				$planName = 'Pro Photography Plan';
+				$priceFormatted = '$3/month ($0.10/day)';
+				$planLimit = 100;
+			}
+
+			if (!$subscription) {
+				$title = "Daily Free Limit Reached ($used/$limit Used)";
+				$message = "Upgrade to \"$planName\" for just $priceFormatted to get $planLimit prompt copies/day, studio camera parameters, and full commercial client rights.";
+			} else {
+				$title = "Daily Limit Reached ($used/$limit Used)";
+				$message = __('misc.reached_daily_copy_limit') ?: "You have reached your daily prompt copy limit of $limit.";
+			}
+
 			return response()->json([
 				'success' => false,
-				'message' => __('misc.reached_daily_copy_limit') ?: 'You have reached your daily prompt copy limit.',
-				'limit_reached' => true
+				'title' => $title,
+				'message' => $message,
+				'limit_reached' => true,
+				'copies_used' => $used,
+				'total_limit' => $limit,
+				'plan_name' => $planName,
+				'plan_price' => $priceFormatted,
+				'upgrade_url' => url('pricing'),
+				'upgrade_text' => 'Upgrade Now'
 			], 403);
 		}
 
@@ -1155,7 +1193,7 @@ class ImagesController extends Controller
 			'total_limit' => $limit,
 			'copies_used' => $used,
 			'total_copies' => $image->totalPromptCopies(),
-			'message' => __('misc.prompt_copied_success') ?: "Prompt copied! ($remaining remaining today)"
+			'message' => __('misc.prompt_copied_success') ?: ($limit == 0 ? "Prompt copied!" : "Prompt copied! ($remaining remaining today)")
 		]);
 	}
 }

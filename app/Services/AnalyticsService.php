@@ -234,6 +234,11 @@ class AnalyticsService
                 AnalyticsSession::where('session_id', $sessionId)->update(['is_engaged' => true]);
             }
 
+            // Security: If event is a search with a malicious query, do not record it
+            if ($eventName === 'search' && !empty($metadata['query']) && SearchSecurityGuard::isMalicious($metadata['query'])) {
+                return null;
+            }
+
             return AnalyticsEvent::create([
                 'session_id' => $sessionId,
                 'visitor_id' => $visitorId,
@@ -257,7 +262,7 @@ class AnalyticsService
     {
         try {
             $cleanQuery = trim($query);
-            if (empty($cleanQuery)) {
+            if (empty($cleanQuery) || SearchSecurityGuard::isMalicious($cleanQuery)) {
                 return null;
             }
 

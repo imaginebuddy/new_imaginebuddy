@@ -120,6 +120,16 @@ class HomeController extends Controller
   {
     $q = trim(request()->get('q', ''));
 
+    // Security Check: If malicious query detected, fail-safe immediately
+    if (\App\Services\SearchSecurityGuard::isMalicious($q)) {
+      request()->merge(['q' => '']);
+      $images = Query::searchImages();
+      if (request()->ajax()) {
+        return '';
+      }
+      return view('default.search')->with($images);
+    }
+
     //<--- * If $q is empty or is less than 3 characters * ---->
     if ($q == '' || mb_strlen($q) <= 2) {
       return redirect('/latest');
@@ -723,9 +733,18 @@ class HomeController extends Controller
       'plans_count' => $plans->count(),
     ]);
 
+    $testimonials = Testimonial::active()->ordered()->get();
+    $clientLogos  = ClientLogo::active()->ordered()->get();
+    $totalUsers   = cache()->remember('active_users_count', 3600, function() {
+      return User::where('status', 'active')->count();
+    });
+
     return view('default.pricing')->with([
       'plans' => $plans,
-      'getSubscription' => auth()->check() ? auth()->user()->getSubscription() : null
+      'getSubscription' => auth()->check() ? auth()->user()->getSubscription() : null,
+      'testimonials' => $testimonials,
+      'clientLogos' => $clientLogos,
+      'totalUsers' => $totalUsers
     ]);
   }
 

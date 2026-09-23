@@ -6,12 +6,14 @@
   $currentSort    = request()->get('sort');
   $currentAiModel = request()->get('ai_model');
 
-  function buildSearchFilterUrl($overrides = []) {
-    $params = array_merge(request()->only(['q', 'tier', 'sort', 'ai_model']), $overrides);
-    $filtered = array_filter($params, function($val) {
-      return $val !== null && $val !== '';
-    });
-    return url('search') . '?' . http_build_query($filtered);
+  if (!function_exists('buildSearchFilterUrl')) {
+    function buildSearchFilterUrl($overrides = []) {
+      $params = array_merge(request()->only(['q', 'tier', 'sort', 'ai_model']), $overrides);
+      $filtered = array_filter($params, function($val) {
+        return $val !== null && $val !== '';
+      });
+      return url('search') . '?' . http_build_query($filtered);
+    }
   }
 @endphp
 
@@ -25,7 +27,11 @@
 
     <div class="col-lg-12 py-5">
   		<h1 class="mb-0 text-break">
-  			{{ trans('misc.result_of') }} "{{ $q }}"
+  			@if (!empty($q))
+  				{{ trans('misc.result_of') }} "{{ $q }}"
+  			@else
+  				{{ trans('misc.result_of') }}
+  			@endif
   		</h1>
   		<p class="lead text-muted mt-0">{{ $total }} {{ trans_choice('misc.images_plural',$total) }}</p>
   	  </div>

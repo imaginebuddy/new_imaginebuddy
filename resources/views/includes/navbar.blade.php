@@ -11,7 +11,7 @@
           <div class="d-flex align-items-center">
             <form action="{{ url('search') }}" method="get" class="w-100 me-3 position-relative navbar-search-form {{ $isHomePage ? 'home-search-hidden' : '' }}">
               <i class="bi bi-search btn-search bar-search"></i>
-              <input type="text" class="form-control rounded-pill ps-5 input-search search-navbar" name="q" value="{{ request('q') }}" autocomplete="off" placeholder="{{__('misc.search')}}" required minlength="3">
+              <input type="text" class="form-control rounded-pill ps-5 input-search search-navbar" name="q" value="{{ \App\Services\SearchSecurityGuard::sanitize(request('q')) }}" autocomplete="off" placeholder="{{__('misc.search')}}" required minlength="3">
             </form>
 
             <!-- Start Nav -->

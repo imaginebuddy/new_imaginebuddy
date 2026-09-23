@@ -407,6 +407,7 @@ return array(
 
 	// Version 3.7
 	'daily_limit_downloads' => 'Límite diario de descargas (fotos gratis)',
+	'daily_limit_prompts' => 'Límite diario de copias de prompts (gratis)',
 	'reached_daily_download' => 'Has alcanzado el límite de descarga diaria',
 	'exclusive_author' => 'Autor Exclusivo',
 	'non_exclusive_author' => 'Autor no exclusivo',
@@ -584,6 +585,7 @@ return array(
 	'faq_pricing_4' => '¿Puedo cancelar mi suscripción?',
 	'faq_pricing_4_reply' => 'Sí, puedes cancelar tu suscripción en cualquier momento. Podrá continuar descargando hasta el final de su ciclo de facturación.',
 	'prices_and_excludes_tax' => 'Los precios están en :currency y no incluyen impuestos',// Not remove :currency
+	'prices_and_includes_tax' => 'Los precios están en :currency e incluyen impuestos',// Not remove :currency
 	'plan_name' => 'Plan :plan', // Not remove :plan
 	'billed_monthly' => 'Facturación mensual',
 	'billed_yearly' => 'Facturación anual',
