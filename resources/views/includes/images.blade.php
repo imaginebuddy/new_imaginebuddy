@@ -74,18 +74,18 @@
 							By {{ $image->author->name ?: $image->author->username }}
 						</span>
 
-						<!-- Right Action Buttons (Share Circle + Black Copy Pill with White Icon) -->
-						<div class="d-flex align-items-center gap-2">
+						<!-- Right Action Buttons (Share Circle + Copy Pill with Icon) -->
+						<div class="d-flex align-items-center gap-2 flex-shrink-0">
 							<!-- Share Circle Button -->
 							<button type="button" class="btn rounded-circle btn-sm shadow-none btn-share-prompt prompt-share-btn d-inline-flex align-items-center justify-content-center" data-url="{{ url('prompt', $image->slug) }}" data-title="{{ $image->title }}" style="width: 36px; height: 36px;" title="Share">
 								<i class="bi bi-share-fill" style="font-size: 13px;"></i>
 							</button>
 
 							<!-- Copy Pill Button -->
-							<button type="button" class="btn text-white rounded-pill ps-3 pe-1 py-1 btn-sm fw-bold btn-copy-prompt-grid prompt-copy-btn shadow-none d-inline-flex align-items-center justify-content-center gap-2" data-id="{{ $image->id }}" style="font-size: 13px; height: 36px; line-height: 1;">
-								<span class="lh-1" style="margin-top: 1px;">Copy</span>
-								<span class="d-inline-flex align-items-center justify-content-center rounded-circle prompt-copy-icon-bg" style="width: 28px; height: 28px; font-size: 12px; flex-shrink: 0;">
-									<i class="bi bi-copy" style="line-height: 1;"></i>
+							<button type="button" class="btn text-white rounded-pill btn-sm fw-bold btn-copy-prompt-grid prompt-copy-btn shadow-none d-inline-flex align-items-center justify-content-center" data-id="{{ $image->id }}" title="Copy Prompt">
+								<span class="prompt-copy-text">Copy</span>
+								<span class="prompt-copy-icon-bg">
+									<i class="bi bi-copy"></i>
 								</span>
 							</button>
 						</div>

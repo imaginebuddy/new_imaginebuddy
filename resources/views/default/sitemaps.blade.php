@@ -54,6 +54,12 @@
          </url>
 
          <url>
+            <loc>{{ url('frequently-asked-questions') }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.8</priority>
+         </url>
+
+         <url>
             <loc>{{ url('categories') }}</loc>
             <lastmod>{{$date}}</lastmod>
             <priority>0.8</priority>

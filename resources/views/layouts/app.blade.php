@@ -7,6 +7,9 @@
     @include('includes.seo_meta')
     <meta name="theme-color" content="{{ $settings->color_default }}">
     <link rel="shortcut icon" href="{{ url('public/img', $settings->favicon) }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
 
     @include('includes.css_general')
 

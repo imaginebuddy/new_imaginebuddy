@@ -218,7 +218,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
       <nav aria-label="breadcrumb" style="max-width: 100%;">
         <div class="breadcrumb-pill-box rounded-pill shadow-sm border px-3 px-md-4 py-2 d-inline-flex align-items-center">
-          <ol class="breadcrumb mb-0 align-items-center">
+          <ol class="breadcrumb mb-0 align-items-center list-unstyled">
             <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none">Home</a></li>
             <li class="breadcrumb-item d-none d-sm-inline-block"><a href="{{ url('categories') }}" class="text-decoration-none">Categories</a></li>
             @if ($response->category)

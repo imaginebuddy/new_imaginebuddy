@@ -33,13 +33,11 @@
               <li class="list-inline-item"><a href="{{$settings->pinterest}}" target="_blank" class="ico-social"><i class="fab fa-pinterest"></i></a></li>
               @endif
            </ul>
-           <li>
-              <div id="installContainer" class="display-none">
-                 <button class="btn btn-custom w-100 rounded-pill mb-4" id="butInstall" type="button">
-                 <i class="bi-phone mr-1"></i> {{ __('misc.install_web_app') }}
-                 </button>
-              </div>
-           </li>
+           <div id="installContainer" class="display-none">
+              <button class="btn btn-custom w-100 rounded-pill mb-4" id="butInstall" type="button">
+              <i class="bi-phone mr-1"></i> {{ __('misc.install_web_app') }}
+              </button>
+           </div>
         </div>
         <div class="col-md-3">
            <h6 class="text-uppercase">{{__('misc.about')}}</h6>
@@ -51,7 +49,7 @@
               <li><a class="text-white text-decoration-none" target="_blank" href="{{ $settings->link_blog }}">{{ __('misc.blog') }}</a></li>
               @endif
               <li><a class="text-white text-decoration-none" href="{{ url('contact') }}">{{ __('misc.contact') }}</a></li>
-              </li>
+              <li><a class="text-white text-decoration-none" href="{{ url('frequently-asked-questions') }}">{{ __('admin.faq') }}</a></li>
            </ul>
         </div>
         <div class="col-md-3">

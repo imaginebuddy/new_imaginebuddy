@@ -1,8 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,800;0,900;1,800&display=swap');
  html, body {
 height: 100%;
+/* Content lists (bullet discs & numbered lists) */
+ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) {
+  list-style-type: disc;
+  padding-left: 1.75rem;
 }
-li { list-style:none; }
+ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) {
+  list-style-type: decimal;
+  padding-left: 1.75rem;
+}
+ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) > li {
+  list-style-type: disc;
+}
+ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) > li {
+  list-style-type: decimal;
+}
+.breadcrumb,
+.breadcrumb li,
+.breadcrumb-item {
+  list-style: none !important;
+  list-style-type: none !important;
+}
+.breadcrumb-item::marker {
+  content: "" !important;
+}
 input, button, textarea { outline: none; border: none; }
 select,
 button:focus,
@@ -149,7 +171,9 @@ input[type='file']:not(.custom-file) {
 }
 .home-cover,
 .cover-user {
-  background: no-repeat center center #D1D1D1;
+  background-color: #D1D1D1;
+  background-repeat: no-repeat;
+  background-position: center center;
   background-size: cover;
   position: relative;
 }

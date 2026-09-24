@@ -103,9 +103,29 @@
 .pricing-hero-badge {
   background: var(--pricing-hero-badge-bg);
   border: 1px solid var(--pricing-hero-badge-border);
+  max-width: 100%;
 }
 .pricing-hero-badge-text {
   color: var(--pricing-hero-badge-text);
+  font-size: 0.85rem;
+}
+.pricing-hero-stars {
+  font-size: 0.78rem;
+  gap: 2px;
+}
+@media (max-width: 575.98px) {
+  .pricing-hero-badge {
+    padding: 5px 12px !important;
+    gap: 0.35rem !important;
+  }
+  .pricing-hero-badge-text {
+    font-size: 0.775rem;
+    line-height: 1.3;
+  }
+  .pricing-hero-stars {
+    font-size: 0.68rem;
+    gap: 1.5px;
+  }
 }
 .pricing-hero-title {
   color: var(--pricing-text-primary);
@@ -287,6 +307,31 @@
 .pricing-faq-body {
   color: var(--pricing-faq-body-text) !important;
 }
+.pricing-faq-body ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.pricing-faq-body ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.pricing-faq-body ul > li {
+  list-style-type: disc !important;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+.pricing-faq-body ol > li {
+  list-style-type: decimal !important;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+.pricing-faq-body li::marker {
+  color: var(--color-default, #00d690);
+}
 
 /* Closing CTA Card */
 .pricing-closing-card {
@@ -384,16 +429,20 @@
       <div class="col-lg-9 col-md-11 text-center py-4">
         
         <!-- Social Proof Pill Badge -->
-        <div class="pricing-hero-badge d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill mb-3 shadow-xs">
-          <div class="d-inline-flex text-warning">
-            <i class="bi bi-star-fill small"></i>
-            <i class="bi bi-star-fill small ms-1"></i>
-            <i class="bi bi-star-fill small ms-1"></i>
-            <i class="bi bi-star-fill small ms-1"></i>
-            <i class="bi bi-star-fill small ms-1"></i>
+        <div class="pricing-hero-badge d-inline-flex flex-wrap align-items-center justify-content-center gap-1 gap-sm-2 px-2.5 px-sm-3 py-1.5 rounded-pill mb-3 shadow-xs">
+          <div class="d-inline-flex align-items-center gap-1 flex-shrink-0">
+            <div class="d-inline-flex text-warning pricing-hero-stars">
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </div>
+            <strong class="pricing-hero-badge-text">4.9 / 5<span class="d-none d-sm-inline"> Rating</span></strong>
           </div>
-          <span class="small fw-semibold pricing-hero-badge-text">
-            <strong>4.9 / 5 Rating</strong> &bull; Trusted by <strong>{{ number_format($totalUsers) }}+</strong> Creators, Ecom Brands & Agencies
+          <span class="pricing-hero-bullet text-muted opacity-50">&bull;</span>
+          <span class="pricing-hero-badge-text fw-medium">
+            Trusted by <strong>{{ number_format($totalUsers) }}+</strong> Creators<span class="d-none d-sm-inline">, Ecom Brands & Agencies</span>
           </span>
         </div>
 

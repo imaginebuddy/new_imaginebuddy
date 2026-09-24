@@ -6,11 +6,15 @@
 <link href="{{ asset('public/css/styles.css') }}?v={{$settings->version}}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" rel="stylesheet">
 <style type="text/css">
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap');
 @if ($settings->custom_css)
   {!! $settings->custom_css !!}
 @endif
-.home-cover { background-image: url('{{ url('public/img', $settings->image_header) }}') }
+.home-cover {
+  background-image: url('{{ asset('public/img/' . $settings->image_header) }}') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
 :root {
   --color-default: {{ $settings->color_default }} !important;
   --bg-auth: url('{{ url('public/img', $settings->image_header) }}');
@@ -460,16 +464,43 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-#header.header-home-transparent .logoMain {
+/* Header logo display rules */
+#header .logoMain,
+#header .logoLight,
+#header .logo {
   display: none !important;
 }
 
-#header.header-home-transparent .logoLight {
-  display: block !important;
+@media (max-width: 991.98px) {
+  #header .logo {
+    display: block !important;
+  }
 }
 
-#header.header-home-transparent .logo {
-  display: none !important;
+@media (min-width: 992px) {
+  /* Default Desktop: Light mode shows logoMain */
+  #header .logoMain {
+    display: block !important;
+  }
+  #header .logoLight {
+    display: none !important;
+  }
+
+  /* Dark mode: show logoLight */
+  [data-bs-theme="dark"] #header .logoMain {
+    display: none !important;
+  }
+  [data-bs-theme="dark"] #header .logoLight {
+    display: block !important;
+  }
+
+  /* Transparent header (homepage top over dark background): show logoLight */
+  #header.header-home-transparent .logoMain {
+    display: none !important;
+  }
+  #header.header-home-transparent .logoLight {
+    display: block !important;
+  }
 }
 
 .navbar-search-form {
@@ -616,7 +647,12 @@ var thanks = "{{ __('misc.thanks') }}";
   {!! $settings->custom_css !!}
 @endif
 
-.home-cover { background-image: url('{{ url('public/img', $settings->image_header) }}') }
+.home-cover {
+  background-image: url('{{ asset('public/img/' . $settings->image_header) }}') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
 :root {
   --color-default: {{ $settings->color_default }} !important;
   --bg-auth: url('{{ url('public/img', $settings->image_header) }}');
@@ -693,14 +729,44 @@ var thanks = "{{ __('misc.thanks') }}";
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+  padding: 0 4px 0 14px !important;
   height: 36px !important;
+  border-radius: 50rem !important;
+  gap: 8px !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  border: 1px solid transparent !important;
+}
+
+.prompt-copy-btn .prompt-copy-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-weight: 700;
+  font-size: 13px;
 }
 
 .prompt-copy-icon-bg {
   background-color: #ffffff !important;
   color: #111827 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+}
+
+.prompt-copy-icon-bg i {
+  line-height: 1 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -754,8 +820,8 @@ body.dark-mode .prompt-share-btn {
 [data-bs-theme="dark"] .prompt-copy-btn,
 [data-theme="dark"] .prompt-copy-btn,
 body.dark-mode .prompt-copy-btn {
-  background-color: #2563eb !important;
-  border-color: #2563eb !important;
+  background-color: var(--color-default) !important;
+  border-color: var(--color-default) !important;
   color: #ffffff !important;
 }
 
@@ -763,7 +829,7 @@ body.dark-mode .prompt-copy-btn {
 [data-theme="dark"] .prompt-copy-icon-bg,
 body.dark-mode .prompt-copy-icon-bg {
   background-color: #ffffff !important;
-  color: #2563eb !important;
+  color: var(--color-default) !important;
 }
 
 .prompt-card-item {
@@ -1206,5 +1272,105 @@ body.dark-mode .explore-filters-wrap .form-select {
   font-weight: 300;
   font-size: 1.5rem;
   line-height: 1;
+}
+
+/* 
+==========================================================================
+   Content Lists & Typography (ul / ol / li styling)
+========================================================================== */
+/* Ensure footer, navigation, breadcrumbs, and unstyled utility lists never display bullets or numbering */
+footer li,
+.py-footer-large li,
+.list-unstyled,
+.list-unstyled li,
+.list-inline,
+.list-inline li,
+.breadcrumb,
+.breadcrumb li,
+.breadcrumb-item,
+li.breadcrumb-item {
+  list-style: none !important;
+  list-style-type: none !important;
+}
+.breadcrumb-item::marker {
+  content: "" !important;
+}
+
+ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) > li {
+  list-style-type: disc !important;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+
+ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu):not(.pagination):not(.breadcrumb) > li {
+  list-style-type: decimal !important;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+
+/* Scoped Content Areas: FAQ & Pricing & Pages */
+.faq-answer-content ul,
+.faq-collapse ul,
+.faq-section ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu),
+.pricing-faq-body ul,
+.accordion-body ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu),
+dd ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.faq-answer-content ol,
+.faq-collapse ol,
+.faq-section ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu),
+.pricing-faq-body ol,
+.accordion-body ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu),
+dd ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.faq-answer-content ul > li,
+.faq-collapse ul > li,
+.faq-section ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu) > li,
+.pricing-faq-body ul > li,
+.accordion-body ul:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu) > li,
+dd ul > li {
+  list-style-type: disc !important;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+
+.faq-answer-content ol > li,
+.faq-collapse ol > li,
+.faq-section ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu) > li,
+.pricing-faq-body ol > li,
+.accordion-body ol:not([class*="nav"]):not([class*="list-"]):not(.dropdown-menu) > li,
+dd ol > li {
+  list-style-type: decimal !important;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+
+.faq-answer-content li::marker,
+.pricing-faq-body li::marker {
+  color: var(--color-default, #00d690);
 }
 </style>

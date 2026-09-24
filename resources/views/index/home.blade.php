@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid home-cover">
+<div class="container-fluid home-cover" style="background-image: url('{{ asset('public/img/' . $settings->image_header) }}') !important; background-size: cover !important; background-position: center center !important;">
       <div class="mb-4 position-relative custom-pt-6">
         <div class="container px-5">
 

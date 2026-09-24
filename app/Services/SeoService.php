@@ -209,6 +209,8 @@ class SeoService
             '/page/privacy-policy' => 'page_privacy',
             '/contact' => 'contact',
             '/ai-models' => 'ai_models',
+            '/faq' => 'faq',
+            '/frequently-asked-questions' => 'faq',
         ];
 
         return $map[$path] ?? null;
@@ -545,6 +547,29 @@ class SeoService
                     'name' => $data['title'],
                     'description' => $data['description'],
                     'url' => $data['canonical'],
+                ];
+                break;
+
+            case 'FAQPage':
+                $faqItems = \App\Models\Faq::active()->ordered()->get();
+                $mainEntities = [];
+                foreach ($faqItems as $faqItem) {
+                    $mainEntities[] = [
+                        '@type' => 'Question',
+                        'name' => $faqItem->question,
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => trim(strip_tags($faqItem->answer)),
+                        ],
+                    ];
+                }
+                $schemas[] = [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'FAQPage',
+                    'name' => $data['title'],
+                    'description' => $data['description'],
+                    'url' => $data['canonical'],
+                    'mainEntity' => $mainEntities,
                 ];
                 break;
 

@@ -39,6 +39,8 @@ use App\Http\Controllers\TestimonialsController;
 use App\Http\Controllers\ClientLogosController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\RedirectsController;
+use App\Http\Controllers\FaqController;
+use App\Http\Controllers\AdminFaqController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -170,6 +172,10 @@ Route::get('photo/{id}/{slug?}',[ImagesController::class, 'showLegacyRedirect'])
 Route::get('/logout',[LoginController::class, 'logout']);
 Route::get('contact',[HomeController::class, 'contact']);
 Route::post('contact',[HomeController::class, 'contactStore']);
+
+// FAQ
+Route::get('frequently-asked-questions', [FaqController::class, 'index'])->name('faq');
+Route::get('faq', [FaqController::class, 'faqRedirect']);
 
 /*
  |
@@ -662,6 +668,15 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/client-logos/update/{id}', [ClientLogosController::class, 'update']);
 	Route::post('panel/admin/client-logos/delete/{id}', [ClientLogosController::class, 'destroy']);
 	Route::post('panel/admin/client-logos/toggle-status/{id}', [ClientLogosController::class, 'toggleStatus']);
+
+	// FAQs
+	Route::get('panel/admin/faqs', [AdminFaqController::class, 'index'])->name('faqs');
+	Route::get('panel/admin/faqs/add', [AdminFaqController::class, 'create'])->name('faqs');
+	Route::post('panel/admin/faqs/add', [AdminFaqController::class, 'store']);
+	Route::get('panel/admin/faqs/edit/{id}', [AdminFaqController::class, 'edit'])->name('faqs');
+	Route::post('panel/admin/faqs/update/{id}', [AdminFaqController::class, 'update']);
+	Route::post('panel/admin/faqs/delete/{id}', [AdminFaqController::class, 'destroy']);
+	Route::post('panel/admin/faqs/toggle-status/{id}', [AdminFaqController::class, 'toggleStatus']);
 
 });//<--- End Group Role
 

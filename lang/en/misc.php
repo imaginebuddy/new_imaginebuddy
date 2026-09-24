@@ -729,4 +729,5 @@ return array(
 	'view_prompts' => 'View Prompts',
 	'collection_name' => 'Collection Name',
 	'most_copied_prompts_desc' => 'Most Copied Prompts Desc',
+	'home' => 'Home',
 );

@@ -3,9 +3,9 @@
         <div class="container-fluid d-grid gap-3 px-4 align-items-center" style="grid-template-columns: 0fr 2fr;">
 
             <a href="{{ url('/') }}" class="d-flex align-items-center col-lg-4 link-dark text-decoration-none fw-bold display-6">
-              <img src="{{ url('public/img', $settings->logo) }}" class="logoMain d-none d-lg-block" width="110" />
-              <img src="{{ url('public/img', $settings->logo_light) }}" class="logoLight d-none d-lg-block" width="110" />
-              <img src="{{ url('public/img', $settings->favicon) }}" class="logo d-block d-lg-none" height="32" />
+              <img src="{{ url('public/img', $settings->logo) }}" class="logoMain" width="110" />
+              <img src="{{ url('public/img', $settings->logo_light) }}" class="logoLight" width="110" />
+              <img src="{{ url('public/img', $settings->favicon) }}" class="logo" height="32" />
             </a>
 
           <div class="d-flex align-items-center">
