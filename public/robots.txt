@@ -3,3 +3,6 @@ Disallow: /tags/
 Disallow: /members
 Disallow: /collections
 Disallow: */collection/
+
+Sitemap: https://www.imaginebuddy.com/sitemaps.xml
+Sitemap: https://www.imaginebuddy.com/sitemaps-media.xml

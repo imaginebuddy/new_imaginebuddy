@@ -1,4 +1,7 @@
-<?php $date = Carbon\Carbon::yesterday()->format('Y-m-d'); ?>
+{!! '<'.'?xml version="1.0" encoding="UTF-8"?>' !!}
+@php
+    $date = Carbon\Carbon::yesterday()->format('Y-m-d');
+@endphp
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
       <url>
          <loc>{{ url('/') }}</loc>
