@@ -503,6 +503,29 @@
   }
 }
 
+/* Global fallback: ensure logoLight is hidden by default unless dark mode is active */
+.logoLight {
+  display: none !important;
+}
+
+/* Auth Pages (Login / Register / Password Recovery) logo display rules */
+.logo-login {
+  display: inline-block !important;
+}
+.logo-login .logoMain {
+  display: inline-block !important;
+}
+.logo-login .logoLight {
+  display: none !important;
+}
+[data-bs-theme="dark"] .logo-login .logoMain {
+  display: none !important;
+}
+[data-bs-theme="dark"] .logo-login .logoLight {
+  display: inline-block !important;
+}
+
+
 .navbar-search-form {
   transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease !important;
 }
