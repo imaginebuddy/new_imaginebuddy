@@ -43,7 +43,7 @@
                       data-bs-target="#home-faq-collapse-{{ $faqItem->id }}"
                       aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
                       aria-controls="home-faq-collapse-{{ $faqItem->id }}">
-                <h5 class="fw-bold title-custom mb-0 me-3 fs-6 fs-md-5">{{ $faqItem->question }}</h5>
+                <h3 class="fw-bold title-custom mb-0 me-3 fs-6 fs-md-5">{{ $faqItem->question }}</h3>
                 <span class="faq-icon-indicator text-muted fs-4 lh-1 flex-shrink-0"></span>
               </button>
               <div id="home-faq-collapse-{{ $faqItem->id }}" class="collapse {{ $index === 0 ? 'show' : '' }} faq-collapse" data-bs-parent="#faqAccordion">

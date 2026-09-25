@@ -56,11 +56,11 @@
 				<!-- 2. Bottom Details Section (Title, Subtext, Author, Share & Copy) PLACED AFTER THE IMAGE -->
 				<div class="prompt-card-bottom-info px-2 pb-2 pt-3 position-relative prompt-card-info-bg" style="z-index: 6;">
 					<!-- Title -->
-					<h5 class="fw-bold mb-2 prompt-card-title text-break" style="font-size: 17px; line-height: 1.35; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.3px;">
+					<h3 class="fw-bold mb-2 prompt-card-title text-break h5" style="font-size: 17px; line-height: 1.35; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.3px;">
 						<a href="{{ url('prompt', $image->slug) }}" class="text-decoration-none prompt-title-link" title="{{ $image->title }}">
 							{{ $image->title }}
 						</a>
-					</h5>
+					</h3>
 
 					<!-- Prompt Snippet (Subtext) -->
 					<p class="small mb-3 prompt-snippet-text line-clamp-2" style="font-size: 13px; line-height: 1.4;">

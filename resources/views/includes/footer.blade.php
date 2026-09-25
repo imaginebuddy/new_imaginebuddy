@@ -3,7 +3,7 @@
      <div class="row">
         <div class="col-md-3">
            <a href="{{ url('/') }}">
-           <img src="{{ url('public/img', $settings->logo_light) }}" width="150">
+           <img src="{{ url('public/img', $settings->logo_light) }}" width="150" alt="{{ $settings->title }} - AI Product Photoshoot Prompts">
            </a>
            @if ($settings->twitter != ''
            ||$settings->facebook != ''

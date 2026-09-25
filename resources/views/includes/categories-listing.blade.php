@@ -32,10 +32,10 @@
 
         {{-- Middle Row: Category Title --}}
         <div class="my-2">
-          <h5 class="fw-bold m-0 p-0 title-custom text-break" 
+          <h3 class="fw-bold m-0 p-0 title-custom text-break h5" 
               style="font-size: 1.05rem; line-height: 1.35; width: 100% !important; text-align: left !important;">
             {{ $categoryName }}
-          </h5>
+          </h3>
         </div>
 
         {{-- Bottom Row: Action Link --}}

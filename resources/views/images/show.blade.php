@@ -137,7 +137,7 @@
             <img class="img-fluid rounded img-thanks-share" width="100" src="{{ Storage::url(config('path.thumbnail').$response->thumbnail) }}" />
           </div>
           <div class="flex-grow-1 ms-3">
-            <h5>{{ __('misc.give_thanks') }} <i class="bi-stars text-warning"></i></h5>
+            <div class="h5 fw-bold">{{ __('misc.give_thanks') }} <i class="bi-stars text-warning"></i></div>
             {!! __('misc.thanks_to_author_sharing', ['username' => '<strong>'.$response->author->username.'</strong>']) !!}
 
             <ul class="list-inline mt-2 fs-5">
@@ -158,9 +158,9 @@
   <div class="modal-dialog modal-fullscreen-sm-down">
     <div class="modal-content">
       <div class="modal-header border-0">
-        <h5 class="modal-title text-center" id="myModalLabel">
+        <div class="modal-title h5 text-center" id="myModalLabel">
           {{ __('misc.add_collection') }}
-        </h5>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div><!-- Modal header -->
 
@@ -363,9 +363,9 @@
                           <span class="photoshoot-prompt-counter text-muted small fw-medium" style="font-size: 0.75rem;">• {{ $photoshootCount }} {{ str_plural('Prompt', $photoshootCount) }}</span>
                         @endif
                       </div>
-                      <h6 class="mb-0 fw-bold text-dark text-break title-custom" style="font-size: 0.95rem; line-height: 1.35;">
+                      <div class="mb-0 fw-bold text-dark text-break title-custom" style="font-size: 0.95rem; line-height: 1.35;">
                         {{ $response->photoshoot->title }}
-                      </h6>
+                      </div>
                     </div>
                   </div>
 
@@ -530,7 +530,7 @@
               </p>
               <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark bg-opacity-75 text-white p-3 rounded-4">
                 <i class="bi bi-lock-fill fs-3 mb-1 text-warning"></i>
-                <h6 class="fw-bold mb-1">Premium Prompt Locked</h6>
+                <div class="fw-bold mb-1 fs-6">Premium Prompt Locked</div>
                 <p class="small text-white-50 mb-2">Subscribe to unlock and copy premium prompts.</p>
                 <!-- <a href="{{ url('pricing') }}" class="btn btn-warning btn-sm px-4 py-2 text-dark fw-bold rounded-pill">
                   <i class="bi bi-star-fill me-1"></i> Upgrade to Unlock
@@ -621,7 +621,7 @@
         <!-- Comments Section -->
         @if ($response->comments->count() != 0 || (auth()->check() && $settings->comments))
           <div class="card border-0 bg-card-custom rounded-4 p-4 shadow-sm mb-4 border">
-            <h5 class="fw-bold text-dark title-custom mb-3">{{ __('misc.comments') }} (<span id="totalComments">{{ number_format($response->comments->count()) }}</span>)</h5>
+            <h2 class="fw-bold text-dark title-custom mb-3 h5">{{ __('misc.comments') }} (<span id="totalComments">{{ number_format($response->comments->count()) }}</span>)</h2>
             
             @if (auth()->check() && $response->status == 'active' && $settings->comments)
               <div class="d-flex gap-2 mb-4">
@@ -651,7 +651,7 @@
     <div class="pt-5 border-top mt-4" id="morePromptsSection">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-          <h3 class="fw-bold text-dark title-custom m-0">Explore Similar Prompts</h3>
+          <h2 class="fw-bold text-dark title-custom m-0 h3">Explore Similar Prompts</h2>
         </div>
         @if ($response->category)
           <a href="{{ url('category', $response->category->slug) }}" class="text-decoration-none link-dark title-custom fw-bold small">
@@ -680,7 +680,7 @@
         <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
           <i class="bi bi-stars text-warning fs-2"></i>
         </div>
-        <h4 class="fw-bold text-dark mb-2" id="authCopyModalLabel">Sign Up to Copy This Prompt</h4>
+        <div class="h4 fw-bold text-dark mb-2" id="authCopyModalLabel">Sign Up to Copy This Prompt</div>
         <p class="text-secondary small mb-4 px-2" style="line-height: 1.6;">
           Join ImagineBuddy for free to copy this full prompt, unlock <strong>20 free prompt copies daily</strong>, and discover thousands of top-tier AI prompts.
         </p>

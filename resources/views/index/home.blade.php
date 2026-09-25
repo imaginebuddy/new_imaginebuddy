@@ -48,7 +48,7 @@
   @if ($settings->show_images_index == 'featured' || $settings->show_images_index == 'both')
 
   <div class="btn-block text-center mb-5">
-    <h3 class="m-0">{{__('misc.featured_photos')}}</h3>
+    <h2 class="m-0 h3">{{__('misc.featured_photos')}}</h2>
     <p>
       {{ __('misc.featured_desc') }}
     </p>
@@ -65,7 +65,7 @@
 
   @if ($settings->show_images_index == 'latest' || $settings->show_images_index == 'both')
     <div class="btn-block text-center mb-5 @if ($settings->show_images_index == 'both') mt-5 @endif">
-      <h3 class="m-0">{{__('misc.recent_photos')}}</h3>
+      <h2 class="m-0 h3">{{__('misc.recent_photos')}}</h2>
       <p>
         {{ __('misc.latest_desc') }}
       </p>
@@ -108,10 +108,10 @@
       <div class="container">
         <div class="row align-items-center">
         <div class="col-12 col-lg-7 text-center mb-3 px-5">
-          <img src="{{ url('public/img', $settings->img_section) }}" class="img-fluid">
+          <img src="{{ url('public/img', $settings->img_section) }}" class="img-fluid" alt="{{ __('misc.title_section_home') }}">
         </div>
         <div class="col-12 col-lg-5 text-lg-start text-center">
-          <h1 class="m-0 card-profile">{{ __('misc.title_section_home') }}</h1>
+          <h2 class="m-0 card-profile">{{ __('misc.title_section_home') }}</h2>
           <div class="col-12 p-0">
             <p class="py-4 m-0 text-muted">{{ __('misc.desc_section_home') }}</p>
           </div>
@@ -168,7 +168,7 @@
     <section class="section py-5 py-large bg-light testimonials-section">
       <div class="container">
         <div class="btn-block text-center mb-5">
-          <h3 class="m-0">{{ __('misc.creators_testimonials_heading') }}</h3>
+          <h2 class="m-0 h3">{{ __('misc.creators_testimonials_heading') }}</h2>
           <p class="text-muted mt-2">
             {{ __('misc.creators_testimonials_subtitle') }}
           </p>
@@ -183,7 +183,7 @@
     <section class="section py-5 py-large">
       <div class="container">
         <div class="btn-block text-center mb-5">
-          <h3 class="m-0">{{__('misc.categories')}}</h3>
+          <h2 class="m-0 h3">{{__('misc.categories')}}</h2>
           <p>
             {{__('misc.browse_by_category')}}
           </p>

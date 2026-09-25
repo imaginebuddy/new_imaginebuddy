@@ -89,7 +89,7 @@
     <div class="mb-4">
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-custom gap-2">
         <div>
-          <h3 class="fw-bold text-dark title-custom m-0">Prompts in this Photoshoot</h3>
+          <h2 class="fw-bold text-dark title-custom m-0 h3">Prompts in this Photoshoot</h2>
         </div>
         <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 fw-medium" style="font-size: 0.85rem;">
           <i class="bi bi-grid-fill text-mint me-1"></i> Showing <span id="showingCount">{{ $images->count() }}</span> of {{ $images->total() }} {{ str_plural('Prompt', $images->total()) }}

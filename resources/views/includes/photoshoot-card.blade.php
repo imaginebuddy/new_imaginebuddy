@@ -31,11 +31,11 @@
           </div>
         @endif
 
-        <h5 class="fw-bold mb-2 photoshoot-card-title text-break" style="line-height: 1.35;">
+        <h2 class="fw-bold mb-2 photoshoot-card-title text-break h5" style="line-height: 1.35;">
           <a href="{{ url('photoshoots', $photoshoot->slug) }}" class="text-dark title-custom text-decoration-none photoshoot-title">
             {{ $photoshoot->title }}
           </a>
-        </h5>
+        </h2>
 
         @if ($photoshoot->description)
           <p class="text-muted small mb-3 line-clamp-2" style="font-size: 0.88rem; line-height: 1.5;">
