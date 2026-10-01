@@ -251,12 +251,12 @@
       $showPreviewUrl = Storage::url(config('path.preview') . $response->preview);
       $stockToken = $response->token_id;
 
-      $canViewPrompt = true;
-      if ($response->item_for_sale == 'sale') {
-        if (auth()->guest()) {
-          $canViewPrompt = false;
-        } else {
+      $canViewPrompt = false;
+      if (auth()->check()) {
+        if ($response->item_for_sale == 'sale') {
           $canViewPrompt = ($getSubscription || auth()->id() == $response->user_id || auth()->user()->isSuperAdmin());
+        } else {
+          $canViewPrompt = true;
         }
       }
     @endphp
@@ -496,14 +496,14 @@
 
           <!-- Prompt Text Content -->
           @if ($canViewPrompt)
-            <div class="p-4 prompt-inner-content-box mb-4 @guest prompt-guest-protected @endguest" id="promptBox">
+            <div class="p-4 prompt-inner-content-box mb-4" id="promptBox">
               <p class="mb-0 text-secondary font-monospace title-custom" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.7;" id="promptText">{{ $response->prompt ?: $response->title }}</p>
             </div>
             
             <!-- Bottom Action Buttons Row -->
             <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
               <div class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-dark rounded-pill ps-4 pe-2 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-copy-prompt shadow-sm" data-id="{{ $response->id }}" data-auth="{{ auth()->check() ? '1' : '0' }}" style="height: 44px;">
+                <button type="button" class="btn btn-dark rounded-pill ps-4 pe-2 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-copy-prompt shadow-sm" data-id="{{ $response->id }}" data-auth="1" style="height: 44px;">
                   <span class="fs-6 btn-copy-text">Copy</span>
                   <span class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center ms-1" style="width: 30px; height: 30px;">
                     <i class="bi bi-copy" style="font-size: 13px;"></i>
@@ -515,31 +515,45 @@
                     <i class="bi bi-lightning-charge text-warning"></i>
                     <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / <span class="total-copies-limit">{{ auth()->user()->totalDailyPromptLimit() == 0 ? '∞' : auth()->user()->totalDailyPromptLimit() }}</span></span>
                   </div>
-                @else
-                  <div class="small text-muted d-inline-flex align-items-center gap-1">
-                    <i class="bi bi-stars text-warning"></i>
-                    <span>Free sign up gives you <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? 'unlimited' : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} daily prompt copies</strong></span>
-                  </div>
                 @endauth
               </div>
             </div>
           @else
-            <div class="p-4 prompt-inner-content-box position-relative mb-4 text-center overflow-hidden" style="min-height: 140px;">
-              <p class="mb-0 text-secondary font-monospace title-custom" style="filter: blur(6px); user-select: none;">
-                Ultra realistic commercial product photography of {{ $response->title }} standing on a clean reflective surface...
-              </p>
-              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark bg-opacity-75 text-white p-3 rounded-4">
-                <i class="bi bi-lock-fill fs-3 mb-1 text-warning"></i>
-                <div class="fw-bold mb-1 fs-6">Premium Prompt Locked</div>
-                <p class="small text-white-50 mb-2">Subscribe to unlock and copy premium prompts.</p>
-                <!-- <a href="{{ url('pricing') }}" class="btn btn-warning btn-sm px-4 py-2 text-dark fw-bold rounded-pill">
-                  <i class="bi bi-star-fill me-1"></i> Upgrade to Unlock
-                </a> -->
+            @if ($response->item_for_sale != 'sale')
+              <div class="p-4 prompt-inner-content-box position-relative mb-4 text-center overflow-hidden" style="min-height: 140px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#authCopyModal">
+                <p class="mb-0 text-secondary font-monospace title-custom" style="filter: blur(6px); user-select: none;">
+                  Ultra realistic commercial product photography of {{ $response->title }} standing on a clean reflective surface...
+                </p>
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark bg-opacity-75 text-white p-3 rounded-4">
+                  <i class="bi bi-lock-fill fs-3 mb-1 text-warning"></i>
+                  <div class="fw-bold mb-1 fs-6">Sign In to View Full Prompt</div>
+                  <p class="small text-white-50 mb-0">Join for free to reveal and copy this prompt.</p>
+                </div>
               </div>
-            </div>
-            <a href="{{ url('pricing') }}" class="btn btn-warning w-100 py-3 fw-bold rounded-pill text-dark shadow-sm">
-              <i class="bi bi-lock-fill me-2"></i> Unlock Premium Prompt
-            </a>
+
+              <div class="d-flex flex-column gap-2">
+                <button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#authCopyModal">
+                  <i class="bi bi-unlock-fill"></i> Sign Up to View & Copy Prompt (Free)
+                </button>
+                <div class="text-center text-muted small mt-1">
+                  <i class="bi bi-stars text-warning me-1"></i> Free sign up gives you <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} free prompt {{ (isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 1) ? 'copy' : 'copies' }} daily</strong>
+                </div>
+              </div>
+            @else
+              <div class="p-4 prompt-inner-content-box position-relative mb-4 text-center overflow-hidden" style="min-height: 140px;">
+                <p class="mb-0 text-secondary font-monospace title-custom" style="filter: blur(6px); user-select: none;">
+                  Ultra realistic commercial product photography of {{ $response->title }} standing on a clean reflective surface...
+                </p>
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark bg-opacity-75 text-white p-3 rounded-4">
+                  <i class="bi bi-lock-fill fs-3 mb-1 text-warning"></i>
+                  <div class="fw-bold mb-1 fs-6">Premium Prompt Locked</div>
+                  <p class="small text-white-50 mb-2">Subscribe to unlock and copy premium prompts.</p>
+                </div>
+              </div>
+              <a href="{{ url('pricing') }}" class="btn btn-warning w-100 py-3 fw-bold rounded-pill text-dark shadow-sm">
+                <i class="bi bi-lock-fill me-2"></i> Unlock Premium Prompt
+              </a>
+            @endif
           @endif
         </div>
 
@@ -680,9 +694,9 @@
         <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
           <i class="bi bi-stars text-warning fs-2"></i>
         </div>
-        <div class="h4 fw-bold text-dark mb-2" id="authCopyModalLabel">Sign Up to Copy This Prompt</div>
+        <div class="h4 fw-bold text-dark mb-2" id="authCopyModalLabel">Sign Up to View & Copy This Prompt</div>
         <p class="text-secondary small mb-4 px-2" style="line-height: 1.6;">
-          Join ImagineBuddy for free to copy this full prompt, unlock <strong>20 free prompt copies daily</strong>, and discover thousands of top-tier AI prompts.
+          Join {{ $settings->title ?? 'ImagineBuddy' }} for free to view and copy this full prompt, unlock <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} free prompt {{ (isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 1) ? 'copy' : 'copies' }} daily</strong>, and discover thousands of top-tier AI prompts.
         </p>
 
         @php
