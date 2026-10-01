@@ -1,20 +1,23 @@
 @extends('layouts.app')
 
 @php
-  $currentQ       = request()->get('q');
-  $currentTier    = request()->get('tier');
-  $currentSort    = request()->get('sort');
-  $currentAiModel = request()->get('ai_model');
+  $currentQ        = request()->get('q');
+  $currentTier     = request()->get('tier');
+  $currentSort     = request()->get('sort');
+  $currentAiModel  = request()->get('ai_model');
+  $currentCategory = request()->get('category');
 
   if (!function_exists('buildSearchFilterUrl')) {
     function buildSearchFilterUrl($overrides = []) {
-      $params = array_merge(request()->only(['q', 'tier', 'sort', 'ai_model']), $overrides);
+      $params = array_merge(request()->only(['q', 'tier', 'sort', 'ai_model', 'category']), $overrides);
       $filtered = array_filter($params, function($val) {
         return $val !== null && $val !== '';
       });
       return url('search') . '?' . http_build_query($filtered);
     }
   }
+
+  $categoriesList = $categories ?? App\Models\Categories::where('mode', 'on')->orderBy('name')->get();
 @endphp
 
 @section('title'){{ e($title) }}@endsection
@@ -37,23 +40,31 @@
   	  </div>
 
 		<div class="col-md-12">
-			<!-- Search Filter Dropdowns (Clean Design matching Explore Page) -->
-			<div class="explore-filters-wrap mb-4">
+			<!-- Search Filter Dropdowns (Clean Design matching Explore Page, Mobile-Optimized) -->
+			<div class="explore-filters-wrap search-filters-wrap mb-4">
 				<!-- Sort Order Filter -->
-				<select class="form-select filter filter-primary" onchange="window.location.href=this.value;">
+				<select class="form-select filter filter-sort" onchange="window.location.href=this.value;" aria-label="Sort Order">
 					<option value="{{ buildSearchFilterUrl(['sort' => 'latest']) }}" @if(empty($currentSort) || $currentSort == 'latest') selected @endif>{{ trans('misc.latest') }}</option>
 					<option value="{{ buildSearchFilterUrl(['sort' => 'oldest']) }}" @if($currentSort == 'oldest') selected @endif>{{ trans('misc.oldest') }}</option>
 				</select>
 
+				<!-- Category Filter -->
+				<select class="form-select filter filter-category" onchange="window.location.href=this.value;" aria-label="Category">
+					<option value="{{ buildSearchFilterUrl(['category' => '']) }}" @if(empty($currentCategory)) selected @endif>{{ Lang::has('misc.all_categories') ? __('misc.all_categories') : 'All Categories' }}</option>
+					@foreach ($categoriesList as $cat)
+						<option value="{{ buildSearchFilterUrl(['category' => $cat->slug]) }}" @if($currentCategory == $cat->slug || $currentCategory == (string)$cat->id) selected @endif>{{ Lang::has('categories.' . $cat->slug) ? __('categories.' . $cat->slug) : $cat->name }}</option>
+					@endforeach
+				</select>
+
 				<!-- Free vs Premium Filter -->
-				<select class="form-select filter" onchange="window.location.href=this.value;">
+				<select class="form-select filter filter-tier" onchange="window.location.href=this.value;" aria-label="Prompt Tier">
 					<option value="{{ buildSearchFilterUrl(['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
 					<option value="{{ buildSearchFilterUrl(['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
 					<option value="{{ buildSearchFilterUrl(['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
 				</select>
 
 				<!-- AI Model Filter -->
-				<select class="form-select filter" onchange="window.location.href=this.value;">
+				<select class="form-select filter filter-ai-model" onchange="window.location.href=this.value;" aria-label="AI Model">
 					<option value="{{ buildSearchFilterUrl(['ai_model' => '']) }}" @if(empty($currentAiModel)) selected @endif>All AI Models</option>
 					@foreach (App\Models\Images::getAiModels() as $model)
 						<option value="{{ buildSearchFilterUrl(['ai_model' => $model]) }}" @if($currentAiModel == $model) selected @endif>{{ $model }}</option>

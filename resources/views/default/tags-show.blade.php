@@ -1,5 +1,25 @@
 @extends('layouts.app')
 
+@php
+  $currentTier     = request()->get('tier');
+  $currentSort     = request()->get('sort');
+  $currentAiModel  = request()->get('ai_model');
+  $currentCategory = request()->get('category');
+  $tagUrlSlug      = $tagSlug ?? trim(str_replace(' ', '_', $tags));
+
+  if (!function_exists('buildTagFilterUrl')) {
+    function buildTagFilterUrl($slug, $overrides = []) {
+      $params = array_merge(request()->only(['tier', 'sort', 'ai_model', 'category']), $overrides);
+      $filtered = array_filter($params, function($val) {
+        return $val !== null && $val !== '';
+      });
+      return url('tags', $slug) . (!empty($filtered) ? '?' . http_build_query($filtered) : '');
+    }
+  }
+
+  $categoriesList = $categories ?? App\Models\Categories::where('mode', 'on')->orderBy('name')->get();
+@endphp
+
 @section('title'){{ $title.' - ' }}@endsection
 @section('robots', 'noindex, follow')
 
@@ -21,6 +41,38 @@
     </div>
 <!-- Col MD -->
 <div class="col-md-12">
+
+	<!-- Tag Filter Dropdowns (Mobile-Optimized matching Explore & Search Pages) -->
+	<div class="explore-filters-wrap search-filters-wrap mb-4">
+		<!-- Sort Order Filter -->
+		<select class="form-select filter filter-sort" onchange="window.location.href=this.value;" aria-label="Sort Order">
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['sort' => 'latest']) }}" @if(empty($currentSort) || $currentSort == 'latest') selected @endif>{{ trans('misc.latest') }}</option>
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['sort' => 'oldest']) }}" @if($currentSort == 'oldest') selected @endif>{{ trans('misc.oldest') }}</option>
+		</select>
+
+		<!-- Category Filter -->
+		<select class="form-select filter filter-category" onchange="window.location.href=this.value;" aria-label="Category">
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['category' => '']) }}" @if(empty($currentCategory)) selected @endif>{{ Lang::has('misc.all_categories') ? __('misc.all_categories') : 'All Categories' }}</option>
+			@foreach ($categoriesList as $cat)
+				<option value="{{ buildTagFilterUrl($tagUrlSlug, ['category' => $cat->slug]) }}" @if($currentCategory == $cat->slug || $currentCategory == (string)$cat->id) selected @endif>{{ Lang::has('categories.' . $cat->slug) ? __('categories.' . $cat->slug) : $cat->name }}</option>
+			@endforeach
+		</select>
+
+		<!-- Free vs Premium Filter -->
+		<select class="form-select filter filter-tier" onchange="window.location.href=this.value;" aria-label="Prompt Tier">
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['tier' => '']) }}" @if(empty($currentTier)) selected @endif>All Prompts</option>
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['tier' => 'free']) }}" @if($currentTier == 'free') selected @endif>Free Prompts</option>
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['tier' => 'premium']) }}" @if($currentTier == 'premium' || $currentTier == 'sale') selected @endif>Premium Prompts</option>
+		</select>
+
+		<!-- AI Model Filter -->
+		<select class="form-select filter filter-ai-model" onchange="window.location.href=this.value;" aria-label="AI Model">
+			<option value="{{ buildTagFilterUrl($tagUrlSlug, ['ai_model' => '']) }}" @if(empty($currentAiModel)) selected @endif>All AI Models</option>
+			@foreach (App\Models\Images::getAiModels() as $model)
+				<option value="{{ buildTagFilterUrl($tagUrlSlug, ['ai_model' => $model]) }}" @if($currentAiModel == $model) selected @endif>{{ $model }}</option>
+			@endforeach
+		</select>
+	</div>
 
 	@if ($images->total() != 0)
 

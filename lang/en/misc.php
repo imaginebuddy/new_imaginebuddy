@@ -730,4 +730,5 @@ return array(
 	'collection_name' => 'Collection Name',
 	'most_copied_prompts_desc' => 'Most Copied Prompts Desc',
 	'home' => 'Home',
+	'all_categories' => 'All Categories',
 );

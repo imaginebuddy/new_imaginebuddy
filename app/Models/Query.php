@@ -63,11 +63,12 @@ class Query extends Model
 	//Search
 	public static function searchImages()
 	{
-		$q       = request()->get('q');
-		$page    = request()->get('page');
-		$sort    = request()->get('sort');
-		$tier    = request()->get('tier');
-		$aiModel = request()->get('ai_model');
+		$q        = request()->get('q');
+		$page     = request()->get('page');
+		$sort     = request()->get('sort');
+		$tier     = request()->get('tier');
+		$aiModel  = request()->get('ai_model');
+		$category = request()->get('category');
 
 		// 1. Proactive Security Check: If malicious query detected, fail-safe immediately
 		if (\App\Services\SearchSecurityGuard::isMalicious($q)) {
@@ -89,10 +90,10 @@ class Query extends Model
 
 			$title = __('misc.result_of') . ' - ';
 
-			return ['images' => $emptyImages, 'page' => $page, 'title' => $title, 'total' => 0, 'q' => ''];
+			return ['images' => $emptyImages, 'page' => $page, 'title' => $title, 'total' => 0, 'q' => '', 'category' => $category];
 		}
 
-		$applyFilters = function ($builder) use ($tier, $aiModel, $sort) {
+		$applyFilters = function ($builder) use ($tier, $aiModel, $sort, $category) {
 			$builder->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution'])
 				->where('images.status', 'active');
 
@@ -104,6 +105,19 @@ class Query extends Model
 
 			if (!empty($aiModel)) {
 				$builder->where('images.ai_model', $aiModel);
+			}
+
+			if (!empty($category)) {
+				if (is_numeric($category)) {
+					$builder->where('images.categories_id', (int) $category);
+				} else {
+					$catObj = \App\Models\Categories::where('slug', $category)->orWhere('name', $category)->first();
+					if ($catObj) {
+						$builder->where('images.categories_id', $catObj->id);
+					} else {
+						$builder->where('images.categories_id', 0);
+					}
+				}
 			}
 
 			if ($sort == 'oldest') {
@@ -144,10 +158,11 @@ class Query extends Model
 				'results_count' => (int)$total,
 				'tier' => $tier,
 				'ai_model' => $aiModel,
+				'category' => $category,
 			]);
 		}
 
-		return ['images' => $images, 'page' => $page, 'title' => $title, 'total' => $total, 'q' => $q];
+		return ['images' => $images, 'page' => $page, 'title' => $title, 'total' => $total, 'q' => $q, 'category' => $category];
 	}
 
 	public static function latestImagesHome()
@@ -161,6 +176,20 @@ class Query extends Model
 			->get();
 
 		return $data->shuffle()->take((int) config('settings.result_request', 12));
+	}
+
+	protected static function applyCategoryFilter($query)
+	{
+		if (request('category')) {
+			$category = request('category');
+			if (is_numeric($category)) {
+				$query->where('images.categories_id', (int) $category);
+			} else {
+				$catObj = Categories::where('slug', $category)->orWhere('name', $category)->first();
+				$query->where('images.categories_id', $catObj ? $catObj->id : 0);
+			}
+		}
+		return $query;
 	}
 
 	public static function latestImages()
@@ -178,8 +207,11 @@ class Query extends Model
 			$query->where('images.ai_model', request('ai_model'));
 		}
 
+		static::applyCategoryFilter($query);
+
 		$data = $query->orderBy('images.id', 'DESC')
 			->paginate(config('settings.result_request'))
+			->appends(request()->query())
 			->onEachSide(1);
 
 		return $data;
@@ -200,6 +232,8 @@ class Query extends Model
 		if (request('ai_model')) {
 			$query->where('images.ai_model', request('ai_model'));
 		}
+
+		static::applyCategoryFilter($query);
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -224,8 +258,10 @@ class Query extends Model
 			$q->whereYear('featured_date', date('Y'));
 		});
 
-		$data = $query->orderBy('featured_date', 'DESC')->paginate(config('settings.result_request'))->onEachSide(1);
-
+		$data = $query->orderBy('featured_date', 'DESC')
+			->paginate(config('settings.result_request'))
+			->appends(request()->query())
+			->onEachSide(1);
 
 		return $data;
 	}
@@ -246,6 +282,8 @@ class Query extends Model
 		if (request('ai_model')) {
 			$query->where('images.ai_model', request('ai_model'));
 		}
+
+		static::applyCategoryFilter($query);
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -273,7 +311,9 @@ class Query extends Model
 		$data = $query->groupBy('likes.images_id')
 			->orderByRaw('COUNT(likes.images_id) desc')
 			->selectFieldsRelation()
-			->paginate(config('settings.result_request'))->onEachSide(1);
+			->paginate(config('settings.result_request'))
+			->appends(request()->query())
+			->onEachSide(1);
 
 		return $data;
 	}
@@ -292,6 +332,8 @@ class Query extends Model
 		if (request('ai_model')) {
 			$query->where('images.ai_model', request('ai_model'));
 		}
+
+		static::applyCategoryFilter($query);
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -319,7 +361,9 @@ class Query extends Model
 		$data = $query->groupBy('comments.images_id')
 			->orderByRaw('COUNT(comments.images_id) desc')
 			->selectFieldsRelation()
-			->paginate(config('settings.result_request'))->onEachSide(1);
+			->paginate(config('settings.result_request'))
+			->appends(request()->query())
+			->onEachSide(1);
 
 		return $data;
 	}
@@ -338,6 +382,8 @@ class Query extends Model
 		if (request('ai_model')) {
 			$query->where('images.ai_model', request('ai_model'));
 		}
+
+		static::applyCategoryFilter($query);
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -365,7 +411,9 @@ class Query extends Model
 		$data = $query->groupBy('visits.images_id')
 			->orderByRaw('COUNT(visits.images_id) desc')
 			->selectFieldsRelation()
-			->paginate(config('settings.result_request'))->onEachSide(1);
+			->paginate(config('settings.result_request'))
+			->appends(request()->query())
+			->onEachSide(1);
 
 		return $data;
 	}
@@ -384,6 +432,8 @@ class Query extends Model
 		if (request('ai_model')) {
 			$query->where('images.ai_model', request('ai_model'));
 		}
+
+		static::applyCategoryFilter($query);
 
 		//=== Timeframe
 		$query->when(request('timeframe') == 'today', function ($q) {
@@ -411,7 +461,9 @@ class Query extends Model
 		$data = $query->groupBy('downloads.images_id')
 			->orderByRaw('COUNT(downloads.images_id) desc')
 			->selectFieldsRelation()
-			->paginate(config('settings.result_request'))->onEachSide(1);
+			->paginate(config('settings.result_request'))
+			->appends(request()->query())
+			->onEachSide(1);
 
 		return $data;
 	}
@@ -432,9 +484,12 @@ class Query extends Model
 			$query->where('images.ai_model', request('ai_model'));
 		}
 
+		static::applyCategoryFilter($query);
+
 		$data = $query->orderBy('images.copies_count', 'DESC')
 			->orderBy('images.id', 'DESC')
 			->paginate(config('settings.result_request'))
+			->appends(request()->query())
 			->onEachSide(1);
 
 		return $data;
@@ -493,11 +548,51 @@ class Query extends Model
 
 	public static function tagsImages($tags)
 	{
-		$images = Images::where('tags', 'LIKE', '%' . $tags . '%')
-			->where('status', 'active')
-			->groupBy('id')
-			->orderBy('id', 'desc')
-			->paginate(config('settings.result_request'))->onEachSide(1);
+		$tags = trim($tags);
+		$sort = request()->get('sort');
+		$tier = request()->get('tier');
+		$aiModel = request()->get('ai_model');
+		$category = request()->get('category');
+
+		$escaped = preg_replace('/([.\\\\+*?\[\^\]$(){}=!<>|:\-])/', '\\\\$1', $tags);
+		$pattern = '(^|,)[[:space:]]*' . $escaped . '[[:space:]]*(,|$)';
+
+		$query = Images::selectFieldsRelation()
+			->whereRaw("tags REGEXP ?", [$pattern])
+			->where('status', 'active');
+
+		if ($tier == 'free') {
+			$query->where('images.item_for_sale', 'free');
+		} else if ($tier == 'premium' || $tier == 'sale') {
+			$query->where('images.item_for_sale', 'sale');
+		}
+
+		if (!empty($aiModel)) {
+			$query->where('images.ai_model', $aiModel);
+		}
+
+		if (!empty($category)) {
+			if (is_numeric($category)) {
+				$query->where('images.categories_id', (int) $category);
+			} else {
+				$catObj = \App\Models\Categories::where('slug', $category)->orWhere('name', $category)->first();
+				if ($catObj) {
+					$query->where('images.categories_id', $catObj->id);
+				} else {
+					$query->where('images.categories_id', 0);
+				}
+			}
+		}
+
+		if ($sort == 'oldest') {
+			$query->orderBy('images.id', 'asc');
+		} else {
+			$query->orderBy('images.id', 'desc');
+		}
+
+		$images = $query->groupBy('id')
+			->paginate(config('settings.result_request'))
+			->onEachSide(1);
 
 		$title = __('misc.tags') . ' - ' . $tags;
 
@@ -553,11 +648,38 @@ class Query extends Model
 
 	public static function freeImages()
 	{
-		$data = Images::selectFieldsRelation()
+		$sort = request()->get('sort');
+		$aiModel = request()->get('ai_model');
+		$category = request()->get('category');
+
+		$query = Images::selectFieldsRelation()
 			->where('item_for_sale', 'free')
-			->where('status', 'active')
-			->orderBy('id', 'DESC')
-			->paginate(config('settings.result_request'))
+			->where('status', 'active');
+
+		if (!empty($aiModel)) {
+			$query->where('images.ai_model', $aiModel);
+		}
+
+		if (!empty($category)) {
+			if (is_numeric($category)) {
+				$query->where('images.categories_id', (int) $category);
+			} else {
+				$catObj = \App\Models\Categories::where('slug', $category)->orWhere('name', $category)->first();
+				if ($catObj) {
+					$query->where('images.categories_id', $catObj->id);
+				} else {
+					$query->where('images.categories_id', 0);
+				}
+			}
+		}
+
+		if ($sort == 'oldest') {
+			$query->orderBy('images.id', 'ASC');
+		} else {
+			$query->orderBy('images.id', 'DESC');
+		}
+
+		$data = $query->paginate(config('settings.result_request'))
 			->onEachSide(1);
 
 		return $data;
@@ -565,11 +687,38 @@ class Query extends Model
 
 	public static function premiumImages()
 	{
-		$data = Images::selectFieldsRelation()
+		$sort = request()->get('sort');
+		$aiModel = request()->get('ai_model');
+		$category = request()->get('category');
+
+		$query = Images::selectFieldsRelation()
 			->where('item_for_sale', 'sale')
-			->where('status', 'active')
-			->orderBy('id', 'DESC')
-			->paginate(config('settings.result_request'))
+			->where('status', 'active');
+
+		if (!empty($aiModel)) {
+			$query->where('images.ai_model', $aiModel);
+		}
+
+		if (!empty($category)) {
+			if (is_numeric($category)) {
+				$query->where('images.categories_id', (int) $category);
+			} else {
+				$catObj = \App\Models\Categories::where('slug', $category)->orWhere('name', $category)->first();
+				if ($catObj) {
+					$query->where('images.categories_id', $catObj->id);
+				} else {
+					$query->where('images.categories_id', 0);
+				}
+			}
+		}
+
+		if ($sort == 'oldest') {
+			$query->orderBy('images.id', 'ASC');
+		} else {
+			$query->orderBy('images.id', 'DESC');
+		}
+
+		$data = $query->paginate(config('settings.result_request'))
 			->onEachSide(1);
 
 		return $data;

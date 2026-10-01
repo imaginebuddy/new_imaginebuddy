@@ -136,12 +136,13 @@ class HomeController extends Controller
     }
 
     $images = Query::searchImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
       return view('includes.images')->with($images)->render() . view('includes.pagination-links')->with($images)->render();
     }
 
-    return view('default.search')->with($images);
+    return view('default.search')->with($images)->with('categories', $categories);
   }
 
   public function members()
@@ -161,13 +162,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('prompts_free');
     $images = Query::freeImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.free') . ' Prompts',
       'description' => __('misc.free_desc'),
     ]);
@@ -181,13 +184,15 @@ class HomeController extends Controller
 
     Helper::seo()->setPage('prompts_premium');
     $images = Query::premiumImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.premium'),
       'description' => __('misc.premium_desc'),
     ]);
@@ -197,13 +202,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('explore_latest');
     $images = Query::latestImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.latest'),
       'description' => __('misc.latest_desc'),
     ]);
@@ -213,13 +220,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('explore_featured');
     $images = Query::featuredImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.featured'),
       'description' => __('misc.featured_desc'),
     ]);
@@ -230,13 +239,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('explore_popular');
     $images = Query::popularImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.popular'),
       'description' => __('misc.popular_desc'),
     ]);
@@ -245,13 +256,15 @@ class HomeController extends Controller
   public function commented()
   {
     $images = Query::commentedImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.most_commented'),
       'description' => __('misc.most_commented_desc'),
     ]);
@@ -261,13 +274,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('explore_viewed');
     $images = Query::viewedImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.most_viewed'),
       'description' => __('misc.most_viewed_desc'),
     ]);
@@ -277,13 +292,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('explore_downloads');
     $images = Query::downloadsImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.most_downloads'),
       'description' => __('misc.most_downloads_desc'),
     ]);
@@ -293,13 +310,15 @@ class HomeController extends Controller
   {
     Helper::seo()->setPage('explore_copied');
     $images = Query::copiedImages();
+    $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
     if (request()->ajax()) {
-      return view('includes.images', ['images' => $images])->render();
+      return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
     return view('index.explore', [
       'images' => $images,
+      'categories' => $categories,
       'title' => __('misc.most_copied_prompts'),
       'description' => __('misc.most_copied_prompts_desc'),
     ]);
@@ -313,7 +332,7 @@ class HomeController extends Controller
     $initialLimit = 24;
     $perPage = 16;
 
-    if (request()->ajax()) {
+    if (request()->ajax() || request()->wantsJson()) {
       if ($tab === 'tags') {
         $tags = $this->getPaginatedTags($page, $initialLimit, $perPage, $q, $hasMore, $nextPage);
         return response()->json([
@@ -380,15 +399,21 @@ class HomeController extends Controller
     $tagsCount = [];
 
     foreach ($images as $img) {
+      $seenKeys = [];
       $tagsArray = explode(',', $img->tags);
       foreach ($tagsArray as $tag) {
-        $tag = trim($tag);
+        $tag = preg_replace('/\s+/', ' ', trim($tag));
         if ($tag !== '') {
+          $key = mb_strtolower($tag);
+          if (isset($seenKeys[$key])) {
+            continue;
+          }
+          $seenKeys[$key] = true;
+
           if ($queryStr !== '' && stripos($tag, $queryStr) === false) {
             continue;
           }
 
-          $key = strtolower($tag);
           if (!isset($tagsCount[$key])) {
             $tagsCount[$key] = [
               'name' => ucwords($tag),
@@ -755,16 +780,20 @@ class HomeController extends Controller
 
   public function tagsShow($slug)
   {
-    $slug = str_replace('_', ' ', $slug);
+    $slugClean = trim(preg_replace('/\s+/', ' ', str_replace('_', ' ', urldecode($slug))));
 
-    if (strlen($slug) > 1) {
-      $images = Query::tagsImages($slug);
+    if (strlen($slugClean) > 1) {
+      $images = Query::tagsImages($slugClean);
+      $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
       if (request()->ajax()) {
-        return view('includes.images')->with($images)->render();
+        return view('includes.images')->with($images)->render() . view('includes.pagination-links')->with($images)->render();
       }
 
-      return view('default.tags-show')->with($images);
+      return view('default.tags-show')->with($images)->with([
+        'categories' => $categories,
+        'tagSlug' => $slug,
+      ]);
     } else {
       abort('404');
     }
