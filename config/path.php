@@ -31,4 +31,7 @@ return array(
     // Client Logos
     'client_logos' => 'uploads/logos/',
 
+    // Blog Featured Images
+    'blog' => 'uploads/blog/',
+
 );

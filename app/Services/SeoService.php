@@ -211,6 +211,7 @@ class SeoService
             '/ai-models' => 'ai_models',
             '/faq' => 'faq',
             '/frequently-asked-questions' => 'faq',
+            '/blog' => 'blog_index',
         ];
 
         return $map[$path] ?? null;
@@ -489,6 +490,69 @@ class SeoService
             ];
         }
 
+        // Case F: BlogPost
+        if ($className === 'BlogPost') {
+            $postTitle = $entity->meta_title ?: ($entity->title . ' - ' . $siteTitle . ' Blog');
+            $postDesc = $entity->meta_description ?: ($entity->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($entity->content), 160));
+            $postKeywords = $entity->meta_keywords ?: '';
+            if (empty($postKeywords) && $entity->relationLoaded('tags')) {
+                $postKeywords = $entity->tags->pluck('name')->implode(', ');
+            }
+            $postCanonical = $entity->canonical_url ?: url('blog/' . $entity->slug);
+            $coverUrl = $entity->featured_image
+                ? url(config('path.blog', 'uploads/blog/') . $entity->featured_image)
+                : url('public/img', config('settings.logo_light', 'logo.png'));
+
+            return [
+                'title' => $postTitle,
+                'description' => $postDesc,
+                'keywords' => $postKeywords,
+                'canonical' => $postCanonical,
+                'robots' => $entity->robots ?: 'index, follow',
+                'og_title' => $entity->og_title ?: $postTitle,
+                'og_description' => $entity->og_description ?: $postDesc,
+                'og_image' => $coverUrl,
+                'og_type' => 'article',
+                'twitter_card' => $entity->twitter_card ?: 'summary_large_image',
+                'schema_type' => $entity->schema_type ?: 'BlogPosting',
+                'schema_custom' => null,
+                'entity' => $entity,
+                'has_custom_title' => true,
+                'has_custom_desc' => true,
+                'has_custom_keywords' => !empty($postKeywords),
+                'has_custom_og_title' => true,
+                'has_custom_og_desc' => true,
+            ];
+        }
+
+        // Case G: BlogCategory
+        if ($className === 'BlogCategory') {
+            $catTitle = !empty($entity->seo_title) ? $entity->seo_title : ($entity->name . ' - Guides & Articles | ' . $siteTitle);
+            $catDesc = !empty($entity->seo_description) ? $entity->seo_description : (!empty($entity->description) ? $entity->description : ('Read our curated ' . $entity->name . ' guides, tutorials, and insights on ' . $siteTitle . '.'));
+            $catCanonical = url('blog/category/' . $entity->slug);
+
+            return [
+                'title' => $catTitle,
+                'description' => $catDesc,
+                'keywords' => $entity->name . ', AI blog, prompt guides',
+                'canonical' => $catCanonical,
+                'robots' => 'index, follow',
+                'og_title' => $catTitle,
+                'og_description' => $catDesc,
+                'og_image' => url('public/img', config('settings.logo_light', 'logo.png')),
+                'og_type' => 'website',
+                'twitter_card' => 'summary_large_image',
+                'schema_type' => 'CollectionPage',
+                'schema_custom' => null,
+                'entity' => $entity,
+                'has_custom_title' => true,
+                'has_custom_desc' => true,
+                'has_custom_keywords' => true,
+                'has_custom_og_title' => true,
+                'has_custom_og_desc' => true,
+            ];
+        }
+
         // Default fallback
         return $this->resolve();
     }
@@ -633,6 +697,105 @@ class SeoService
                     $schemas[] = [
                         '@context' => 'https://schema.org',
                         '@type' => 'ImageGallery',
+                        'name' => $data['title'],
+                        'description' => $data['description'],
+                        'url' => $data['canonical'],
+                    ];
+                }
+                break;
+
+            case 'Blog':
+                $schemas[] = [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'Blog',
+                    'name' => $data['title'],
+                    'description' => $data['description'],
+                    'url' => $data['canonical'],
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => $siteName,
+                        'url' => $siteUrl,
+                        'logo' => $logoUrl,
+                    ],
+                ];
+                break;
+
+            case 'BlogPosting':
+            case 'Article':
+                if (isset($data['entity']) && class_basename($data['entity']) === 'BlogPost') {
+                    $post = $data['entity'];
+                    $authorName = $post->user ? ($post->user->name ?: $post->user->username) : $siteName;
+                    $authorUrl = $post->user ? url($post->user->username) : $siteUrl;
+
+                    $postSchema = [
+                        '@context' => 'https://schema.org',
+                        '@type' => $data['schema_type'] ?: 'BlogPosting',
+                        'mainEntityOfPage' => [
+                            '@type' => 'WebPage',
+                            '@id' => $data['canonical'],
+                        ],
+                        'headline' => $post->title,
+                        'description' => $data['description'],
+                        'image' => !empty($data['og_image']) ? $data['og_image'] : $logoUrl,
+                        'datePublished' => $post->published_at ? date('c', strtotime($post->published_at)) : date('c', strtotime($post->created_at)),
+                        'dateModified' => $post->updated_at ? date('c', strtotime($post->updated_at)) : date('c'),
+                        'author' => [
+                            '@type' => 'Person',
+                            'name' => $authorName,
+                            'url' => $authorUrl,
+                        ],
+                        'publisher' => [
+                            '@type' => 'Organization',
+                            'name' => $siteName,
+                            'url' => $siteUrl,
+                            'logo' => [
+                                '@type' => 'ImageObject',
+                                'url' => $logoUrl,
+                            ],
+                        ],
+                    ];
+
+                    if (!empty($post->excerpt)) {
+                        $postSchema['abstract'] = $post->excerpt;
+                    }
+
+                    $schemas[] = $postSchema;
+
+                    // BreadcrumbList Schema for blog post
+                    $schemas[] = [
+                        '@context' => 'https://schema.org',
+                        '@type' => 'BreadcrumbList',
+                        'itemListElement' => [
+                            [
+                                '@type' => 'ListItem',
+                                'position' => 1,
+                                'name' => 'Home',
+                                'item' => $siteUrl,
+                            ],
+                            [
+                                '@type' => 'ListItem',
+                                'position' => 2,
+                                'name' => 'Blog',
+                                'item' => url('blog'),
+                            ],
+                            [
+                                '@type' => 'ListItem',
+                                'position' => 3,
+                                'name' => $post->category ? $post->category->name : 'Articles',
+                                'item' => $post->category ? url('blog/category/' . $post->category->slug) : url('blog'),
+                            ],
+                            [
+                                '@type' => 'ListItem',
+                                'position' => 4,
+                                'name' => $post->title,
+                                'item' => $data['canonical'],
+                            ],
+                        ],
+                    ];
+                } else {
+                    $schemas[] = [
+                        '@context' => 'https://schema.org',
+                        '@type' => $data['schema_type'] ?: 'BlogPosting',
                         'name' => $data['title'],
                         'description' => $data['description'],
                         'url' => $data['canonical'],

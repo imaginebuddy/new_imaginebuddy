@@ -23,6 +23,8 @@
                 <li><a href="{{url('pricing')}}" class="nav-link px-2 link-dark">{{__('misc.pricing')}}</a></li>
               @endif
 
+              <li><a href="{{url('blog')}}" class="nav-link px-2 link-dark @if (request()->is('blog*')) fw-bold @endif">Blog</a></li>
+
 
               {{-- HIDDEN_NAV: Feed (/feed) --}}
               @if(false)

@@ -177,6 +177,13 @@ Route::post('contact',[HomeController::class, 'contactStore']);
 Route::get('frequently-asked-questions', [FaqController::class, 'index'])->name('faq');
 Route::get('faq', [FaqController::class, 'faqRedirect']);
 
+// Blog System
+Route::get('blog', [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('blog/category/{slug}', [\App\Http\Controllers\BlogController::class, 'category'])->name('blog.category');
+Route::get('blog/tag/{slug}', [\App\Http\Controllers\BlogController::class, 'tag'])->name('blog.tag');
+Route::get('blog/preview/{token}', [\App\Http\Controllers\BlogController::class, 'preview'])->name('blog.preview');
+Route::get('blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+
 /*
  |
  |-----------------------------------
@@ -677,6 +684,22 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/faqs/update/{id}', [AdminFaqController::class, 'update']);
 	Route::post('panel/admin/faqs/delete/{id}', [AdminFaqController::class, 'destroy']);
 	Route::post('panel/admin/faqs/toggle-status/{id}', [AdminFaqController::class, 'toggleStatus']);
+
+	// Blog Posts & Categories
+	Route::get('panel/admin/blog', [\App\Http\Controllers\AdminBlogController::class, 'index'])->name('blog.admin');
+	Route::get('panel/admin/blog/create', [\App\Http\Controllers\AdminBlogController::class, 'create'])->name('blog.create');
+	Route::post('panel/admin/blog/create', [\App\Http\Controllers\AdminBlogController::class, 'store']);
+	Route::get('panel/admin/blog/edit/{id}', [\App\Http\Controllers\AdminBlogController::class, 'edit'])->name('blog.edit');
+	Route::post('panel/admin/blog/update/{id}', [\App\Http\Controllers\AdminBlogController::class, 'update']);
+	Route::post('panel/admin/blog/delete/{id}', [\App\Http\Controllers\AdminBlogController::class, 'destroy']);
+	Route::post('panel/admin/blog/toggle-status/{id}', [\App\Http\Controllers\AdminBlogController::class, 'toggleStatus']);
+
+	Route::get('panel/admin/blog/categories', [\App\Http\Controllers\AdminBlogCategoryController::class, 'index'])->name('blog.categories');
+	Route::get('panel/admin/blog/categories/create', [\App\Http\Controllers\AdminBlogCategoryController::class, 'create'])->name('blog.categories.create');
+	Route::post('panel/admin/blog/categories/create', [\App\Http\Controllers\AdminBlogCategoryController::class, 'store']);
+	Route::get('panel/admin/blog/categories/edit/{id}', [\App\Http\Controllers\AdminBlogCategoryController::class, 'edit'])->name('blog.categories.edit');
+	Route::post('panel/admin/blog/categories/update/{id}', [\App\Http\Controllers\AdminBlogCategoryController::class, 'update']);
+	Route::post('panel/admin/blog/categories/delete/{id}', [\App\Http\Controllers\AdminBlogCategoryController::class, 'destroy']);
 
 });//<--- End Group Role
 

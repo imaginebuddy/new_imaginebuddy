@@ -121,5 +121,27 @@
          <priority>0.8</priority>
    </url>
  @endforeach
+
+        <url>
+            <loc>{{ url('blog') }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.8</priority>
+        </url>
+
+        @foreach (App\Models\BlogCategory::active()->get() as $bCategory)
+        <url>
+            <loc>{{ url('blog/category', $bCategory->slug) }}</loc>
+            <lastmod>{{ $bCategory->updated_at ? Carbon\Carbon::parse($bCategory->updated_at)->format('Y-m-d') : $date }}</lastmod>
+            <priority>0.7</priority>
+        </url>
+        @endforeach
+
+        @foreach (App\Models\BlogPost::published()->get() as $bPost)
+        <url>
+            <loc>{{ url('blog', $bPost->slug) }}</loc>
+            <lastmod>{{ $bPost->updated_at ? Carbon\Carbon::parse($bPost->updated_at)->format('Y-m-d') : $date }}</lastmod>
+            <priority>0.8</priority>
+        </url>
+        @endforeach
    
 </urlset>

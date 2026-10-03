@@ -406,6 +406,17 @@
 <div class="row mb-3">
 	<div class="col-sm-10 offset-sm-2">
 		<div class="form-check">
+			<input class="form-check-input check" name="permissions[]" value="blog" @if (isset($permissions) && in_array('blog', $permissions)) checked="checked" @endif type="checkbox" id="blog">
+			<label class="form-check-label" for="blog">
+				Blog System &amp; Articles
+			</label>
+		</div>
+	</div>
+</div>
+
+<div class="row mb-3">
+	<div class="col-sm-10 offset-sm-2">
+		<div class="form-check">
 			<input class="form-check-input check" name="permissions[]" value="payment_settings" @if (isset($permissions) && in_array('payment_settings', $permissions)) checked="checked" @endif type="checkbox" id="payment_settings">
 			<label class="form-check-label" for="payment_settings">
 				{{ __('admin.payment_settings') }}

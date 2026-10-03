@@ -378,6 +378,32 @@
               </li><!-- /end list -->
               @endif
 
+              @if (auth()->user()->hasPermission('blog'))
+              <li class="nav-item">
+                  <a href="#blogMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/blog*')) active @endif" @if (request()->is('panel/admin/blog*')) aria-expanded="true" @endif>
+                      <i class="bi-journal-richtext me-2"></i> Blog System
+                  </a>
+              </li><!-- /end list -->
+
+              <div class="collapse w-100 @if (request()->is('panel/admin/blog*')) show @endif ps-3" id="blogMenu">
+                <li>
+                  <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/blog') || request()->is('panel/admin/blog/edit/*')) text-white @endif" href="{{ url('panel/admin/blog') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> All Articles
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->is('panel/admin/blog/create')) text-white @endif" href="{{ url('panel/admin/blog/create') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> {{ trans('misc.add_new') }} Article
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->is('panel/admin/blog/categories*')) text-white @endif" href="{{ url('panel/admin/blog/categories') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> Categories
+                  </a>
+                </li>
+              </div><!-- /end collapse blogMenu -->
+              @endif
+
                 @if (auth()->user()->hasPermission('payment_settings'))
               <li class="nav-item">
                   <a href="#payments" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/payments') || request()->is('panel/admin/payments/*')) active @endif" @if (request()->is('panel/admin/payments') || request()->is('panel/admin/payments/*')) aria-expanded="true" @endif>

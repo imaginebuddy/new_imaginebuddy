@@ -8,6 +8,8 @@ CKEDITOR.replace('content', {
       removePlugins: 'resize',
       embed_provider : '//ckeditor.iframe.ly/api/oembed?url={url}&callback={callback}',
       enterMode: CKEDITOR.ENTER_BR,
+      allowedContent: true,
+      format_tags: 'p;h1;h2;h3;h4;h5;h6;pre;address;div',
 
       // Toolbar adjustments to simplify the editor.
  toolbar: [{
@@ -28,11 +30,11 @@ CKEDITOR.replace('content', {
    },
    {
      name: 'paragraph',
-     items: ['BulletedList', 'NumberedList']
+     items: ['BulletedList', 'NumberedList', '-', 'Blockquote']
    },
    {
      name: 'insert',
-     items: ['Image', 'Youtube', 'Embed']
+     items: ['Image', 'Table', 'HorizontalRule', 'Youtube', 'Embed']
    },
    {
      name: 'tools',

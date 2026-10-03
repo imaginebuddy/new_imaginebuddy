@@ -45,9 +45,7 @@
               @foreach (Helper::pages() as $page)
               <li><a class="text-white text-decoration-none" href="{{url('page', $page->slug) }}">{{ $page->title }}</a></li>
               @endforeach
-              @if ($settings->link_blog != '')
-              <li><a class="text-white text-decoration-none" target="_blank" href="{{ $settings->link_blog }}">{{ __('misc.blog') }}</a></li>
-              @endif
+              <li><a class="text-white text-decoration-none" href="{{ url('blog') }}">{{ __('misc.blog') }}</a></li>
               <li><a class="text-white text-decoration-none" href="{{ url('contact') }}">{{ __('misc.contact') }}</a></li>
               <li><a class="text-white text-decoration-none" href="{{ url('frequently-asked-questions') }}">{{ __('admin.faq') }}</a></li>
            </ul>
