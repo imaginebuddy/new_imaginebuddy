@@ -100,6 +100,11 @@
   color: #00d690 !important;
 }
 
+[data-bs-theme="dark"] .collection-1,
+[data-bs-theme="dark"] .collection-2 {
+  background-color: #14171a !important;
+}
+
 /* --- Dynamic Pill Tabs Styling --- */
 .category-pills .nav-link {
   color: #6c757d;
@@ -110,6 +115,26 @@
   background-color: #00d690 !important;
   color: #ffffff !important;
   box-shadow: 0 0.25rem 0.75rem rgba(0, 214, 144, 0.3) !important;
+}
+
+.photoshoot-category-scroll .btn.active,
+.blog-category-scroll .btn.active {
+  background-color: #00d690 !important;
+  border-color: #00d690 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 214, 144, 0.35) !important;
+}
+
+.photoshoot-category-scroll .btn.active:hover,
+.blog-category-scroll .btn.active:hover {
+  background-color: #00c082 !important;
+  border-color: #00c082 !important;
+  color: #ffffff !important;
+}
+
+.blog-category-scroll .btn.active .badge {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
 }
 
 .bg-subtle-custom {
@@ -448,8 +473,10 @@
 /* --- Navbar Homepage Scroll Search & Header Transition --- */
 #header {
   transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease !important;
+  z-index: 1030;
 }
 
+/* Light Mode: Transparent Header (homepage hero top) */
 #header.header-home-transparent {
   background-color: transparent !important;
   background: transparent !important;
@@ -464,6 +491,152 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
+/* Light Mode: Solid Header (scrolled on homepage or on subpages) */
+#header:not(.header-home-transparent),
+#header.bg-white {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e9ecef !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+#header:not(.header-home-transparent) .navbar-session a.nav-link,
+#header:not(.header-home-transparent) .link-dark,
+#header:not(.header-home-transparent) .toggle-menu,
+#header.bg-white .navbar-session a.nav-link,
+#header.bg-white .link-dark,
+#header.bg-white .toggle-menu {
+  color: #1e293b !important;
+}
+
+#header:not(.header-home-transparent) .navbar-session a.nav-link:hover,
+#header:not(.header-home-transparent) .link-dark:hover,
+#header.bg-white .navbar-session a.nav-link:hover,
+#header.bg-white .link-dark:hover {
+  color: #00d690 !important;
+}
+
+#header:not(.header-home-transparent) .navbar-session a.nav-link.fw-bold,
+#header.bg-white .navbar-session a.nav-link.fw-bold {
+  color: #0f172a !important;
+}
+
+#header:not(.header-home-transparent) .search-navbar,
+#header.bg-white .search-navbar {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+#header:not(.header-home-transparent) .search-navbar:focus,
+#header.bg-white .search-navbar:focus {
+  background-color: #ffffff !important;
+  border-color: #00d690 !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 214, 144, 0.15) !important;
+}
+
+#header:not(.header-home-transparent) .search-navbar::placeholder,
+#header.bg-white .search-navbar::placeholder {
+  color: #64748b !important;
+}
+
+#header:not(.header-home-transparent) .bar-search,
+#header.bg-white .bar-search {
+  color: #64748b !important;
+}
+
+/* ========================================================
+   DARK MODE OPTIMIZATION FOR HEADER, DROPDOWNS & MOBILE
+======================================================== */
+[data-bs-theme="dark"] #header:not(.header-home-transparent),
+[data-bs-theme="dark"] #header.bg-white {
+  background-color: #12171d !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-bs-theme="dark"] #header .navbar-session a.nav-link,
+[data-bs-theme="dark"] #header .link-dark,
+[data-bs-theme="dark"] #header .toggle-menu {
+  color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] #header .navbar-session a.nav-link:hover,
+[data-bs-theme="dark"] #header .link-dark:hover {
+  color: #00d690 !important;
+}
+
+[data-bs-theme="dark"] #header .navbar-session a.nav-link.fw-bold {
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] #header .search-navbar {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] #header .search-navbar:focus {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: #00d690 !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 214, 144, 0.2) !important;
+}
+
+[data-bs-theme="dark"] #header .search-navbar::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] #header .bar-search {
+  color: #94a3b8 !important;
+}
+
+/* Dark mode dropdowns */
+[data-bs-theme="dark"] #header .dropdown-menu {
+  background-color: #1a202c !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-bs-theme="dark"] #header .dropdown-item {
+  color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] #header .dropdown-item:hover,
+[data-bs-theme="dark"] #header .dropdown-item:focus {
+  background-color: #242c38 !important;
+  color: #00d690 !important;
+}
+
+[data-bs-theme="dark"] #header .dropdown-item.active {
+  background-color: #00d690 !important;
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] #header .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dark mode mobile offcanvas */
+[data-bs-theme="dark"] .offcanvas {
+  background-color: #12171d !important;
+  color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .offcanvas .nav-link {
+  color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] .offcanvas .nav-link:hover {
+  color: #00d690 !important;
+}
+
+[data-bs-theme="dark"] .offcanvas .nav-link.fw-bold {
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .offcanvas .btn-close {
+  filter: invert(1) brightness(1.5);
+}
+
 /* Header logo display rules */
 #header .logoMain,
 #header .logoLight,
@@ -475,37 +648,39 @@
   #header .logo {
     display: block !important;
   }
+  [data-bs-theme="dark"] #header .logo {
+    filter: invert(1);
+  }
 }
 
 @media (min-width: 992px) {
-  /* Default Desktop: Light mode shows logoMain */
-  #header .logoMain {
-    display: block !important;
-  }
-  #header .logoLight {
+  #header .logo {
     display: none !important;
   }
 
-  /* Dark mode: show logoLight */
-  [data-bs-theme="dark"] #header .logoMain {
-    display: none !important;
-  }
-  [data-bs-theme="dark"] #header .logoLight {
+  /* Default Desktop Light mode solid: show logoMain */
+  #header:not(.header-home-transparent) .logoMain {
     display: block !important;
   }
+  #header:not(.header-home-transparent) .logoLight {
+    display: none !important;
+  }
 
-  /* Transparent header (homepage top over dark background): show logoLight */
+  /* Transparent header (homepage hero): show logoLight */
   #header.header-home-transparent .logoMain {
     display: none !important;
   }
   #header.header-home-transparent .logoLight {
     display: block !important;
   }
-}
 
-/* Global fallback: ensure logoLight is hidden by default unless dark mode is active */
-.logoLight {
-  display: none !important;
+  /* Dark mode: ALWAYS show logoLight */
+  [data-bs-theme="dark"] #header .logoMain {
+    display: none !important;
+  }
+  [data-bs-theme="dark"] #header .logoLight {
+    display: block !important;
+  }
 }
 
 /* Auth Pages (Login / Register / Password Recovery) logo display rules */

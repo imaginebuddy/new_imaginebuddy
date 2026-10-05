@@ -19,8 +19,8 @@
 
     <!-- Category Header -->
     <div class="text-center pt-2 pt-md-3 pb-3 mb-4">
-      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">
-        <i class="bi-folder2-open me-1 text-mint"></i> Category Archive
+      <span class="badge rounded-pill px-4 py-2 mb-3 d-inline-flex align-items-center" style="color: #00d690; border: 1px solid #00d690; background-color: transparent; font-size: 0.85rem; font-weight: 500;">
+        <i class="bi-folder2-open me-2 text-mint"></i> Category Archive
       </span>
       <h1 class="fw-bold text-dark title-custom display-5 mb-3">
         {{ $category->name }}
@@ -44,7 +44,7 @@
           All Topics
         </a>
         @foreach ($categories as $cat)
-          <a href="{{ url('blog/category', $cat->slug) }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ $category->id == $cat->id ? 'btn-dark fw-bold' : 'btn-outline-custom' }}">
+          <a href="{{ url('blog/category', $cat->slug) }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ $category->id == $cat->id ? 'btn-custom fw-semibold active text-white' : 'btn-outline-custom' }}">
             {{ $cat->name }} <span class="badge bg-secondary-soft text-secondary rounded-pill ms-1">{{ $cat->published_posts_count }}</span>
           </a>
         @endforeach
@@ -182,4 +182,34 @@
   background-color: rgba(108, 117, 125, 0.12);
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function centerActiveCategory(smooth) {
+    var container = document.querySelector('.blog-category-scroll');
+    if (!container) return;
+    var activeTab = container.querySelector('.active');
+    if (!activeTab) return;
+
+    var containerRect = container.getBoundingClientRect();
+    var tabRect = activeTab.getBoundingClientRect();
+    var diff = (tabRect.left + tabRect.width / 2) - (containerRect.left + containerRect.width / 2);
+    var targetScroll = container.scrollLeft + diff;
+
+    if (smooth) {
+      container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+    } else {
+      container.scrollLeft = Math.max(0, targetScroll);
+    }
+  }
+
+  centerActiveCategory(false);
+  setTimeout(function() { centerActiveCategory(true); }, 80);
+  setTimeout(function() { centerActiveCategory(true); }, 250);
+
+  window.addEventListener('resize', function() {
+    centerActiveCategory(false);
+  });
+});
+</script>
 @endsection

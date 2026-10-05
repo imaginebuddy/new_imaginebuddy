@@ -55,7 +55,7 @@
                 {{ $photoshoot->category->name }}
               </a>
             @endif
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-bold" style="font-size: 0.8rem;">
+            <span class="badge rounded-pill px-3 py-2 d-inline-flex align-items-center" style="color: #00d690; border: 1px solid #00d690; background-color: transparent; font-size: 0.8rem; font-weight: 500;">
               <i class="bi bi-images me-1 text-mint"></i> {{ $images->total() }} {{ str_plural('Prompt', $images->total()) }} Set
             </span>
           </div>

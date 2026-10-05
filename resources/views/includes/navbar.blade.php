@@ -17,10 +17,12 @@
             <!-- Start Nav -->
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 navbar-session">
 
-              <li><a href="{{url('prompts/free')}}" class="nav-link px-2 link-dark">{{__('misc.free')}} Prompts</a></li>
+              <li><a href="{{url('photoshoots')}}" class="nav-link px-2 link-dark @if (request()->is('photoshoots*')) fw-bold @endif">Photoshoots</a></li>
+
+              <li><a href="{{url('prompts/free')}}" class="nav-link px-2 link-dark @if (request()->is('prompts/free*')) fw-bold @endif">{{__('misc.free')}} Prompts</a></li>
 
               @if ($plansActive != 0 && $settings->sell_option == 'on')
-                <li><a href="{{url('pricing')}}" class="nav-link px-2 link-dark">{{__('misc.pricing')}}</a></li>
+                <li><a href="{{url('pricing')}}" class="nav-link px-2 link-dark @if (request()->is('pricing*')) fw-bold @endif">{{__('misc.pricing')}}</a></li>
               @endif
 
               <li><a href="{{url('blog')}}" class="nav-link px-2 link-dark @if (request()->is('blog*')) fw-bold @endif">Blog</a></li>
@@ -29,48 +31,48 @@
               {{-- HIDDEN_NAV: Feed (/feed) --}}
               @if(false)
               @auth
-                <li><a href="{{url('feed')}}" class="nav-link px-2 link-dark">{{__('misc.feed')}}</a></li>
+                <li><a href="{{url('feed')}}" class="nav-link px-2 link-dark @if (request()->is('feed*')) fw-bold @endif">{{__('misc.feed')}}</a></li>
               @endauth
               @endif
 
               <li class="dropdown">
-                <a href="javascript:void(0);" class="nav-link px-2 link-dark dropdown-toggle" id="dropdownExplore" data-bs-toggle="dropdown" aria-expanded="false">
+                <a href="javascript:void(0);" class="nav-link px-2 link-dark dropdown-toggle @if (request()->is('ai-models*', 'tags*', 'prompts/premium*', 'featured*', 'popular*', 'latest*', 'most/*')) fw-bold @endif" id="dropdownExplore" data-bs-toggle="dropdown" aria-expanded="false">
                 {{__('misc.explore')}}
               </a>
               <ul class="dropdown-menu dropdown-menu-macos dropdown-menu-lg-end arrow-dm" aria-labelledby="dropdownExplore">
-                <li><a class="dropdown-item" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
-                <li><a class="dropdown-item" href="{{ url('ai-models') }}"><i class="bi bi-cpu me-2"></i> {{ __('misc.ai_models') }}</a></li>
-                <li><a class="dropdown-item" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
+                <li><a class="dropdown-item @if (request()->is('photoshoots*')) active fw-bold @endif" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
+                <li><a class="dropdown-item @if (request()->is('ai-models*')) active fw-bold @endif" href="{{ url('ai-models') }}"><i class="bi bi-cpu me-2"></i> {{ __('misc.ai_models') }}</a></li>
+                <li><a class="dropdown-item @if (request()->is('tags*')) active fw-bold @endif" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
-                <li><a class="dropdown-item" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
+                <li><a class="dropdown-item @if (request()->is('prompts/free*')) active fw-bold @endif" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
 
                 @if ($settings->sell_option == 'on')
-                <li><a class="dropdown-item" href="{{ url('prompts/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
+                <li><a class="dropdown-item @if (request()->is('prompts/premium*')) active fw-bold @endif" href="{{ url('prompts/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
                 @endif
 
                 <li><hr class="dropdown-divider"></li>
 
-                <li><a class="dropdown-item" href="{{ url('featured') }}">{{ __('misc.featured') }}</a></li>
-                <li><a class="dropdown-item" href="{{ url('popular') }}">{{ __('misc.popular') }}</a></li>
-                <li><a class="dropdown-item" href="{{ url('latest') }}">{{ __('misc.latest') }}</a></li>
+                <li><a class="dropdown-item @if (request()->is('featured*')) active fw-bold @endif" href="{{ url('featured') }}">{{ __('misc.featured') }}</a></li>
+                <li><a class="dropdown-item @if (request()->is('popular*')) active fw-bold @endif" href="{{ url('popular') }}">{{ __('misc.popular') }}</a></li>
+                <li><a class="dropdown-item @if (request()->is('latest*')) active fw-bold @endif" href="{{ url('latest') }}">{{ __('misc.latest') }}</a></li>
                 @if ($settings->comments)
-                <li><a class="dropdown-item" href="{{ url('most/commented') }}">{{__('misc.most_commented')}}</a></li>
+                <li><a class="dropdown-item @if (request()->is('most/commented*')) active fw-bold @endif" href="{{ url('most/commented') }}">{{__('misc.most_commented')}}</a></li>
               @endif
-                <li><a class="dropdown-item" href="{{ url('most/viewed') }}">{{__('misc.most_viewed')}}</a></li>
-                <li><a class="dropdown-item" href="{{ url('most/downloads') }}">{{__('misc.most_downloads')}}</a></li>
-                <li><a class="dropdown-item" href="{{ url('most/copied') }}">{{__('misc.most_copied_prompts')}}</a></li>
+                <li><a class="dropdown-item @if (request()->is('most/viewed*')) active fw-bold @endif" href="{{ url('most/viewed') }}">{{__('misc.most_viewed')}}</a></li>
+                <li><a class="dropdown-item @if (request()->is('most/downloads*')) active fw-bold @endif" href="{{ url('most/downloads') }}">{{__('misc.most_downloads')}}</a></li>
+                <li><a class="dropdown-item @if (request()->is('most/copied*')) active fw-bold @endif" href="{{ url('most/copied') }}">{{__('misc.most_copied_prompts')}}</a></li>
               </ul>
               </li>
 
               <li class="dropdown">
-                <a href="javascript:void(0);" class="nav-link px-2 link-dark dropdown-toggle" id="dropdownExplore" data-bs-toggle="dropdown" aria-expanded="false">
+                <a href="javascript:void(0);" class="nav-link px-2 link-dark dropdown-toggle @if (request()->is('category*', 'categories*')) fw-bold @endif" id="dropdownCategories" data-bs-toggle="dropdown" aria-expanded="false">
                   {{__('misc.categories')}}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-macos dropdown-menu-lg-end arrow-dm" aria-labelledby="dropdownCategories">
 
                 @foreach ($categoriesMain as $category)
                   <li>
-                  <a class="dropdown-item" href="{{ url('category', $category->slug) }}">
+                  <a class="dropdown-item @if (request()->is('category/' . $category->slug . '*')) active fw-bold @endif" href="{{ url('category', $category->slug) }}">
                   {{ Lang::has('categories.' . $category->slug) ? __('categories.' . $category->slug) : $category->name }}
                     </a>
                   </li>
@@ -78,7 +80,7 @@
 
                   @if ($categoriesCount > 5)
                   <li>
-                    <a class="dropdown-item arrow" href="{{ url('categories') }}">
+                    <a class="dropdown-item arrow @if (request()->is('categories*')) active fw-bold @endif" href="{{ url('categories') }}">
                       <strong>{{ __('misc.view_all') }}</strong>
                       </a>
                     </li>
@@ -127,7 +129,7 @@
             </div>
             @endauth
 
-            <a class="ms-3 toggle-menu d-block d-lg-none text-dark fs-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" href="#">
+            <a class="ms-3 toggle-menu d-block d-lg-none fs-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" href="#">
             <i class="bi-list"></i>
             </a>
 
@@ -144,24 +146,36 @@
         <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start" id="menu">
 
           <li>
-            <a href="{{url('prompts/free')}}" class="nav-link link-dark text-truncate">
+            <a href="{{url('photoshoots')}}" class="nav-link link-dark text-truncate @if (request()->is('photoshoots*')) fw-bold @endif">
+              Photoshoots
+            </a>
+          </li>
+
+          <li>
+            <a href="{{url('prompts/free')}}" class="nav-link link-dark text-truncate @if (request()->is('prompts/free*')) fw-bold @endif">
               {{__('misc.free')}} Prompts
             </a>
           </li>
 
           @if ($plansActive != 0 && $settings->sell_option == 'on')
             <li>
-              <a href="{{url('pricing')}}" class="nav-link link-dark text-truncate">
+              <a href="{{url('pricing')}}" class="nav-link link-dark text-truncate @if (request()->is('pricing*')) fw-bold @endif">
               {{__('misc.pricing')}}
             </a>
           </li>
           @endif
 
+          <li>
+            <a href="{{url('blog')}}" class="nav-link link-dark text-truncate @if (request()->is('blog*')) fw-bold @endif">
+              Blog
+            </a>
+          </li>
+
           {{-- HIDDEN_NAV: Feed (/feed) --}}
           @if(false)
           @auth
             <li>
-            <a href="{{url('feed')}}" class="nav-link link-dark text-truncate">
+            <a href="{{url('feed')}}" class="nav-link link-dark text-truncate @if (request()->is('feed*')) fw-bold @endif">
               {{__('misc.feed')}}
             </a>
             </li>
@@ -169,36 +183,36 @@
           @endif
 
             <li>
-                <a href="#explore" data-bs-toggle="collapse" class="nav-link text-truncate link-dark dropdown-toggle">
+                <a href="#explore" data-bs-toggle="collapse" class="nav-link text-truncate link-dark dropdown-toggle @if (request()->is('ai-models*', 'tags*', 'prompts/premium*', 'featured*', 'popular*', 'latest*', 'most/*')) fw-bold @endif">
                     {{__('misc.explore')}}
                   </a>
             </li>
 
             <div class="collapse ps-3" id="explore">
 
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('ai-models') }}"><i class="bi bi-cpu me-2"></i> {{ __('misc.ai_models') }}</a></li>
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('photoshoots*')) fw-bold text-dark @endif" href="{{ url('photoshoots') }}"><i class="bi bi-collection-play me-2"></i> Photoshoots</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('ai-models*')) fw-bold text-dark @endif" href="{{ url('ai-models') }}"><i class="bi bi-cpu me-2"></i> {{ __('misc.ai_models') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('tags*')) fw-bold text-dark @endif" href="{{ url('tags') }}"><i class="bi-tags me-2"></i> {{ __('misc.tags') }}</a></li>
 
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('prompts/free*')) fw-bold text-dark @endif" href="{{ url('prompts/free') }}"><i class="bi bi-gift me-2 text-success"></i> {{ __('misc.free') }} Prompts</a></li>
 
               @if ($settings->sell_option == 'on')
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('prompts/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('prompts/premium*')) fw-bold text-dark @endif" href="{{ url('prompts/premium') }}"><i class="fa fa-crown me-2 text-warning"></i> {{ __('misc.premium') }}</a></li>
               @endif
 
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('featured') }}">{{ __('misc.featured') }}</a></li>
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('popular') }}">{{ __('misc.popular') }}</a></li>
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('latest') }}">{{ __('misc.latest') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('featured*')) fw-bold text-dark @endif" href="{{ url('featured') }}">{{ __('misc.featured') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('popular*')) fw-bold text-dark @endif" href="{{ url('popular') }}">{{ __('misc.popular') }}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('latest*')) fw-bold text-dark @endif" href="{{ url('latest') }}">{{ __('misc.latest') }}</a></li>
               @if ($settings->comments)
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('most/commented') }}">{{__('misc.most_commented')}}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('most/commented*')) fw-bold text-dark @endif" href="{{ url('most/commented') }}">{{__('misc.most_commented')}}</a></li>
             @endif
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('most/viewed') }}">{{__('misc.most_viewed')}}</a></li>
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('most/downloads') }}">{{__('misc.most_downloads')}}</a></li>
-              <li><a class="nav-link text-truncate text-muted" href="{{ url('most/copied') }}">{{__('misc.most_copied_prompts')}}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('most/viewed*')) fw-bold text-dark @endif" href="{{ url('most/viewed') }}">{{__('misc.most_viewed')}}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('most/downloads*')) fw-bold text-dark @endif" href="{{ url('most/downloads') }}">{{__('misc.most_downloads')}}</a></li>
+              <li><a class="nav-link text-truncate text-muted @if (request()->is('most/copied*')) fw-bold text-dark @endif" href="{{ url('most/copied') }}">{{__('misc.most_copied_prompts')}}</a></li>
             </div>
 
             <li>
-                <a href="#categories" data-bs-toggle="collapse" class="nav-link text-truncate link-dark dropdown-toggle">
+                <a href="#categories" data-bs-toggle="collapse" class="nav-link text-truncate link-dark dropdown-toggle @if (request()->is('category*', 'categories*')) fw-bold @endif">
                     {{__('misc.categories')}}
                   </a>
             </li>
@@ -206,7 +220,7 @@
             <div class="collapse ps-3" id="categories">
               @foreach ($categoriesMain as $category)
                 <li>
-                <a class="nav-link text-truncate text-muted" href="{{ url('category', $category->slug) }}">
+                <a class="nav-link text-truncate text-muted @if (request()->is('category/' . $category->slug . '*')) fw-bold text-dark @endif" href="{{ url('category', $category->slug) }}">
                 {{ Lang::has('categories.' . $category->slug) ? __('categories.' . $category->slug) : $category->name }}
                   </a>
                 </li>
@@ -214,7 +228,7 @@
 
                 @if ($categoriesCount > 5)
                 <li>
-                  <a class="nav-link text-truncate text-muted arrow" href="{{ url('categories') }}">
+                  <a class="nav-link text-truncate text-muted arrow @if (request()->is('categories*')) fw-bold text-dark @endif" href="{{ url('categories') }}">
                     <strong>{{ __('misc.view_all') }}</strong>
                     </a>
                   </li>

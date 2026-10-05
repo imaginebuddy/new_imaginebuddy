@@ -1,18 +1,58 @@
 @php
-  $coverImage = $photoshoot->images->first();
-  $coverUrl = $coverImage ? Storage::url(config('path.preview') . $coverImage->preview) : asset('public/img/thumbnail-default.jpg');
-  $categoryObj = $photoshoot->category ?: ($coverImage ? $coverImage->category : null);
+  $photoshootImages = $photoshoot->images ? $photoshoot->images->take(3) : collect();
+  $img0 = $photoshootImages->get(0);
+  $img1 = $photoshootImages->get(1);
+  $img2 = $photoshootImages->get(2);
+
+  $getPhotoshootImgUrl = function($img) {
+    if (!$img) return '';
+    if (!empty($img->preview)) {
+      return Storage::url(config('path.preview') . $img->preview);
+    }
+    if (!empty($img->thumbnail)) {
+      return Storage::url(config('path.thumbnail') . $img->thumbnail);
+    }
+    $stock = $img->stock ? $img->stock->first() : null;
+    if ($stock) {
+      return Storage::url(config('path.small') . $stock->name);
+    }
+    return '';
+  };
+
+  $src0 = $getPhotoshootImgUrl($img0) ?: asset('public/img/thumbnail-default.jpg');
+  $src1 = $getPhotoshootImgUrl($img1);
+  $src2 = $getPhotoshootImgUrl($img2);
+
+  $categoryObj = $photoshoot->category ?: ($img0 ? $img0->category : null);
   $promptCount = $photoshoot->prompts_count ?: ($photoshoot->images ? $photoshoot->images->count() : 0);
 @endphp
 
 <div class="col-sm-6 col-md-6 col-lg-4 mb-4 photoshoot-item">
   <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden photoshoot-card bg-card-custom border border-custom" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
-    <a href="{{ url('photoshoots', $photoshoot->slug) }}" class="d-block overflow-hidden position-relative text-center photoshoot-cover-wrapper" style="border-radius: 16px 16px 0 0; min-height: 280px; max-height: 380px; background-color: #111;">
-      <!-- Blurred Background Fill -->
-      <img src="{{ $coverUrl }}" alt="" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover" style="filter: blur(24px); transform: scale(1.2); opacity: 0.55; pointer-events: none;" />
+    <a href="{{ url('photoshoots', $photoshoot->slug) }}" class="d-block overflow-hidden position-relative photoshoot-cover-wrapper text-decoration-none" style="border-radius: 16px 16px 0 0;">
+      <div class="wrap-collection mb-0" style="margin-bottom: 0 !important; padding-bottom: 102%;">
+        <div class="grid-collection" style="border-radius: 16px 16px 0 0; top: 0; left: 0;">
+          <div class="collection-1">
+            @if ($src0)
+              <img role="presentation" class="img-collection" src="{{ $src0 }}" alt="{{ $photoshoot->title }}">
+            @endif
+          </div><!-- collection-1 -->
 
-      <!-- Crisp Full Main Image Centered -->
-      <img src="{{ $coverUrl }}" alt="{{ $photoshoot->title }}" class="img-fluid w-100 h-100 position-relative photoshoot-cover-img" style="object-fit: contain; max-height: 380px; z-index: 2; transition: transform 0.4s ease;" />
+          <div class="collection-right">
+            <div class="collection-2">
+              @if ($src1)
+                <img role="presentation" class="img-collection" src="{{ $src1 }}" alt="{{ $photoshoot->title }}">
+              @endif
+            </div>
+
+            <div class="collection-2">
+              @if ($src2)
+                <img role="presentation" class="img-collection" src="{{ $src2 }}" alt="{{ $photoshoot->title }}">
+              @endif
+            </div>
+          </div>
+        </div><!-- grid-collection -->
+      </div><!-- wrap-collection -->
 
       <div class="position-absolute top-0 end-0 m-3" style="z-index: 5;">
         <span class="badge bg-dark text-white rounded-pill px-3 py-2 fw-semibold shadow-sm" style="background-color: rgba(0,0,0,0.75) !important; font-size: 0.78rem;">

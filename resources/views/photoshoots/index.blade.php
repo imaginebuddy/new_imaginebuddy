@@ -8,8 +8,8 @@
     
     <!-- Hero Header -->
     <div class="text-center pt-3 pt-md-4 pb-3 mb-4">
-      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">
-        <i class="bi bi-collection-play me-1"></i> Photoshoot Sets
+      <span class="badge rounded-pill px-4 py-2 mb-3 d-inline-flex align-items-center" style="color: #00d690; border: 1px solid #00d690; background-color: transparent; font-size: 0.85rem; font-weight: 500;">
+        <i class="bi bi-collection-play me-2"></i> Photoshoot Sets
       </span>
       <h1 class="fw-bold text-dark title-custom display-5 mb-3">
         @if ($currentCategory)
@@ -26,11 +26,11 @@
     <!-- Category Filter Scrollable Bar -->
     <div class="photoshoot-filter-wrapper mb-5 position-relative">
       <div class="photoshoot-category-scroll d-flex align-items-center gap-2 overflow-x-auto py-2 px-1">
-        <a href="{{ url('photoshoots') }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ empty($categorySlug) ? 'btn-dark fw-bold' : 'btn-outline-custom' }}">
+        <a href="{{ url('photoshoots') }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ empty($categorySlug) ? 'btn-custom fw-semibold active text-white' : 'btn-outline-custom' }}">
           All Categories
         </a>
         @foreach ($categories as $cat)
-          <a href="{{ url('photoshoots') }}?category={{ $cat->slug }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ $categorySlug == $cat->slug ? 'btn-dark fw-bold' : 'btn-outline-custom' }}">
+          <a href="{{ url('photoshoots') }}?category={{ $cat->slug }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ $categorySlug == $cat->slug ? 'btn-custom fw-semibold active text-white' : 'btn-outline-custom' }}">
             {{ $cat->name }}
           </a>
         @endforeach
@@ -82,6 +82,7 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 .photoshoot-category-scroll::-webkit-scrollbar {
   height: 4px;
@@ -94,6 +95,11 @@
   transform: translateY(-6px);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1) !important;
 }
+.photoshoot-card .img-collection,
+.photoshoot-card .photoshoot-cover-img {
+  transition: transform 0.4s ease;
+}
+.photoshoot-card:hover .img-collection,
 .photoshoot-card:hover .photoshoot-cover-img {
   transform: scale(1.05);
 }
@@ -108,6 +114,34 @@
 <script type="text/javascript">
 (function($) {
   "use strict";
+
+  function centerActiveCategory(smooth) {
+    var container = document.querySelector('.photoshoot-category-scroll');
+    if (!container) return;
+    var activeTab = container.querySelector('.active');
+    if (!activeTab) return;
+
+    var containerRect = container.getBoundingClientRect();
+    var tabRect = activeTab.getBoundingClientRect();
+
+    var diff = (tabRect.left + tabRect.width / 2) - (containerRect.left + containerRect.width / 2);
+    var targetScroll = container.scrollLeft + diff;
+
+    if (smooth) {
+      container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+    } else {
+      container.scrollLeft = Math.max(0, targetScroll);
+    }
+  }
+
+  // Center selected category tab immediately on load and after fonts/layout settle
+  centerActiveCategory(false);
+  setTimeout(function() { centerActiveCategory(true); }, 60);
+  setTimeout(function() { centerActiveCategory(true); }, 250);
+
+  $(window).on('resize', function() {
+    centerActiveCategory(false);
+  });
 
   var state = {
     page: {{ $photoshoots->hasMorePages() ? 2 : 'null' }},
