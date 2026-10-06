@@ -28,6 +28,7 @@ use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\InstallScriptController;
 use App\Http\Controllers\StripeConnectController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebHookController;
 use App\Http\Controllers\SubscriptionsController;
 use App\Http\Controllers\TwoFactorAuthController;
@@ -202,18 +203,18 @@ Route::get('verify/account/{confirmation_code}', [HomeController::class, 'getVer
 
  /*
  |
- |----------------------------
- | Sitemaps
- |--------- ------------------
+/*
+ |--------------------------------------------------------------------------
+ | Sitemaps (Dynamic Master Index + Chunked Child Sitemaps)
+ |--------------------------------------------------------------------------
  */
-Route::get('sitemaps.xml', function() {
-	return response()->view('default.sitemaps')->header('Content-Type', 'application/xml');
-});
+Route::get('sitemap.xml', [SitemapController::class, 'index']);
+Route::get('sitemap_index.xml', [SitemapController::class, 'index']);
+Route::get('sitemaps.xml', [SitemapController::class, 'index']);
 
-// Only Stock
-Route::get('sitemaps-media.xml', function() {
-	return response()->view('default.sitemaps-media')->header('Content-Type', 'application/xml');
-});
+Route::get('sitemaps-main.xml', [SitemapController::class, 'main']);
+Route::get('sitemaps-prompts-{page}.xml', [SitemapController::class, 'prompts'])->where('page', '[0-9]+');
+Route::get('sitemaps-media.xml', [SitemapController::class, 'prompts']);
 
 /*
  |
