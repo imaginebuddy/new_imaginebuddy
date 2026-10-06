@@ -640,7 +640,9 @@ class SeoService
             case 'ImageObject':
                 if (isset($data['entity']) && class_basename($data['entity']) === 'Images') {
                     $img = $data['entity'];
-                    $schemas[] = [
+                    $isFree = ($img->item_for_sale === 'free');
+
+                    $imageSchema = [
                         '@context' => 'https://schema.org',
                         '@type' => 'ImageObject',
                         'name' => $img->title,
@@ -653,6 +655,57 @@ class SeoService
                             'name' => $img->author ? $img->author->username : 'ImagineBuddy',
                         ],
                         'datePublished' => $img->date ? date('c', strtotime($img->date)) : date('c'),
+                        'isAccessibleForFree' => $isFree,
+                    ];
+
+                    // Paywalled / Subscriber-Gated content declaration for Google
+                    if (!$isFree) {
+                        $imageSchema['hasPart'] = [
+                            '@type' => 'WebPageElement',
+                            'isAccessibleForFree' => false,
+                            'cssSelector' => '.prompt-inner-content-box',
+                        ];
+                    }
+
+                    $schemas[] = $imageSchema;
+
+                    // BreadcrumbList Schema for prompt page
+                    $breadcrumbItems = [
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 1,
+                            'name' => 'Home',
+                            'item' => $siteUrl,
+                        ],
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 2,
+                            'name' => 'Categories',
+                            'item' => url('categories'),
+                        ],
+                    ];
+
+                    $pos = 3;
+                    if ($img->category) {
+                        $breadcrumbItems[] = [
+                            '@type' => 'ListItem',
+                            'position' => $pos++,
+                            'name' => $img->category->name,
+                            'item' => url('category/' . $img->category->slug),
+                        ];
+                    }
+
+                    $breadcrumbItems[] = [
+                        '@type' => 'ListItem',
+                        'position' => $pos,
+                        'name' => $img->title,
+                        'item' => $data['canonical'],
+                    ];
+
+                    $schemas[] = [
+                        '@context' => 'https://schema.org',
+                        '@type' => 'BreadcrumbList',
+                        'itemListElement' => $breadcrumbItems,
                     ];
                 }
                 break;

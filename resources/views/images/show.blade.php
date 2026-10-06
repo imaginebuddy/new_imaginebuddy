@@ -23,6 +23,20 @@
 <meta property="og:image:height" content="{{$previewHeight}}"/>
 
 <style>
+/* Anti-Drag and Print Protection */
+#mainPreviewImg, .left-image-card-box, .prompt-inner-content-box, .glightbox-container, .glightbox-container img, .gslide-image, .gslide-image img {
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+  user-select: none !important;
+}
+@media print {
+  #mainPreviewImg, .left-image-card-box, .prompt-inner-content-box, .glightbox-container {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
 @media (min-width: 992px) {
   .sticky-preview-container {
     position: -webkit-sticky !important;
@@ -520,20 +534,28 @@
             </div>
           @else
             @if ($response->item_for_sale != 'sale')
-              <div class="p-4 prompt-inner-content-box position-relative mb-4 text-center overflow-hidden" style="min-height: 140px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#authCopyModal">
-                <p class="mb-0 text-secondary font-monospace title-custom" style="filter: blur(6px); user-select: none;">
-                  Ultra realistic commercial product photography of {{ $response->title }} standing on a clean reflective surface...
-                </p>
-                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark bg-opacity-75 text-white p-3 rounded-4">
-                  <i class="bi bi-lock-fill fs-3 mb-1 text-warning"></i>
-                  <div class="fw-bold mb-1 fs-6">Sign In to View Full Prompt</div>
-                  <p class="small text-white-50 mb-0">Join for free to reveal and copy this prompt.</p>
+              @php
+                $rawPrompt = trim($response->prompt ?: $response->title);
+                $words = preg_split('/\s+/', $rawPrompt);
+                $totalWords = count($words);
+                $halfCount = max(6, (int) ceil($totalWords * 0.5));
+                $visibleHalf = implode(' ', array_slice($words, 0, $halfCount));
+                $remainingHalf = ($totalWords > $halfCount) ? implode(' ', array_slice($words, $halfCount)) : '';
+              @endphp
+              <div class="p-4 prompt-inner-content-box position-relative mb-4 overflow-hidden rounded-4" style="min-height: 120px; cursor: pointer; border: 1.5px dashed #cbd5e1; background-color: #f8fafc;" data-bs-toggle="modal" data-bs-target="#authCopyModal">
+                <div class="text-secondary font-monospace title-custom mb-0" style="font-size: 0.95rem; line-height: 1.75; user-select: text;">
+                  <span class="text-dark">{{ $visibleHalf }}</span>
+                  @if ($remainingHalf)
+                    <span class="d-inline text-muted" style="filter: blur(5px); opacity: 0.5; user-select: none;"> {{ $remainingHalf }}</span>
+                  @endif
                 </div>
+
+                <div class="position-absolute bottom-0 start-0 w-100" style="height: 60px; background: linear-gradient(to top, rgba(248,250,252,1) 30%, rgba(248,250,252,0.6) 70%, transparent 100%); pointer-events: none;"></div>
               </div>
 
               <div class="d-flex flex-column gap-2">
                 <button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#authCopyModal">
-                  <i class="bi bi-unlock-fill"></i> Sign Up to View & Copy Prompt (Free)
+                  <i class="bi bi-unlock-fill text-warning"></i> Sign Up to View & Copy Full Prompt (Free)
                 </button>
                 <div class="text-center text-muted small mt-1">
                   <i class="bi bi-stars text-warning me-1"></i> Free sign up gives you <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} free prompt {{ (isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 1) ? 'copy' : 'copies' }} daily</strong>
@@ -730,4 +752,58 @@
 </div>
 @endguest
 
+@endsection
+
+@section('javascript')
+<script>
+$(document).ready(function() {
+  // 1. Disable Right-Click on all images, lightbox popups, preview card, and prompt box
+  document.addEventListener('contextmenu', function(e) {
+    if (e.target.tagName === 'IMG' || e.target.closest('.glightbox-container') || e.target.closest('.left-image-card-box') || e.target.closest('.prompt-inner-content-box') || e.target.closest('.example-thumb-wrapper')) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);
+
+  $(document).on('contextmenu', 'img, .glightbox-container, .glightbox-container *, .gslide, .gslide *, #mainPreviewImg, .left-image-card-box, .prompt-inner-content-box, .example-thumb-wrapper', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
+
+  // 2. Disable Drag-and-Drop on all images and lightbox popup
+  document.addEventListener('dragstart', function(e) {
+    if (e.target.tagName === 'IMG' || e.target.closest('.glightbox-container')) {
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+
+  $(document).on('dragstart', 'img, .glightbox-container img, .gslide img, #mainPreviewImg, .left-image-card-box img', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // 3. Intercept PrintScreen (PrtScn) key and clear clipboard
+  $(window).on('keyup', function(e) {
+    if (e.key === 'PrintScreen' || e.keyCode === 44) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText('').catch(function(){});
+      }
+    }
+  });
+
+  // 4. Block common browser shortcut combos (Ctrl+P / Cmd+P to print, Ctrl+S / Cmd+S to save page, Ctrl+U to view source)
+  $(window).on('keydown', function(e) {
+    var isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    var ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
+    if (ctrlOrCmd && (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+});
+</script>
 @endsection
