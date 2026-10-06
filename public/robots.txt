@@ -1,4 +1,7 @@
 User-agent: *
+Disallow: /search
+Disallow: /search*
+Disallow: /ajax/
 Disallow: /tags/
 Disallow: /members
 Disallow: /collections
