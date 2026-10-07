@@ -44,6 +44,9 @@
           @include('includes.photoshoot-card', ['photoshoot' => $photoshoot])
         @endforeach
       </div>
+      
+      <!-- Scroll Sentinel directly at the end of the photoshoot cards grid -->
+      <div id="photoshootsSentinel" class="w-100" style="height: 1px; visibility: hidden;"></div>
 
       <!-- Crawlable Server-Side Pagination for Googlebot & Progressive Fallback -->
       @if ($photoshoots->hasPages())
@@ -53,11 +56,11 @@
       @endif
 
       <!-- Infinite Scroll Loader -->
-      <div id="photoshootsLoader" class="text-center py-5 d-none">
-        <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+      <div id="photoshootsLoader" class="text-center py-4 my-2 d-none">
+        <div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem;">
           <span class="visually-hidden">Loading more...</span>
         </div>
-        <p class="text-muted small mt-2">Loading more photoshoots...</p>
+        <p class="text-muted small mt-2 mb-0">Loading more photoshoots...</p>
       </div>
 
     @else
@@ -430,17 +433,21 @@
   function checkScrollLoad() {
     if (state.loading || !state.hasMore || !state.page) return;
 
-    var scrollTop = $(window).scrollTop();
-    var windowHeight = $(window).height();
-    var docHeight = $(document).height();
+    var $container = $('#photoshootsContainer');
+    if (!$container.length) return;
 
-    // Trigger loading 450px before reaching bottom
-    if (scrollTop + windowHeight >= docHeight - 450) {
+    var containerBottom = $container.offset().top + $container.outerHeight();
+    var currentScroll = $(window).scrollTop() + $(window).height();
+
+    // Trigger loading 500px before reaching the end of the photoshoot cards grid
+    if (currentScroll >= containerBottom - 500) {
       fetchNextPage();
     }
   }
 
   function fetchNextPage() {
+    if (state.loading || !state.hasMore || !state.page) return;
+
     state.loading = true;
     $('#photoshootsLoader').removeClass('d-none');
 
@@ -461,6 +468,9 @@
         state.page = response.nextPage;
         state.loading = false;
         $('#photoshootsLoader').addClass('d-none');
+
+        // Check again after DOM update in case new bottom is already in view
+        setTimeout(checkScrollLoad, 150);
       },
       error: function() {
         state.loading = false;
@@ -471,7 +481,26 @@
     });
   }
 
+  // IntersectionObserver for early and smooth infinite scroll triggering
+  if ('IntersectionObserver' in window) {
+    var sentinelEl = document.getElementById('photoshootsSentinel');
+    if (sentinelEl) {
+      var observer = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) {
+          checkScrollLoad();
+        }
+      }, {
+        rootMargin: '600px 0px 600px 0px'
+      });
+      observer.observe(sentinelEl);
+    }
+  }
+
   $(window).on('scroll resize', checkScrollLoad);
+
+  $(document).ready(function() {
+    checkScrollLoad();
+  });
 })(jQuery);
 </script>
 @endsection

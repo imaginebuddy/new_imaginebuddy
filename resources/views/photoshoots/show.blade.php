@@ -231,6 +231,9 @@
           @endif
         </div>
 
+        <!-- Scroll Sentinel for Prompts Grid -->
+        <div id="promptsSentinel" class="w-100" style="height: 1px; visibility: hidden;"></div>
+
         <!-- Infinite Scroll Loader -->
         <div id="infiniteScrollLoader" class="text-center py-4 my-3 d-none">
           <div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem;">
@@ -681,16 +684,24 @@
   function checkScrollLoad() {
     if (state.loading || !state.hasMore || !state.page) return;
 
-    var scrollTop = $(window).scrollTop();
-    var windowHeight = $(window).height();
-    var docHeight = $(document).height();
+    var $target = $('#promptsSentinel');
+    if (!$target.length) {
+      $target = $('#imagesFlex');
+    }
+    if (!$target.length) return;
 
-    if (scrollTop + windowHeight >= docHeight - 500) {
+    var targetTop = $target.offset().top;
+    var currentScroll = $(window).scrollTop() + $(window).height();
+
+    // Trigger loading early (500px before reaching the end of the prompts grid)
+    if (currentScroll >= targetTop - 500) {
       loadNextPage();
     }
   }
 
   function loadNextPage() {
+    if (state.loading || !state.hasMore || !state.page) return;
+
     state.loading = true;
     $('#infiniteScrollLoader').removeClass('d-none');
 
@@ -700,13 +711,35 @@
     $.ajax({
       url: currentUrl.toString(),
       type: 'GET',
+      dataType: 'json',
       headers: {
+        'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
       },
       success: function(response) {
-        if (response) {
-          var htmlContent = typeof response === 'object' && response.html ? response.html : response;
-          var $wrapper = $('<div>').html(htmlContent);
+        if (response && response.html) {
+          var $wrapper = $('<div>').html(response.html);
+          var $newItems = $wrapper.find('.item');
+
+          if ($newItems.length > 0) {
+            $('#imagesFlex').append($newItems);
+            if ($('#imagesFlex').length && $.fn.flexImages) {
+              $('#imagesFlex').flexImages({ rowHeight: 580 });
+            }
+
+            state.hasMore = !!response.hasMore;
+            state.page = response.nextPage;
+
+            var currentCount = $('#imagesFlex').find('.item').length;
+            $('#showingCount').text(currentCount);
+
+            // Check again after DOM update in case new end is already in view
+            setTimeout(checkScrollLoad, 150);
+          } else {
+            state.hasMore = false;
+          }
+        } else if (typeof response === 'string' && response.trim() !== '') {
+          var $wrapper = $('<div>').html(response);
           var $newItems = $wrapper.find('.item');
 
           if ($newItems.length > 0) {
@@ -716,15 +749,13 @@
             }
             state.page++;
 
-            if (typeof response === 'object' && typeof response.hasMore !== 'undefined') {
-              state.hasMore = response.hasMore;
-            } else {
-              var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;
-              state.hasMore = hasNext;
-            }
+            var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;
+            state.hasMore = hasNext;
 
             var currentCount = $('#imagesFlex').find('.item').length;
             $('#showingCount').text(currentCount);
+
+            setTimeout(checkScrollLoad, 150);
           } else {
             state.hasMore = false;
           }
@@ -742,6 +773,21 @@
         $('#linkPagination').removeClass('d-none');
       }
     });
+  }
+
+  // IntersectionObserver for early prompt grid infinite scroll
+  if ('IntersectionObserver' in window) {
+    var sentinelEl = document.getElementById('promptsSentinel');
+    if (sentinelEl) {
+      var observer = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) {
+          loadNextPage();
+        }
+      }, {
+        rootMargin: '600px 0px 600px 0px'
+      });
+      observer.observe(sentinelEl);
+    }
   }
 
   $(window).on('scroll resize', checkScrollLoad);
