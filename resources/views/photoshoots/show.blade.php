@@ -375,8 +375,13 @@
       </div>
     </div>
 
-      <!-- FAQ Accordion (Styled identically to /frequently-asked-questions) -->
-      <div class="my-5 pt-3 pt-md-4">
+    <!-- Visual Transformation Proof: Before / After Showcase -->
+    <div class="photoshoot-transformation-wrapper mt-5 pt-4 pt-md-5 border-top border-custom">
+      @include('includes.transformation-section')
+    </div>
+
+    <!-- FAQ Accordion (Styled identically to /frequently-asked-questions) -->
+    <div class="my-5 pt-3 pt-md-4">
         <div class="text-center mb-4">
           <span class="badge badge-dark-custom rounded-pill px-3 py-2 fw-bold text-uppercase mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">
             {{ __('admin.faq') }}
@@ -657,6 +662,17 @@
   .breadcrumb-pill-box ol {
     width: 100%;
   }
+}
+
+/* --- Photoshoot Detail Transformation Section Tuning --- */
+.photoshoot-transformation-wrapper .transformation-section {
+  padding-top: 1rem !important;
+  padding-bottom: 2rem !important;
+}
+.photoshoot-transformation-wrapper .transformation-section .container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100% !important;
 }
 </style>
 @endsection

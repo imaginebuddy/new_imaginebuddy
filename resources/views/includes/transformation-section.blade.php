@@ -198,92 +198,100 @@
 
 <!-- Scoped Interactive Script for Before/After Drag Slider -->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const container = document.getElementById('transformationSlider');
-  const clip = document.getElementById('beforeImgClip');
-  const divider = document.getElementById('sliderDivider');
-  const handle = document.getElementById('sliderHandle');
-  const rangeInput = document.getElementById('sliderAccessibleRange');
+(function() {
+  function initTransformationSlider() {
+    const container = document.getElementById('transformationSlider');
+    const clip = document.getElementById('beforeImgClip');
+    const divider = document.getElementById('sliderDivider');
+    const handle = document.getElementById('sliderHandle');
+    const rangeInput = document.getElementById('sliderAccessibleRange');
 
-  if (!container || !clip || !divider) return;
+    if (!container || !clip || !divider) return;
 
-  let isDragging = false;
+    let isDragging = false;
 
-  function updateSlider(percent) {
-    const clamped = Math.max(0, Math.min(100, percent));
-    clip.style.clipPath = `inset(0 ${100 - clamped}% 0 0)`;
-    divider.style.left = `${clamped}%`;
+    function updateSlider(percent) {
+      const clamped = Math.max(0, Math.min(100, percent));
+      clip.style.clipPath = `inset(0 ${100 - clamped}% 0 0)`;
+      divider.style.left = `${clamped}%`;
+
+      if (handle) {
+        handle.setAttribute('aria-valuenow', Math.round(clamped));
+      }
+      if (rangeInput && rangeInput.value != clamped) {
+        rangeInput.value = clamped;
+      }
+    }
+
+    function getPercentFromEvent(e) {
+      const rect = container.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const x = clientX - rect.left;
+      return (x / rect.width) * 100;
+    }
+
+    function onPointerDown(e) {
+      isDragging = true;
+      container.classList.add('is-dragging');
+      updateSlider(getPercentFromEvent(e));
+      if (e.pointerId && container.setPointerCapture) {
+        try { container.setPointerCapture(e.pointerId); } catch(err) {}
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      requestAnimationFrame(() => {
+        updateSlider(getPercentFromEvent(e));
+      });
+    }
+
+    function onPointerUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      container.classList.remove('is-dragging');
+      if (e.pointerId && container.releasePointerCapture) {
+        try { container.releasePointerCapture(e.pointerId); } catch(err) {}
+      }
+    }
+
+    container.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
 
     if (handle) {
-      handle.setAttribute('aria-valuenow', Math.round(clamped));
+      handle.addEventListener('keydown', function (e) {
+        let current = parseFloat(handle.getAttribute('aria-valuenow') || '50');
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          updateSlider(current - 5);
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          updateSlider(current + 5);
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          updateSlider(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          updateSlider(100);
+        }
+      });
     }
-    if (rangeInput && rangeInput.value != clamped) {
-      rangeInput.value = clamped;
+
+    if (rangeInput) {
+      rangeInput.addEventListener('input', function () {
+        updateSlider(parseFloat(this.value));
+      });
     }
+
+    updateSlider(50);
   }
 
-  function getPercentFromEvent(e) {
-    const rect = container.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const x = clientX - rect.left;
-    return (x / rect.width) * 100;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTransformationSlider);
+  } else {
+    initTransformationSlider();
   }
-
-  function onPointerDown(e) {
-    isDragging = true;
-    container.classList.add('is-dragging');
-    updateSlider(getPercentFromEvent(e));
-    if (e.pointerId && container.setPointerCapture) {
-      try { container.setPointerCapture(e.pointerId); } catch(err) {}
-    }
-  }
-
-  function onPointerMove(e) {
-    if (!isDragging) return;
-    requestAnimationFrame(() => {
-      updateSlider(getPercentFromEvent(e));
-    });
-  }
-
-  function onPointerUp(e) {
-    if (!isDragging) return;
-    isDragging = false;
-    container.classList.remove('is-dragging');
-    if (e.pointerId && container.releasePointerCapture) {
-      try { container.releasePointerCapture(e.pointerId); } catch(err) {}
-    }
-  }
-
-  container.addEventListener('pointerdown', onPointerDown);
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
-  window.addEventListener('pointercancel', onPointerUp);
-
-  if (handle) {
-    handle.addEventListener('keydown', function (e) {
-      let current = parseFloat(handle.getAttribute('aria-valuenow') || '50');
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        updateSlider(current - 5);
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        updateSlider(current + 5);
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        updateSlider(0);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        updateSlider(100);
-      }
-    });
-  }
-
-  if (rangeInput) {
-    rangeInput.addEventListener('input', function () {
-      updateSlider(parseFloat(this.value));
-    });
-  }
-
-  updateSlider(50);
-});
+})();
 </script>
