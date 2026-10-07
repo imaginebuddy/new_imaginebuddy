@@ -46,6 +46,23 @@ class SeoService
     }
 
     /**
+     * Runtime metadata overrides.
+     */
+    protected array $overrides = [];
+
+    /**
+     * Override specific SEO fields at runtime.
+     */
+    public function override(array $data): self
+    {
+        $this->overrides = array_merge($this->overrides, $data);
+        if ($this->resolved !== null) {
+            $this->resolved = array_merge($this->resolved, $data);
+        }
+        return $this;
+    }
+
+    /**
      * Reset the service state for testing or new cycle.
      */
     public function reset(): self
@@ -53,6 +70,7 @@ class SeoService
         $this->pageKey = null;
         $this->entity = null;
         $this->resolved = null;
+        $this->overrides = [];
         return $this;
     }
 
@@ -81,9 +99,7 @@ class SeoService
         // 1. Check if an entity is provided (Prompt/Image, Category, Photoshoot)
         if ($this->entity) {
             $payload = $this->resolveEntityMetadata($this->entity, $registry, $siteTitle);
-            $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
-            $this->resolved = $payload;
-            return $this->resolved;
+            return $this->finalizePayload($payload);
         }
 
         // 2. Lookup by explicit pageKey if specified
@@ -91,9 +107,7 @@ class SeoService
             $record = $registry->firstWhere('page_key', $this->pageKey);
             if ($record) {
                 $payload = $this->recordToPayload($record, $siteTitle);
-                $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
-                $this->resolved = $payload;
-                return $this->resolved;
+                return $this->finalizePayload($payload);
             }
         }
 
@@ -103,9 +117,7 @@ class SeoService
             $record = $registry->firstWhere('route_name', $currentRoute);
             if ($record) {
                 $payload = $this->recordToPayload($record, $siteTitle);
-                $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
-                $this->resolved = $payload;
-                return $this->resolved;
+                return $this->finalizePayload($payload);
             }
         }
 
@@ -117,9 +129,7 @@ class SeoService
         $record = $registry->firstWhere('path', $currentPath);
         if ($record) {
             $payload = $this->recordToPayload($record, $siteTitle);
-            $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
-            $this->resolved = $payload;
-            return $this->resolved;
+            return $this->finalizePayload($payload);
         }
 
         // 5. Fallback for known standard routes if pageKey was not directly assigned
@@ -128,9 +138,7 @@ class SeoService
             $record = $registry->firstWhere('page_key', $fallbackKey);
             if ($record) {
                 $payload = $this->recordToPayload($record, $siteTitle);
-                $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
-                $this->resolved = $payload;
-                return $this->resolved;
+                return $this->finalizePayload($payload);
             }
         }
 
@@ -158,9 +166,19 @@ class SeoService
             'has_custom_og_desc' => false,
         ];
 
-        $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
-        $this->resolved = $payload;
+        return $this->finalizePayload($payload);
+    }
 
+    /**
+     * Finalize payload by applying pagination directives and runtime overrides.
+     */
+    protected function finalizePayload(array $payload): array
+    {
+        $payload['robots'] = $this->adjustRobotsForPagination($payload['robots'] ?? 'index, follow');
+        if (!empty($this->overrides)) {
+            $payload = array_merge($payload, $this->overrides);
+        }
+        $this->resolved = $payload;
         return $this->resolved;
     }
 
@@ -746,6 +764,45 @@ class SeoService
                     }
 
                     $schemas[] = $gallerySchema;
+
+                    // BreadcrumbList Schema for Photoshoot Detail
+                    $breadcrumbItems = [
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 1,
+                            'name' => 'Home',
+                            'item' => $siteUrl,
+                        ],
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 2,
+                            'name' => 'Photoshoots',
+                            'item' => url('photoshoots'),
+                        ],
+                    ];
+
+                    $pos = 3;
+                    if ($photoshoot->category) {
+                        $breadcrumbItems[] = [
+                            '@type' => 'ListItem',
+                            'position' => $pos++,
+                            'name' => $photoshoot->category->name,
+                            'item' => url('photoshoots') . '?category=' . $photoshoot->category->slug,
+                        ];
+                    }
+
+                    $breadcrumbItems[] = [
+                        '@type' => 'ListItem',
+                        'position' => $pos,
+                        'name' => $photoshoot->title,
+                        'item' => $data['canonical'],
+                    ];
+
+                    $schemas[] = [
+                        '@context' => 'https://schema.org',
+                        '@type' => 'BreadcrumbList',
+                        'itemListElement' => $breadcrumbItems,
+                    ];
                 } else {
                     $schemas[] = [
                         '@context' => 'https://schema.org',

@@ -1910,8 +1910,12 @@ class AdminController extends Controller
 		}
 
 		$categories = Categories::where('mode', 'on')->orderBy('name')->get();
+		$aiModels = Images::getAiModels();
+		$emptyPhotoshoot = new Photoshoot();
+		$defaultCreativeDirection = $emptyPhotoshoot->getDefaultCreativeDirection();
+		$defaultFaqs = $emptyPhotoshoot->getDefaultFaqs();
 
-		return view('admin.add-photoshoot', compact('categories'));
+		return view('admin.add-photoshoot', compact('categories', 'aiModels', 'defaultCreativeDirection', 'defaultFaqs'));
 	}
 
 	public function storePhotoshoot(Request $request)
@@ -1923,6 +1927,7 @@ class AdminController extends Controller
 		$request->validate([
 			'title' => 'required|string|min:3|max:255',
 			'slug' => 'nullable|string|max:255',
+			'ai_model' => 'nullable|string|max:100',
 			'meta_title' => 'nullable|string|max:255',
 			'meta_description' => 'nullable|string|max:500',
 			'meta_keywords' => 'nullable|string|max:255',
@@ -1945,6 +1950,34 @@ class AdminController extends Controller
 		$metaDescription = trim($request->meta_description ?? '');
 		$metaKeywords = trim($request->meta_keywords ?? '');
 
+		// Process creative_direction
+		$creativeDirection = null;
+		if ($request->has('creative_direction') && is_array($request->creative_direction)) {
+			$filteredCd = array_filter(array_map('trim', $request->creative_direction), fn($val) => $val !== '');
+			if (!empty($filteredCd)) {
+				$creativeDirection = $request->creative_direction;
+			}
+		}
+
+		// Process 5 FAQs
+		$faqsData = null;
+		if ($request->has('faqs') && is_array($request->faqs)) {
+			$cleanFaqs = [];
+			foreach ($request->faqs as $faq) {
+				$q = isset($faq['question']) ? trim((string)$faq['question']) : '';
+				$a = isset($faq['answer']) ? trim((string)$faq['answer']) : '';
+				if ($q !== '' || $a !== '') {
+					$cleanFaqs[] = [
+						'question' => $q,
+						'answer' => $a,
+					];
+				}
+			}
+			if (!empty($cleanFaqs)) {
+				$faqsData = $cleanFaqs;
+			}
+		}
+
 		$photoshoot = Photoshoot::create([
 			'uuid' => 'batch_' . uniqid(),
 			'title' => $title,
@@ -1952,10 +1985,13 @@ class AdminController extends Controller
 			'description' => trim($request->description ?: ''),
 			'user_id' => auth()->id(),
 			'categories_id' => $request->categories_id ?: null,
+			'ai_model' => $request->ai_model ? trim($request->ai_model) : null,
 			'prompts_count' => 0,
 			'meta_title' => $metaTitle !== '' ? $metaTitle : null,
 			'meta_description' => $metaDescription !== '' ? $metaDescription : null,
 			'meta_keywords' => $metaKeywords !== '' ? $metaKeywords : null,
+			'creative_direction' => $creativeDirection,
+			'faqs' => $faqsData,
 		]);
 
 		return redirect('panel/admin/photoshoots/edit/' . $photoshoot->id)
@@ -1970,8 +2006,11 @@ class AdminController extends Controller
 
 		$data = Photoshoot::with(['user', 'category', 'allImages.user', 'allImages.category'])->findOrFail($id);
 		$categories = Categories::where('mode', 'on')->orderBy('name')->get();
+		$aiModels = Images::getAiModels();
+		$defaultCreativeDirection = $data->getDefaultCreativeDirection();
+		$defaultFaqs = $data->getDefaultFaqs();
 
-		return view('admin.edit-photoshoot', compact('data', 'categories'));
+		return view('admin.edit-photoshoot', compact('data', 'categories', 'aiModels', 'defaultCreativeDirection', 'defaultFaqs'));
 	}
 
 	public function updatePhotoshoot(Request $request)
@@ -1984,6 +2023,7 @@ class AdminController extends Controller
 			'id' => 'required|exists:photoshoots,id',
 			'title' => 'required|string|min:3|max:255',
 			'slug' => 'nullable|string|max:255',
+			'ai_model' => 'nullable|string|max:100',
 			'meta_title' => 'nullable|string|max:255',
 			'meta_description' => 'nullable|string|max:500',
 			'meta_keywords' => 'nullable|string|max:255',
@@ -1992,6 +2032,7 @@ class AdminController extends Controller
 		$photoshoot = Photoshoot::findOrFail($request->id);
 		$photoshoot->title = trim($request->title);
 		$photoshoot->categories_id = $request->categories_id ?: null;
+		$photoshoot->ai_model = $request->ai_model ? trim($request->ai_model) : null;
 		if ($request->has('description')) {
 			$photoshoot->description = trim($request->description ?: '');
 		}
@@ -2003,6 +2044,28 @@ class AdminController extends Controller
 		$photoshoot->meta_title = $metaTitle !== '' ? $metaTitle : null;
 		$photoshoot->meta_description = $metaDescription !== '' ? $metaDescription : null;
 		$photoshoot->meta_keywords = $metaKeywords !== '' ? $metaKeywords : null;
+
+		// Process creative_direction
+		if ($request->has('creative_direction') && is_array($request->creative_direction)) {
+			$filteredCd = array_filter(array_map('trim', $request->creative_direction), fn($val) => $val !== '');
+			$photoshoot->creative_direction = !empty($filteredCd) ? $request->creative_direction : null;
+		}
+
+		// Process 5 FAQs
+		if ($request->has('faqs') && is_array($request->faqs)) {
+			$cleanFaqs = [];
+			foreach ($request->faqs as $faq) {
+				$q = isset($faq['question']) ? trim((string)$faq['question']) : '';
+				$a = isset($faq['answer']) ? trim((string)$faq['answer']) : '';
+				if ($q !== '' || $a !== '') {
+					$cleanFaqs[] = [
+						'question' => $q,
+						'answer' => $a,
+					];
+				}
+			}
+			$photoshoot->faqs = !empty($cleanFaqs) ? $cleanFaqs : null;
+		}
 
 		// Process Slug
 		$requestedSlug = \Illuminate\Support\Str::slug($request->slug ?: $request->title);

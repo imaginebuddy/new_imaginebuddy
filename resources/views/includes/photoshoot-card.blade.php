@@ -34,20 +34,20 @@
         <div class="grid-collection" style="border-radius: 16px 16px 0 0; top: 0; left: 0;">
           <div class="collection-1">
             @if ($src0)
-              <img role="presentation" class="img-collection" src="{{ $src0 }}" alt="{{ $photoshoot->title }}">
+              <img class="img-collection" src="{{ $src0 }}" alt="{{ $photoshoot->title }} - Primary Shot" loading="lazy" decoding="async">
             @endif
           </div><!-- collection-1 -->
 
           <div class="collection-right">
             <div class="collection-2">
               @if ($src1)
-                <img role="presentation" class="img-collection" src="{{ $src1 }}" alt="{{ $photoshoot->title }}">
+                <img class="img-collection" src="{{ $src1 }}" alt="{{ $photoshoot->title }} - Angle 2" loading="lazy" decoding="async">
               @endif
             </div>
 
             <div class="collection-2">
               @if ($src2)
-                <img role="presentation" class="img-collection" src="{{ $src2 }}" alt="{{ $photoshoot->title }}">
+                <img class="img-collection" src="{{ $src2 }}" alt="{{ $photoshoot->title }} - Angle 3" loading="lazy" decoding="async">
               @endif
             </div>
           </div>

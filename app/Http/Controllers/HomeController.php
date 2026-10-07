@@ -862,6 +862,18 @@ class HomeController extends Controller
 
     $currentCategory = !empty($categorySlug) ? Categories::where('slug', $categorySlug)->first() : null;
 
+    if ($currentCategory) {
+      $siteTitle = config('settings.title') ?: config('app.name', 'ImagineBuddy');
+      Helper::seo()->override([
+        'title' => $currentCategory->name . ' AI Photoshoot Prompts & Sets - ' . $siteTitle,
+        'description' => 'Explore curated ' . $currentCategory->name . ' AI photoshoot prompts with consistent models, studio lighting setups, and multi-angle scene recipes.',
+        'canonical' => url('photoshoots') . '?category=' . $currentCategory->slug,
+        'robots' => $photoshoots->total() > 0 ? 'index, follow' : 'noindex, follow',
+        'og_title' => $currentCategory->name . ' AI Photoshoot Prompts & Sets - ' . $siteTitle,
+        'og_description' => 'Explore curated ' . $currentCategory->name . ' AI photoshoot prompts with consistent models and studio lighting.',
+      ]);
+    }
+
     return view('photoshoots.index', compact('photoshoots', 'categories', 'categorySlug', 'currentCategory'));
   }
 
@@ -892,6 +904,33 @@ class HomeController extends Controller
       return view('includes.images', ['images' => $images])->render() . view('includes.pagination-links', ['images' => $images])->render();
     }
 
-    return view('photoshoots.show', compact('photoshoot', 'images'));
+    $relatedPhotoshoots = Photoshoot::with(['category', 'images' => function ($q) {
+        $q->where('status', 'active')->orderBy('id', 'asc');
+      }])
+      ->where('id', '!=', $photoshoot->id)
+      ->when($photoshoot->categories_id, function ($q) use ($photoshoot) {
+        $q->where('categories_id', $photoshoot->categories_id);
+      })
+      ->whereHas('images', function ($q) {
+        $q->where('status', 'active');
+      })
+      ->take(3)
+      ->get();
+
+    if ($relatedPhotoshoots->count() < 3) {
+      $excludeIds = $relatedPhotoshoots->pluck('id')->push($photoshoot->id)->all();
+      $more = Photoshoot::with(['category', 'images' => function ($q) {
+          $q->where('status', 'active')->orderBy('id', 'asc');
+        }])
+        ->whereNotIn('id', $excludeIds)
+        ->whereHas('images', function ($q) {
+          $q->where('status', 'active');
+        })
+        ->take(3 - $relatedPhotoshoots->count())
+        ->get();
+      $relatedPhotoshoots = $relatedPhotoshoots->concat($more);
+    }
+
+    return view('photoshoots.show', compact('photoshoot', 'images', 'relatedPhotoshoots'));
   }
 }
