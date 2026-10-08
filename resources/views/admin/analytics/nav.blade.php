@@ -84,6 +84,11 @@
       <i class="bi bi-people me-1"></i> Users &amp; Retention
     </a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link @if(request()->is('panel/admin/analytics/database')) active @endif" href="{{ url('panel/admin/analytics/database') }}">
+      <i class="bi bi-database-gear me-1 text-primary"></i> Data &amp; Maintenance
+    </a>
+  </li>
 </ul>
 
 <script>

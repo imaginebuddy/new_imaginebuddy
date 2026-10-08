@@ -443,6 +443,9 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/analytics/prompts', [AnalyticsController::class, 'prompts'])->name('analytics');
 	Route::get('panel/admin/analytics/funnel', [AnalyticsController::class, 'funnel'])->name('analytics');
 	Route::get('panel/admin/analytics/users', [AnalyticsController::class, 'users'])->name('analytics');
+	Route::get('panel/admin/analytics/database', [AnalyticsController::class, 'database'])->name('analytics');
+	Route::get('panel/admin/analytics/export/{table}', [AnalyticsController::class, 'exportCsv'])->name('analytics.export');
+	Route::post('panel/admin/analytics/truncate/{table}', [AnalyticsController::class, 'truncateTable'])->name('analytics.truncate');
 
 	// Categories
 	Route::get('panel/admin/categories',[AdminController::class, 'categories'])->name('categories');
