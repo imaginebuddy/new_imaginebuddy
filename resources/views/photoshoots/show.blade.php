@@ -248,6 +248,126 @@
       @endif
     </div>
 
+    <!-- Product Adaptability & Universal Category Compatibility -->
+    @php
+      $paData = $photoshoot->product_adaptability_data;
+    @endphp
+    <div class="mt-5 pt-4 pt-md-5 border-top border-custom" role="region" aria-labelledby="adaptability-heading">
+      
+      <!-- Top Grid: Editorial Narrative & Category Blueprint Card -->
+      <div class="row g-4 align-items-stretch mb-4 mb-md-5">
+        
+        <!-- Left: Editorial Context & SEO Depth -->
+        <div class="col-lg-7 d-flex flex-column justify-content-center">
+          <div class="pe-lg-4">
+            <span class="badge badge-dark-custom rounded-pill px-3 py-1 fw-bold text-uppercase mb-2 d-inline-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+              {{ $paData['badge'] }}
+            </span>
+            <h2 id="adaptability-heading" class="fw-bold title-custom mb-3" style="font-size: clamp(1.4rem, 2.5vw, 1.85rem); line-height: 1.3;">
+              {{ $paData['heading'] }}
+            </h2>
+            <p class="text-muted mb-3" style="line-height: 1.75; font-size: 0.96rem;">
+              {!! nl2br(e($paData['description'])) !!}
+            </p>
+            @if (!empty($paData['subtext']))
+              <p class="text-muted mb-0 small" style="line-height: 1.7;">
+                {!! nl2br(e($paData['subtext'])) !!}
+              </p>
+            @endif
+          </div>
+        </div>
+
+        <!-- Right: Works Seamlessly Across These Products & Styles Card -->
+        @php
+          $appProductsList = array_filter(array_map('trim', explode(',', $paData['applicable_products'] ?? '')));
+        @endphp
+        <div class="col-lg-5">
+          <div class="card bg-card-custom rounded-4 border border-custom p-3 p-sm-4 h-100 shadow-xs d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom border-custom">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-tags-fill text-mint fs-5"></i>
+                <span class="fw-bold title-custom small text-uppercase" style="letter-spacing: 0.5px;">
+                  {{ $paData['applicable_products_title'] ?? 'Works Seamlessly Across These Products & Styles' }}
+                </span>
+              </div>
+              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                <i class="bi bi-check2-all me-1"></i> 100% Compatible
+              </span>
+            </div>
+
+            <!-- Applicable Product Type Badges -->
+            <div class="d-flex flex-wrap gap-2 flex-grow-1 align-content-center my-2">
+              @forelse ($appProductsList as $prodType)
+                <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 fw-medium d-inline-flex align-items-center gap-2" style="font-size: 0.82rem;">
+                  <i class="bi bi-check-circle-fill text-mint" style="font-size: 0.82rem;"></i>
+                  <span>{{ $prodType }}</span>
+                </span>
+              @empty
+                <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 fw-medium d-inline-flex align-items-center gap-2" style="font-size: 0.82rem;">
+                  <i class="bi bi-check-circle-fill text-mint" style="font-size: 0.82rem;"></i>
+                  <span>{{ $photoshoot->category->name ?? 'All Product Styles' }}</span>
+                </span>
+              @endforelse
+            </div>
+
+            <div class="pt-3 mt-2 border-top border-custom d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small" style="font-size: 0.78rem;">
+              <span><i class="bi bi-check2-circle text-mint me-1"></i> Zero manual prompt editing required</span>
+              <span class="fw-semibold title-custom">Universal Fit</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Grid: 3 Distinct Step Feature Cards (Clean, Balanced & Breathable) -->
+      <div class="row g-3 g-md-4 mb-5">
+        
+        <!-- Step 1 -->
+        <div class="col-md-4">
+          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs hover-lift">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">01</span>
+              <i class="bi bi-copy text-mint fs-5"></i>
+            </div>
+            <h3 class="h6 fw-bold title-custom mb-2">{{ $paData['step_1_title'] }}</h3>
+            <p class="text-muted small mb-0" style="line-height: 1.65;">
+              {!! nl2br(e($paData['step_1_desc'])) !!}
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-md-4">
+          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs hover-lift">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">02</span>
+              <i class="bi bi-sliders text-mint fs-5"></i>
+            </div>
+            <h3 class="h6 fw-bold title-custom mb-2">{{ $paData['step_2_title'] }}</h3>
+            <p class="text-muted small mb-0" style="line-height: 1.65;">
+              {!! nl2br(e($paData['step_2_desc'])) !!}
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="col-md-4">
+          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs hover-lift">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">03</span>
+              <i class="bi bi-cpu text-mint fs-5"></i>
+            </div>
+            <h3 class="h6 fw-bold title-custom mb-2">{{ $paData['step_3_title'] }}</h3>
+            <p class="text-muted small mb-0" style="line-height: 1.65;">
+              {!! nl2br(e($paData['step_3_desc'])) !!}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
     <!-- SEO Topical Authority: Minimal Creative Studio Direction -->
     @php
       $cdData = $photoshoot->creative_direction_data;
@@ -280,8 +400,8 @@
 
         <!-- Right: Compact Technical Blueprint Card -->
         <div class="col-lg-5">
-          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs d-flex flex-column">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom border-custom">
+          <div class="card bg-card-custom rounded-4 border border-custom p-3 p-sm-4 h-100 shadow-xs d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 pb-2 mb-sm-3 pb-sm-3 border-bottom border-custom">
               <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-sliders text-mint fs-5"></i>
                 <span class="fw-bold title-custom small text-uppercase" style="letter-spacing: 0.5px;">{{ $cdData['blueprint_title'] }}</span>
@@ -291,34 +411,34 @@
               </span>
             </div>
 
-            <div class="row g-2 flex-grow-1 align-content-center my-1">
-              <div class="col-6">
-                <div class="p-2.5 p-md-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Lighting Key</span>
-                  <strong class="title-custom small d-block mt-1">{{ $cdData['lighting'] }}</strong>
+            <div class="row g-2 g-sm-2.5 flex-grow-1 align-content-center my-0">
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
+                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Lighting Key</span>
+                  <strong class="title-custom small d-block" style="line-height: 1.45;">{{ $cdData['lighting'] }}</strong>
                 </div>
               </div>
-              <div class="col-6">
-                <div class="p-2.5 p-md-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Optical Lenses</span>
-                  <strong class="title-custom small d-block mt-1">{{ $cdData['lenses'] }}</strong>
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
+                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Optical Lenses</span>
+                  <strong class="title-custom small d-block" style="line-height: 1.45;">{{ $cdData['lenses'] }}</strong>
                 </div>
               </div>
-              <div class="col-6">
-                <div class="p-2.5 p-md-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Target AI Models</span>
-                  <strong class="title-custom small d-block mt-1">{{ $cdData['target_ai'] }}</strong>
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
+                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Target AI Models</span>
+                  <strong class="title-custom small d-block" style="line-height: 1.45;">{{ $cdData['target_ai'] }}</strong>
                 </div>
               </div>
-              <div class="col-6">
-                <div class="p-2.5 p-md-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Commercial Rights</span>
-                  <strong class="text-mint small d-block mt-1"><i class="bi bi-shield-check me-1"></i> {{ $cdData['commercial'] }}</strong>
+              <div class="col-12 col-sm-6">
+                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
+                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Commercial Rights</span>
+                  <strong class="text-mint small d-block" style="line-height: 1.45;"><i class="bi bi-shield-check me-1.5"></i> {{ $cdData['commercial'] }}</strong>
                 </div>
               </div>
             </div>
 
-            <div class="pt-3 mt-2 border-top border-custom d-flex align-items-center justify-content-between text-muted small" style="font-size: 0.78rem;">
+            <div class="pt-2.5 mt-2 pt-sm-3 mt-sm-2.5 border-top border-custom d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small" style="font-size: 0.78rem;">
               <span><i class="bi bi-check2-circle text-mint me-1"></i> Studio-calibrated prompt syntax</span>
               <span class="fw-semibold title-custom">{{ $images->total() }} {{ str_plural('Angle', $images->total()) }}</span>
             </div>

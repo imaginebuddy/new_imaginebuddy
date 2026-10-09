@@ -1914,8 +1914,9 @@ class AdminController extends Controller
 		$emptyPhotoshoot = new Photoshoot();
 		$defaultCreativeDirection = $emptyPhotoshoot->getDefaultCreativeDirection();
 		$defaultFaqs = $emptyPhotoshoot->getDefaultFaqs();
+		$defaultProductAdaptability = $emptyPhotoshoot->getDefaultProductAdaptability();
 
-		return view('admin.add-photoshoot', compact('categories', 'aiModels', 'defaultCreativeDirection', 'defaultFaqs'));
+		return view('admin.add-photoshoot', compact('categories', 'aiModels', 'defaultCreativeDirection', 'defaultFaqs', 'defaultProductAdaptability'));
 	}
 
 	public function storePhotoshoot(Request $request)
@@ -1949,6 +1950,15 @@ class AdminController extends Controller
 		$metaTitle = trim($request->meta_title ?? '');
 		$metaDescription = trim($request->meta_description ?? '');
 		$metaKeywords = trim($request->meta_keywords ?? '');
+
+		// Process product_adaptability
+		$productAdaptability = null;
+		if ($request->has('product_adaptability') && is_array($request->product_adaptability)) {
+			$filteredPa = array_filter(array_map('trim', $request->product_adaptability), fn($val) => $val !== '');
+			if (!empty($filteredPa)) {
+				$productAdaptability = $request->product_adaptability;
+			}
+		}
 
 		// Process creative_direction
 		$creativeDirection = null;
@@ -1990,6 +2000,7 @@ class AdminController extends Controller
 			'meta_title' => $metaTitle !== '' ? $metaTitle : null,
 			'meta_description' => $metaDescription !== '' ? $metaDescription : null,
 			'meta_keywords' => $metaKeywords !== '' ? $metaKeywords : null,
+			'product_adaptability' => $productAdaptability,
 			'creative_direction' => $creativeDirection,
 			'faqs' => $faqsData,
 		]);
@@ -2009,8 +2020,9 @@ class AdminController extends Controller
 		$aiModels = Images::getAiModels();
 		$defaultCreativeDirection = $data->getDefaultCreativeDirection();
 		$defaultFaqs = $data->getDefaultFaqs();
+		$defaultProductAdaptability = $data->getDefaultProductAdaptability();
 
-		return view('admin.edit-photoshoot', compact('data', 'categories', 'aiModels', 'defaultCreativeDirection', 'defaultFaqs'));
+		return view('admin.edit-photoshoot', compact('data', 'categories', 'aiModels', 'defaultCreativeDirection', 'defaultFaqs', 'defaultProductAdaptability'));
 	}
 
 	public function updatePhotoshoot(Request $request)
@@ -2044,6 +2056,12 @@ class AdminController extends Controller
 		$photoshoot->meta_title = $metaTitle !== '' ? $metaTitle : null;
 		$photoshoot->meta_description = $metaDescription !== '' ? $metaDescription : null;
 		$photoshoot->meta_keywords = $metaKeywords !== '' ? $metaKeywords : null;
+
+		// Process product_adaptability
+		if ($request->has('product_adaptability') && is_array($request->product_adaptability)) {
+			$filteredPa = array_filter(array_map('trim', $request->product_adaptability), fn($val) => $val !== '');
+			$photoshoot->product_adaptability = !empty($filteredPa) ? $request->product_adaptability : null;
+		}
 
 		// Process creative_direction
 		if ($request->has('creative_direction') && is_array($request->creative_direction)) {

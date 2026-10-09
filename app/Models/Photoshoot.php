@@ -24,13 +24,98 @@ class Photoshoot extends Model
         'meta_keywords',
         'ai_model',
         'creative_direction',
+        'product_adaptability',
         'faqs'
     ];
 
     protected $casts = [
         'creative_direction' => 'array',
+        'product_adaptability' => 'array',
         'faqs' => 'array',
     ];
+
+    /**
+     * Default system product adaptability & category compatibility data
+     */
+    public function getDefaultProductAdaptability(): array
+    {
+        $categoryName = $this->category ? $this->category->name : '';
+        $titleLower = strtolower(($this->title ?: '') . ' ' . $categoryName);
+
+        // Detect appropriate sub-products & category context
+        if (str_contains($titleLower, 'watch') || str_contains($titleLower, 'timepiece') || str_contains($titleLower, 'horolog')) {
+            $catLabel = 'Watch';
+            $catScope = 'Watches & Horology';
+            $applicable = 'Chronographs, Smartwatches, Minimalist Dress Watches, Sports & Dive Watches, Luxury Timepieces, Hybrid Watches, Stainless Steel & Leather Straps';
+        } elseif (str_contains($titleLower, 'beverage') || str_contains($titleLower, 'drink') || str_contains($titleLower, 'juice') || str_contains($titleLower, 'soda') || str_contains($titleLower, 'coffee') || str_contains($titleLower, 'tea') || str_contains($titleLower, 'pouch')) {
+            $catLabel = 'Beverage & Drink';
+            $catScope = 'Beverages & Packaged Drinks';
+            $applicable = 'Beverage Cans, Stand-Up Pouches, Glass Bottles, RTD Bottles, Tetra Paks, Cold Brew Bottles, Cocktail Shakers, Drink Cartons';
+        } elseif (str_contains($titleLower, 'beauty') || str_contains($titleLower, 'skincare') || str_contains($titleLower, 'cosmetic') || str_contains($titleLower, 'serum') || str_contains($titleLower, 'lotion') || str_contains($titleLower, 'haircare')) {
+            $catLabel = 'Beauty & Skincare';
+            $catScope = 'Cosmetics & Skincare';
+            $applicable = 'Serum Droppers, Cream Jars, Pump Dispensers, Cosmetic Tubes, Spray Mists, Lipsticks & Tints, Perfume Bottles, Conditioner Bottles';
+        } elseif (str_contains($titleLower, 'food') || str_contains($titleLower, 'snack') || str_contains($titleLower, 'supplement') || str_contains($titleLower, 'protein') || str_contains($titleLower, 'bar')) {
+            $catLabel = 'Food & Nutrition';
+            $catScope = 'Packaged Food & Nutrition';
+            $applicable = 'Protein Bar Wrappers, Snack Pouches, Packaging Boxes, Supplement Tins, Gourmet Jars, Granola Bags, Nutritional Canisters';
+        } elseif (str_contains($titleLower, 'electronic') || str_contains($titleLower, 'tech') || str_contains($titleLower, 'gadget') || str_contains($titleLower, 'audio') || str_contains($titleLower, 'phone')) {
+            $catLabel = 'Electronics & Tech';
+            $catScope = 'Consumer Tech & Gadgets';
+            $applicable = 'Wireless Earbuds, Headphones, Smart Devices, Portable Speakers, Wearables, Mobile Cases, Power Accessories';
+        } elseif (str_contains($titleLower, 'shoe') || str_contains($titleLower, 'sneaker') || str_contains($titleLower, 'fashion') || str_contains($titleLower, 'apparel') || str_contains($titleLower, 'bag')) {
+            $catLabel = 'Fashion & Apparel';
+            $catScope = 'Fashion & Accessories';
+            $applicable = 'Sneakers & Footwear, Handbags & Totes, Wallets, Eyewear & Sunglasses, Leather Goods, Jewelry, Apparel Mockups';
+        } else {
+            $catLabel = $categoryName ?: 'Product';
+            $catScope = $categoryName ?: 'Commercial Products';
+            $applicable = 'Different Packaging Formats, Multiple Sizes & Shapes, Custom Brand Colorways, Diverse Finishes & Textures, Full Product Line SKUs';
+        }
+
+        return [
+            'badge' => 'Universal Category Compatibility',
+            'heading' => 'Engineered for Any ' . $catLabel . ' — Not Just the Demo Product',
+            'description' => 'Our library provides production-grade, battle-tested prompt recipes specifically engineered for commercial product photography. No manual prompt editing is required. The demo product shown in these examples demonstrates lighting balance, reflections, and compositions in action. You can seamlessly apply this entire prompt collection to any ' . strtolower($catLabel) . ' regardless of specific design, brand, or SKU.',
+            'subtext' => 'Simply use the prompt with your product image, and the intelligent prompt framework analyzes your product and automatically adapts the visual direction including colors, background, theme, props, composition, lighting, textures, and overall styling to create a cohesive, premium product photoshoot tailored to your product. Run it in Midjourney, Gemini, ChatGPT, or your preferred AI image generator and generate studio-grade commercial visuals in minutes.',
+            'blueprint_title' => 'Category Compatibility Spec',
+            'category_scope' => $catScope,
+            'workflow_mode' => 'Zero-Edit Image-to-Prompt',
+            'prompt_adaptation' => 'Auto-Tuned Colors & Props',
+            'product_fit' => 'Any Brand, Style or SKU',
+            'show_applicable_products' => '1',
+            'applicable_products_title' => 'Works Seamlessly Across These Products & Styles',
+            'applicable_products' => $applicable,
+            'step_1_title' => 'Just Copy Your Selected Prompt',
+            'step_1_desc' => 'Browse the multi-angle studio catalog below and copy your desired commercial prompt recipe with a single click. Every formula is pre-calibrated for production use.',
+            'step_2_title' => 'No Need to Change Any Settings',
+            'step_2_desc' => 'Zero prompt surgery or technical tweaking required. The camera optics, lighting balance, and surface physics automatically adapt to your product.',
+            'step_3_title' => 'Paste in Generator & Generate',
+            'step_3_desc' => 'Attach your product image and run the prompt in Midjourney, Google Gemini, ChatGPT, or your preferred AI image generator to produce studio-grade visuals in minutes.',
+            'adaptation_highlight' => 'Our library provides production-grade, battle-tested prompt recipes specifically engineered for commercial product photography. No manual prompt editing is required. Simply use the prompt with your product image, and the intelligent prompt framework analyzes your product and automatically adapts the visual direction including colors, background, theme, props, composition, lighting, textures, and overall styling to create a cohesive, premium product photoshoot tailored to your product. Run it in Midjourney, Gemini, ChatGPT, or your preferred AI image generator and generate studio-grade commercial visuals in minutes.',
+        ];
+    }
+
+    /**
+     * Accessor for resolved product adaptability data (custom with fallback to defaults)
+     */
+    public function getProductAdaptabilityDataAttribute(): array
+    {
+        $defaults = $this->getDefaultProductAdaptability();
+        $custom = is_array($this->product_adaptability) ? $this->product_adaptability : [];
+
+        $result = [];
+        foreach ($defaults as $key => $defaultVal) {
+            if ($key === 'show_applicable_products') {
+                $result[$key] = isset($custom[$key]) ? (string)$custom[$key] : (string)$defaultVal;
+            } else {
+                $val = isset($custom[$key]) ? trim((string)$custom[$key]) : '';
+                $result[$key] = $val !== '' ? $val : $defaultVal;
+            }
+        }
+
+        return $result;
+    }
 
     /**
      * Default system creative direction blueprint data
