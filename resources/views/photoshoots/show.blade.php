@@ -248,10 +248,14 @@
       @endif
     </div>
 
-    <!-- Product Adaptability & Universal Category Compatibility -->
     @php
-      $paData = $photoshoot->product_adaptability_data;
+      $hasPaData = !empty($photoshoot->product_adaptability) && is_array($photoshoot->product_adaptability);
+      $showPa = !empty($photoshoot->show_product_adaptability) && $hasPaData;
+      $paData = $showPa ? $photoshoot->product_adaptability_data : null;
     @endphp
+
+    @if ($showPa && $paData)
+    <!-- Product Adaptability & Universal Category Compatibility -->
     <div class="mt-5 pt-4 pt-md-5 border-top border-custom" role="region" aria-labelledby="adaptability-heading">
       
       <!-- Top Grid: Editorial Narrative & Category Blueprint Card -->
@@ -367,139 +371,20 @@
       </div>
 
     </div>
+    @endif
 
-    <!-- SEO Topical Authority: Minimal Creative Studio Direction -->
     @php
-      $cdData = $photoshoot->creative_direction_data;
-      $faqsList = $photoshoot->faq_items;
+      $hasFaqsData = !empty($photoshoot->faqs) && is_array($photoshoot->faqs);
+      $showFaqs = !empty($photoshoot->show_faqs) && $hasFaqsData;
+      $faqsList = $showFaqs ? $photoshoot->faq_items : [];
     @endphp
-    <div class="mt-5 pt-4 pt-md-5 border-top border-custom" role="region" aria-labelledby="direction-heading">
-      
-      <!-- Top Grid: Editorial Narrative & Studio Blueprint Card -->
-      <div class="row g-4 align-items-stretch mb-4 mb-md-5">
-        
-        <!-- Left: Editorial Context & SEO Depth -->
-        <div class="col-lg-7 d-flex flex-column justify-content-center">
-          <div class="pe-lg-4">
-            <span class="badge badge-dark-custom rounded-pill px-3 py-1 fw-bold text-uppercase mb-2 d-inline-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-              {{ $cdData['badge'] }}
-            </span>
-            <h2 id="direction-heading" class="fw-bold title-custom mb-3" style="font-size: clamp(1.4rem, 2.5vw, 1.85rem); line-height: 1.3;">
-              {{ $cdData['heading'] }}
-            </h2>
-            <p class="text-muted mb-3" style="line-height: 1.75; font-size: 0.96rem;">
-              {!! nl2br(e($cdData['description'])) !!}
-            </p>
-            @if (!empty($cdData['subtext']))
-              <p class="text-muted mb-0 small" style="line-height: 1.7;">
-                {!! nl2br(e($cdData['subtext'])) !!}
-              </p>
-            @endif
-          </div>
-        </div>
-
-        <!-- Right: Compact Technical Blueprint Card -->
-        <div class="col-lg-5">
-          <div class="card bg-card-custom rounded-4 border border-custom p-3 p-sm-4 h-100 shadow-xs d-flex flex-column">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 pb-2 mb-sm-3 pb-sm-3 border-bottom border-custom">
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-sliders text-mint fs-5"></i>
-                <span class="fw-bold title-custom small text-uppercase" style="letter-spacing: 0.5px;">{{ $cdData['blueprint_title'] }}</span>
-              </div>
-              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
-                <i class="bi bi-patch-check-fill me-1"></i> Verified Spec
-              </span>
-            </div>
-
-            <div class="row g-2 g-sm-2.5 flex-grow-1 align-content-center my-0">
-              <div class="col-12 col-sm-6">
-                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Lighting Key</span>
-                  <strong class="title-custom small d-block" style="line-height: 1.45;">{{ $cdData['lighting'] }}</strong>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Optical Lenses</span>
-                  <strong class="title-custom small d-block" style="line-height: 1.45;">{{ $cdData['lenses'] }}</strong>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Target AI Models</span>
-                  <strong class="title-custom small d-block" style="line-height: 1.45;">{{ $cdData['target_ai'] }}</strong>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="p-3 rounded-3 bg-subtle-custom border border-custom h-100">
-                  <span class="d-block text-muted text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Commercial Rights</span>
-                  <strong class="text-mint small d-block" style="line-height: 1.45;"><i class="bi bi-shield-check me-1.5"></i> {{ $cdData['commercial'] }}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div class="pt-2.5 mt-2 pt-sm-3 mt-sm-2.5 border-top border-custom d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small" style="font-size: 0.78rem;">
-              <span><i class="bi bi-check2-circle text-mint me-1"></i> Studio-calibrated prompt syntax</span>
-              <span class="fw-semibold title-custom">{{ $images->total() }} {{ str_plural('Angle', $images->total()) }}</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Bottom Grid: 3 Distinct Feature Cards (Clean, Balanced & Breathable) -->
-      <div class="row g-3 g-md-4 mb-5">
-        
-        <!-- Pillar 1: Lighting & Optical Science -->
-        <div class="col-md-4">
-          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs hover-lift">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">01</span>
-              <i class="bi bi-brightness-high text-mint fs-5"></i>
-            </div>
-            <h3 class="h6 fw-bold title-custom mb-2">{{ $cdData['pillar_1_title'] }}</h3>
-            <p class="text-muted small mb-0" style="line-height: 1.65;">
-              {!! nl2br(e($cdData['pillar_1_desc'])) !!}
-            </p>
-          </div>
-        </div>
-
-        <!-- Pillar 2: Multi-Angle Coverage -->
-        <div class="col-md-4">
-          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs hover-lift">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">02</span>
-              <i class="bi bi-camera-reels text-mint fs-5"></i>
-            </div>
-            <h3 class="h6 fw-bold title-custom mb-2">{{ $cdData['pillar_2_title'] }}</h3>
-            <p class="text-muted small mb-0" style="line-height: 1.65;">
-              {!! nl2br(e($cdData['pillar_2_desc'])) !!}
-            </p>
-          </div>
-        </div>
-
-        <!-- Pillar 3: Cross-Model Model Fidelity -->
-        <div class="col-md-4">
-          <div class="card bg-card-custom rounded-4 border border-custom p-4 h-100 shadow-xs hover-lift">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="badge badge-mint-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">03</span>
-              <i class="bi bi-cpu text-mint fs-5"></i>
-            </div>
-            <h3 class="h6 fw-bold title-custom mb-2">{{ $cdData['pillar_3_title'] }}</h3>
-            <p class="text-muted small mb-0" style="line-height: 1.65;">
-              {!! nl2br(e($cdData['pillar_3_desc'])) !!}
-            </p>
-          </div>
-        </div>
-
-      </div>
-    </div>
 
     <!-- Visual Transformation Proof: Before / After Showcase -->
     <div class="photoshoot-transformation-wrapper mt-5 pt-4 pt-md-5 border-top border-custom">
       @include('includes.transformation-section')
     </div>
 
+    @if ($showFaqs && count($faqsList) > 0)
     <!-- FAQ Accordion (Styled identically to /frequently-asked-questions) -->
     <div class="my-5 pt-3 pt-md-4">
         <div class="text-center mb-4">
@@ -543,6 +428,7 @@
 
         </div><!-- /.faq-accordion-wrapper -->
       </div>
+    @endif
 
     <!-- Related Photoshoots Section -->
     @if (isset($relatedPhotoshoots) && $relatedPhotoshoots->count() > 0)
@@ -571,20 +457,23 @@
 @php
   // Structured FAQ data for Google
   $faqStructured = [];
-  foreach ($faqsList as $faqItem) {
-    if (!empty($faqItem['question']) && !empty($faqItem['answer'])) {
-      $faqStructured[] = [
-        '@type' => 'Question',
-        'name' => $faqItem['question'],
-        'acceptedAnswer' => [
-          '@type' => 'Answer',
-          'text' => strip_tags($faqItem['answer'])
-        ]
-      ];
+  if ($showFaqs) {
+    foreach ($faqsList as $faqItem) {
+      if (!empty($faqItem['question']) && !empty($faqItem['answer'])) {
+        $faqStructured[] = [
+          '@type' => 'Question',
+          'name' => $faqItem['question'],
+          'acceptedAnswer' => [
+            '@type' => 'Answer',
+            'text' => strip_tags($faqItem['answer'])
+          ]
+        ];
+      }
     }
   }
 @endphp
 
+@if ($showFaqs && !empty($faqStructured))
 <!-- Rich Schema.org FAQPage Structured Data -->
 <script type="application/ld+json">
 {
@@ -593,6 +482,7 @@
   "mainEntity": {!! json_encode($faqStructured, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 }
 </script>
+@endif
 
 <!-- Rich Schema.org ImageGallery Structured Data -->
 <script type="application/ld+json">

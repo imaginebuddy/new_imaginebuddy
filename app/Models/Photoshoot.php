@@ -24,13 +24,17 @@ class Photoshoot extends Model
         'meta_keywords',
         'ai_model',
         'creative_direction',
+        'show_product_adaptability',
         'product_adaptability',
+        'show_faqs',
         'faqs'
     ];
 
     protected $casts = [
         'creative_direction' => 'array',
+        'show_product_adaptability' => 'boolean',
         'product_adaptability' => 'array',
+        'show_faqs' => 'boolean',
         'faqs' => 'array',
     ];
 
