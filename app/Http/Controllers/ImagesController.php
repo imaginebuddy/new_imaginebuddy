@@ -301,8 +301,13 @@ class ImagesController extends Controller
 
 	public function showLegacyRedirect($id, $slug = null)
 	{
-		$image = Images::findOrFail($id);
-		return redirect('prompt/' . $image->slug, 301);
+		$image = Images::find($id);
+
+		if ($image) {
+			return redirect('prompt/' . $image->slug, 301);
+		}
+
+		abort(410, 'This page has been permanently removed.');
 	}
 
 	/**
