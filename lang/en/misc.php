@@ -277,7 +277,7 @@ return array(
 	'sales_last_30_days' => 'Sales last 30 days',
 	'earnings_raised_last' => 'Earnings last 30 days',
 	'recent_sales' => 'Recent Sales',
-	'recent_photos' => 'Recent Prompts',
+	'recent_photos' => 'Latest Prompts',
 	'user_not_available' => 'User not available',
 	'total_sales' => 'Total Sales',
 	'sales' => 'Sales',

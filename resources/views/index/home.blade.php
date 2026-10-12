@@ -293,6 +293,12 @@
 }
 .home-promo-section .promo-heading {
   color: #0f172a !important;
+  font-size: clamp(1.5rem, 2.3vw, 2.25rem) !important;
+}
+@media (min-width: 992px) {
+  .home-promo-section .promo-heading {
+    white-space: nowrap !important;
+  }
 }
 .home-promo-section .promo-lead {
   color: #475569 !important;
