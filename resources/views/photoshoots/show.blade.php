@@ -484,18 +484,6 @@
 </script>
 @endif
 
-<!-- Rich Schema.org ImageGallery Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ImageGallery",
-  "name": "{{ addslashes($photoshoot->title) }}",
-  "description": "{{ addslashes($photoshoot->meta_description ?: ($photoshoot->description ?: $photoshoot->title)) }}",
-  "url": "{{ url('photoshoots/' . $photoshoot->slug) }}",
-  "numberOfItems": {{ $images->total() }}
-}
-</script>
-
 <style>
 /* --- Core Brand Accents --- */
 .text-mint {

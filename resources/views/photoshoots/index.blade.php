@@ -339,7 +339,7 @@
     @if(count($itemListElements) > 0)
     {
       "@type": "ItemList",
-      "name": "{{ $currentCategory ? $currentCategory->name . ' AI Photoshoot Sets' : 'AI Product Photography Sets' }}",
+      "name": {!! json_encode($currentCategory ? $currentCategory->name . ' AI Photoshoot Sets' : 'AI Product Photography Sets') !!},
       "description": "Curated multi-prompt commercial AI photoshoots for e-commerce and creative branding.",
       "itemListElement": {!! json_encode($itemListElements, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     },
