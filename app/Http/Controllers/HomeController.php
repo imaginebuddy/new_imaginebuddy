@@ -48,7 +48,7 @@ class HomeController extends Controller
       ->orderBy('name')
       ->take(4)
       ->get();
-    $images     = Query::latestImagesHome();
+    $images     = Query::latestImagesHome()->take(6);
     $featured   = in_array(config('settings.show_images_index'), ['featured', 'both']) ? Query::featuredImages() : null;
     $popularCategories = Categories::withCount('images')
       ->latest('images_count')
@@ -69,6 +69,20 @@ class HomeController extends Controller
     $testimonials = Testimonial::active()->ordered()->get();
     $clientLogos  = ClientLogo::active()->ordered()->get();
 
+    $latestPhotoshoots = Photoshoot::with([
+        'category',
+        'user',
+        'images' => function ($q) {
+          $q->where('status', 'active')->orderBy('id', 'asc');
+        }
+      ])
+      ->whereHas('images', function ($q) {
+        $q->where('status', 'active');
+      })
+      ->orderBy('id', 'desc')
+      ->take(6)
+      ->get();
+
     return view(
       'index.home',
       [
@@ -77,7 +91,8 @@ class HomeController extends Controller
         'featured' => $featured,
         'categoryPopular' => $categoryPopular,
         'testimonials' => $testimonials,
-        'clientLogos' => $clientLogos
+        'clientLogos' => $clientLogos,
+        'latestPhotoshoots' => $latestPhotoshoots
       ]
     );
   }
