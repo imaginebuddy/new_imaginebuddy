@@ -335,6 +335,10 @@
               </div>
             </div>
 
+            @php
+              $userFaqs = is_array($data->faqs) ? $data->faqs : [];
+            @endphp
+
             @for ($i = 0; $i < 5; $i++)
               @php
                 $itemQ = old('faqs.'.$i.'.question', $userFaqs[$i]['question'] ?? '');

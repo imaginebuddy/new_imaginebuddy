@@ -2011,8 +2011,9 @@ class AdminController extends Controller
 		$aiModels = Images::getAiModels();
 		$defaultFaqs = $data->getDefaultFaqs();
 		$defaultProductAdaptability = $data->getDefaultProductAdaptability();
+		$userFaqs = is_array($data->faqs) ? $data->faqs : [];
 
-		return view('admin.edit-photoshoot', compact('data', 'categories', 'aiModels', 'defaultFaqs', 'defaultProductAdaptability'));
+		return view('admin.edit-photoshoot', compact('data', 'categories', 'aiModels', 'defaultFaqs', 'defaultProductAdaptability', 'userFaqs'));
 	}
 
 	public function updatePhotoshoot(Request $request)
