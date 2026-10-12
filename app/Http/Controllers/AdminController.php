@@ -1474,7 +1474,7 @@ class AdminController extends Controller
 			\Artisan::call('up');
 		}
 
-		$this->settings->maintenance_mode = $request->maintenance_mode;
+		$this->settings->maintenance_mode = $request->maintenance_mode ?? 'off';
 		$this->settings->save();
 
 		if ($request->maintenance_mode) {
