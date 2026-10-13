@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title'){{ $currentCategory ? $currentCategory->name . ' AI Photoshoot Prompts & Sets - ' : 'AI Product Photoshoot Prompts & Multi-Angle Sets - ' }}@endsection
+@section('title'){{ $currentCategory ? $currentCategory->name . ' AI Photoshoot Prompts & Ideas - ' : 'AI Product Photoshoot Prompts & Multi-Angle Sets - ' }}@endsection
 
 @section('content')
 <section class="section section-sm py-4" style="padding-top: 95px !important;">
@@ -8,18 +8,22 @@
     
     <!-- Hero Header -->
     <div class="text-center pt-3 pt-md-4 pb-3 mb-4">
-      <span class="badge rounded-pill px-4 py-2 mb-3 d-inline-flex align-items-center" style="color: #00d690; border: 1px solid #00d690; background-color: transparent; font-size: 0.85rem; font-weight: 500;">
-        <i class="bi bi-collection-play me-2"></i> Photoshoot Sets
-      </span>
-      <h1 class="fw-bold text-dark title-custom display-5 mb-3">
+      <!-- <span class="badge rounded-pill px-4 py-2 mb-3 d-inline-flex align-items-center" style="color: #00d690; border: 1px solid #00d690; background-color: transparent; font-size: 0.85rem; font-weight: 500;">
+        <i class="bi bi-collection-play me-2"></i> Photoshoot Ideas
+      </span> -->
+      <h1 class="fw-bold text-dark title-custom photoshoot-page-title mb-3">
         @if ($currentCategory)
           {{ $currentCategory->name }} AI Photoshoot Prompts
         @else
-          AI Product Photoshoot Prompts & Commercial Sets
+          Turn One Product Photo Into a Premium Multi Angle AI Photoshoot.
         @endif
       </h1>
-      <p class="lead text-muted mx-auto" style="max-width: 720px;">
-        Explore curated multi-prompt commercial photoshoot batches. Generate consistent virtual models, studio lighting setups, and multiple camera angles across ChatGPT, Google Gemini, and Midjourney.
+      <p class="lead text-muted mx-auto" style="max-width: 1220px;">
+        @if ($currentCategory)
+          Explore curated multi-prompt commercial photoshoot concepts for {{ strtolower($currentCategory->name) }} products. Generate consistent on-brand models, professional studio and lifestyle lighting setups, and multi-angle product coverage across ChatGPT, Google Gemini, and Midjourney.
+        @else
+          Explore curated multi-prompt commercial photoshoot concepts. Generate consistent virtual models, studio lighting setups, and multiple camera angles across ChatGPT, Google Gemini, and Midjourney.
+        @endif
       </p>
     </div>
 
@@ -353,6 +357,16 @@
 </script>
 
 <style>
+.photoshoot-page-title {
+  font-size: clamp(1.5rem, 2.35vw, 2.55rem);
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+@media (min-width: 992px) {
+  .photoshoot-page-title {
+    white-space: nowrap;
+  }
+}
 .photoshoot-category-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
