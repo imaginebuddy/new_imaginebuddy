@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Images;
+use App\Models\Photoshoot;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -16,23 +17,57 @@ class SitemapController extends Controller
     const CHUNK_SIZE = 5000;
 
     /**
+     * Cache duration in minutes (2 hours)
+     */
+    const CACHE_MINUTES = 120;
+
+    /**
+     * Invalidate all sitemap cached XML files
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget('sitemap_index_xml');
+        Cache::forget('sitemap_main_xml');
+
+        $totalPrompts = Images::where('status', 'active')->count();
+        $totalPages = max(1, (int) ceil($totalPrompts / self::CHUNK_SIZE));
+        for ($page = 1; $page <= $totalPages + 2; $page++) {
+            Cache::forget("sitemap_prompts_{$page}_xml");
+        }
+    }
+
+    /**
      * Master Sitemap Index: provides references to core pages and dynamic prompt chunks
      */
-    public function index()
+    public function index(Request $request)
     {
-        $xml = Cache::remember('sitemap_index_xml', now()->addHours(6), function () {
-            $totalPrompts = Images::where('status', 'active')->count();
+        if ($request->has('refresh') || $request->has('clear_cache')) {
+            self::clearCache();
+        }
+
+        $xml = Cache::remember('sitemap_index_xml', now()->addMinutes(self::CACHE_MINUTES), function () {
+            $totalPrompts = Images::where('status', 'active')
+                ->whereNotNull('slug')
+                ->where('slug', '!=', '')
+                ->count();
             $totalPages = max(1, (int) ceil($totalPrompts / self::CHUNK_SIZE));
 
             $latestPromptDate = Images::where('status', 'active')->max('date');
-            $latestMod = $latestPromptDate
-                ? Carbon::parse($latestPromptDate)->format('Y-m-d')
-                : Carbon::now()->format('Y-m-d');
+            $latestPhotoshootDate = Photoshoot::max('created_at');
+
+            $dates = array_filter([
+                $latestPromptDate ? Carbon::parse($latestPromptDate)->format('Y-m-d') : null,
+                $latestPhotoshootDate ? Carbon::parse($latestPhotoshootDate)->format('Y-m-d') : null,
+            ]);
+
+            $latestMod = !empty($dates) ? max($dates) : Carbon::now()->format('Y-m-d');
 
             $promptChunks = [];
             for ($page = 1; $page <= $totalPages; $page++) {
                 $offset = ($page - 1) * self::CHUNK_SIZE;
                 $chunkDate = Images::where('status', 'active')
+                    ->whereNotNull('slug')
+                    ->where('slug', '!=', '')
                     ->orderBy('id', 'desc')
                     ->skip($offset)
                     ->take(self::CHUNK_SIZE)
@@ -55,11 +90,15 @@ class SitemapController extends Controller
     }
 
     /**
-     * Core Pages Sitemap (Home, Categories, Blog, Pages, etc.)
+     * Core Pages Sitemap (Home, Categories, Blog, Pages, Photoshoots, etc.)
      */
-    public function main()
+    public function main(Request $request)
     {
-        $xml = Cache::remember('sitemap_main_xml', now()->addHours(12), function () {
+        if ($request->has('refresh') || $request->has('clear_cache')) {
+            Cache::forget('sitemap_main_xml');
+        }
+
+        $xml = Cache::remember('sitemap_main_xml', now()->addMinutes(self::CACHE_MINUTES), function () {
             return view('default.sitemaps')->render();
         });
 
@@ -69,18 +108,24 @@ class SitemapController extends Controller
     /**
      * Dynamic chunk of prompt image URLs (e.g. sitemaps-prompts-1.xml)
      */
-    public function prompts($page = 1)
+    public function prompts(Request $request, $page = 1)
     {
         $page = (int) $page;
         if ($page < 1) {
             abort(404);
         }
 
-        $xml = Cache::remember("sitemap_prompts_{$page}_xml", now()->addHours(6), function () use ($page) {
+        if ($request->has('refresh') || $request->has('clear_cache')) {
+            Cache::forget("sitemap_prompts_{$page}_xml");
+        }
+
+        $xml = Cache::remember("sitemap_prompts_{$page}_xml", now()->addMinutes(self::CACHE_MINUTES), function () use ($page) {
             $offset = ($page - 1) * self::CHUNK_SIZE;
 
             $images = Images::select(['id', 'title', 'slug', 'thumbnail', 'preview', 'date'])
                 ->where('status', 'active')
+                ->whereNotNull('slug')
+                ->where('slug', '!=', '')
                 ->orderBy('id', 'desc')
                 ->skip($offset)
                 ->take(self::CHUNK_SIZE)

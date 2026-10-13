@@ -42,6 +42,20 @@ class Images extends Model
 	    'description'
 	];
 
+	/**
+	 * Invalidate sitemap cache whenever images/prompts are saved or deleted
+	 */
+	protected static function booted()
+	{
+		static::saved(function () {
+			\App\Http\Controllers\SitemapController::clearCache();
+		});
+
+		static::deleted(function () {
+			\App\Http\Controllers\SitemapController::clearCache();
+		});
+	}
+
 	public static $aiModels = [
 		'Nano Banana',
 		'Midjourney',

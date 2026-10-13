@@ -91,22 +91,24 @@
         @endforeach
 
         @foreach (App\Models\Subcategories::with(['category:id,slug'])->where('mode', 'on')->get() as $subcategory)
+            @if ($subcategory->category && $subcategory->category->slug)
             <url>
-            <loc>{{ url('category', [$subcategory->category->slug, $subcategory->slug]) }}</loc>
-            <lastmod>{{$date}}</lastmod>
-            <priority>0.8</priority>
+                <loc>{{ url('category', [$subcategory->category->slug, $subcategory->slug]) }}</loc>
+                <lastmod>{{$date}}</lastmod>
+                <priority>0.8</priority>
             </url>
+            @endif
         @endforeach
 
         <url>
             <loc>{{ url('photoshoots') }}</loc>
-            <lastmod>{{$date}}</lastmod>
+            <lastmod>{{ App\Models\Photoshoot::max('created_at') ? Carbon\Carbon::parse(App\Models\Photoshoot::max('created_at'))->format('Y-m-d') : $date }}</lastmod>
             <priority>0.8</priority>
         </url>
 
         @foreach (App\Models\Photoshoot::whereNotNull('slug')->where('slug', '!=', '')->orderBy('id', 'desc')->get() as $photoshoot)
         <url>
-            <loc>{{ url('photoshoots', $photoshoot->slug) }}</loc>
+            <loc>{{ url('photoshoots/' . $photoshoot->slug) }}</loc>
             <lastmod>{{ $photoshoot->created_at ? Carbon\Carbon::parse($photoshoot->created_at)->format('Y-m-d') : $date }}</lastmod>
             <priority>0.8</priority>
         </url>

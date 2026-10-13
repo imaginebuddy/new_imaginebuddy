@@ -3,7 +3,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 @foreach ($images as $response)
   <url>
-    <loc>{{ url('prompt', $response->slug) }}</loc>
+    <loc>{{ url('prompt/' . $response->slug) }}</loc>
 @if ($response->preview)
     <image:image>
       <image:loc>{{ Storage::url(config('path.preview') . $response->preview) }}</image:loc>

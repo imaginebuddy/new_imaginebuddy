@@ -39,6 +39,20 @@ class Photoshoot extends Model
     ];
 
     /**
+     * Invalidate sitemap cache whenever photoshoots are saved or deleted
+     */
+    protected static function booted()
+    {
+        static::saved(function () {
+            \App\Http\Controllers\SitemapController::clearCache();
+        });
+
+        static::deleted(function () {
+            \App\Http\Controllers\SitemapController::clearCache();
+        });
+    }
+
+    /**
      * Default system product adaptability & category compatibility data
      */
     public function getDefaultProductAdaptability(): array
