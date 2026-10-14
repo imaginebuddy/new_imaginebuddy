@@ -231,28 +231,23 @@ html {
   scroll-margin-top: 100px;
 }
 
-/* Page Frame */
+/* Page Frame - Clear fixed header */
 .guide-article-wrapper {
   background-color: var(--guide-bg-canvas);
   color: var(--guide-text-body);
   min-height: 100vh;
-  padding-top: 20px;
+  padding-top: 95px !important;
+}
+@media (max-width: 991.98px) {
+  .guide-article-wrapper {
+    padding-top: 85px !important;
+  }
 }
 
-/* Breadcrumb Styling */
-.guide-breadcrumb {
-  font-size: 0.85rem;
-}
-.guide-breadcrumb .breadcrumb-item a {
-  color: var(--guide-text-muted);
-  transition: color 0.2s ease;
-}
-.guide-breadcrumb .breadcrumb-item a:hover {
-  color: var(--guide-mint);
-}
-.guide-breadcrumb .breadcrumb-item.active {
-  color: var(--guide-text-main);
-  font-weight: 500;
+/* Breadcrumb Pill Styling for Guides (Show full title) */
+.guide-article-wrapper .breadcrumb-pill-box .breadcrumb-item.active .badge {
+  max-width: none !important;
+  white-space: nowrap !important;
 }
 
 /* Category Pill */
@@ -660,19 +655,40 @@ html {
 }
 
 /* Editorial Tables (Comparison & Specifications) */
-.guide-section-body table {
+.guide-section-body .table-responsive {
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin: 1.85rem 0 2rem 0;
-  border-collapse: separate;
-  border-spacing: 0;
   border-radius: 14px;
-  overflow: hidden;
   border: 1px solid var(--guide-border-subtle);
   background: var(--guide-bg-surface);
-  font-size: 0.94rem;
-  line-height: 1.6;
   box-shadow: var(--guide-shadow-sm);
 }
+
+.guide-section-body table {
+  width: 100%;
+  min-width: 580px; /* Prevents columns from squishing into vertical 1-character text */
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  border: none;
+}
+
+/* Standalone fallback if table is not yet in .table-responsive wrapper */
+.guide-section-body > table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--guide-border-subtle);
+  border-radius: 14px;
+  box-shadow: var(--guide-shadow-sm);
+  margin: 1.85rem 0 2rem 0;
+}
+
 .guide-section-body thead {
   background: var(--guide-bg-subtle);
 }
@@ -680,19 +696,34 @@ html {
   background: var(--guide-bg-subtle);
   color: var(--guide-text-main);
   font-weight: 700 !important;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1.15rem;
   border-bottom: 1px solid var(--guide-border-subtle);
   text-align: left;
+  white-space: nowrap !important; /* Never allow header text to break into vertical letters */
 }
 .guide-section-body td {
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1.15rem;
   border-bottom: 1px solid var(--guide-border-subtle);
   color: var(--guide-text-body);
   vertical-align: top;
   line-height: 1.65;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+.guide-section-body table th:first-child,
+.guide-section-body table td:first-child {
+  min-width: 135px;
+}
+.guide-section-body table th:nth-child(2),
+.guide-section-body table td:nth-child(2) {
+  min-width: 175px;
+}
+.guide-section-body table th:nth-child(3),
+.guide-section-body table td:nth-child(3) {
+  min-width: 250px;
 }
 .guide-section-body tbody tr:last-child td {
   border-bottom: none;
@@ -968,7 +999,7 @@ html {
 
 @media (max-width: 575.98px) {
   .guide-article-wrapper {
-    padding-top: 10px;
+    padding-top: 80px !important;
   }
   .guide-hero-img {
     aspect-ratio: 16 / 9;
@@ -1027,10 +1058,14 @@ html {
     margin-top: 1.6rem;
     margin-bottom: 0.6rem;
   }
+  .guide-section-body .table-responsive {
+    margin: 1.25rem 0 1.5rem 0;
+    border-radius: 12px;
+  }
   .guide-section-body table th,
   .guide-section-body table td {
     padding: 0.75rem 0.85rem;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
   }
   .guide-prompt-blueprint-box {
     padding: 1rem 1.15rem;
@@ -1061,16 +1096,23 @@ html {
 <article class="guide-article-wrapper pb-5">
   <div class="container px-3 px-md-4">
 
-    <!-- Top Minimalist Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4 pt-3">
-      <ol class="breadcrumb guide-breadcrumb align-items-center mb-0">
-        <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none"><i class="bi-house-door me-1"></i>Home</a></li>
-        @if ($page->category)
-          <li class="breadcrumb-item"><a href="{{ url('category', $page->category->slug) }}" class="text-decoration-none">{{ $page->category->name }}</a></li>
-        @endif
-        <li class="breadcrumb-item active text-truncate" aria-current="page" style="max-width: 320px;">{{ $page->title }}</li>
-      </ol>
-    </nav>
+    <!-- Top Breadcrumb Navigation -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <nav aria-label="breadcrumb" style="max-width: 100%;">
+        <div class="breadcrumb-pill-box rounded-pill shadow-sm border px-3 px-md-4 py-2 d-inline-flex align-items-center">
+          <ol class="breadcrumb mb-0 align-items-center list-unstyled">
+            <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item d-none d-sm-inline-block"><a href="{{ url('categories') }}" class="text-decoration-none">Categories</a></li>
+            @if ($page->category)
+              <li class="breadcrumb-item"><a href="{{ url('category', $page->category->slug) }}" class="text-decoration-none">{{ $page->category->name }}</a></li>
+            @endif
+            <li class="breadcrumb-item active" aria-current="page">
+              <span class="badge bg-custom-mint text-white rounded-pill px-3 py-2 fw-bold" title="{{ $page->title }}" style="font-size: 0.85rem; letter-spacing: -0.2px;">{{ $page->title }}</span>
+            </li>
+          </ol>
+        </div>
+      </nav>
+    </div>
 
     <!-- Editorial Header Section -->
     <header class="guide-hero-banner mb-4 mb-lg-5">
@@ -1274,8 +1316,14 @@ html {
                 @endif
 
                 @if ($section->content)
+                  @php
+                    $sectionContent = $section->content;
+                    if (stripos($sectionContent, '<table') !== false && stripos($sectionContent, 'table-responsive') === false) {
+                      $sectionContent = preg_replace('/(<table[^>]*>.*?<\/table>)/is', '<div class="table-responsive my-3">$1</div>', $sectionContent);
+                    }
+                  @endphp
                   <div class="guide-section-body">
-                    {!! $section->content !!}
+                    {!! $sectionContent !!}
                   </div>
                 @endif
               </section>
