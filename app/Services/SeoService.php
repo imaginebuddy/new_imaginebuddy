@@ -846,7 +846,12 @@ class SeoService
                         ],
                         'headline' => $post->title,
                         'description' => $data['description'],
-                        'image' => !empty($data['og_image']) ? $data['og_image'] : $logoUrl,
+                        'image' => [
+                            '@type' => 'ImageObject',
+                            'url' => !empty($data['og_image']) ? $data['og_image'] : $logoUrl,
+                            'width' => 1200,
+                            'height' => 675,
+                        ],
                         'datePublished' => $post->published_at ? date('c', strtotime($post->published_at)) : date('c', strtotime($post->created_at)),
                         'dateModified' => $post->updated_at ? date('c', strtotime($post->updated_at)) : date('c'),
                         'author' => [
@@ -864,6 +869,14 @@ class SeoService
                             ],
                         ],
                     ];
+
+                    if (!empty($post->category)) {
+                        $postSchema['articleSection'] = $post->category->name;
+                    }
+
+                    if (!empty($data['keywords'])) {
+                        $postSchema['keywords'] = $data['keywords'];
+                    }
 
                     if (!empty($post->excerpt)) {
                         $postSchema['abstract'] = $post->excerpt;

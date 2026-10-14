@@ -145,5 +145,13 @@
             <priority>0.8</priority>
         </url>
         @endforeach
+
+        @foreach (App\Models\SeoLandingPage::published()->where('robots', 'LIKE', '%index%')->get() as $guide)
+        <url>
+            <loc>{{ url('guides', $guide->slug) }}</loc>
+            <lastmod>{{ $guide->updated_at ? Carbon\Carbon::parse($guide->updated_at)->format('Y-m-d') : $date }}</lastmod>
+            <priority>0.8</priority>
+        </url>
+        @endforeach
    
 </urlset>

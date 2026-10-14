@@ -255,4 +255,9 @@ class Photoshoot extends Model
     {
         return $this->hasMany(Images::class, 'photoshoot_id');
     }
+
+    public function landingPageItems()
+    {
+        return $this->hasMany(SeoLandingPageItem::class, 'item_id')->where('item_type', 'photoshoot');
+    }
 }

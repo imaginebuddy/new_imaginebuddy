@@ -1,5 +1,46 @@
 @extends('layouts.app')
 
+@php
+  $authorName = $post->user ? ($post->user->name ?: $post->user->username) : config('settings.title', 'ImagineBuddy');
+@endphp
+
+@section('robots', (!empty($post->robots) ? $post->robots : 'index, follow') . (str_contains($post->robots ?? '', 'max-image-preview') ? '' : ', max-image-preview:large'))
+@section('og_type', 'article')
+@section('twitter_card', 'summary_large_image')
+
+@if (!empty($post->meta_title))
+  @section('title', $post->meta_title)
+@endif
+
+@if (!empty($post->meta_description))
+  @section('description_override', Helper::removeLineBreak(e($post->meta_description)))
+@elseif ($post->excerpt)
+  @section('description_custom', Helper::removeLineBreak(e($post->excerpt)))
+@endif
+
+@if (!empty($post->meta_keywords))
+  @section('keywords_override', $post->meta_keywords)
+@endif
+
+@if (!empty($post->og_title))
+  @section('og_title', $post->og_title)
+@endif
+
+@if (!empty($post->og_description))
+  @section('og_description', $post->og_description)
+@endif
+
+@if (!empty($post->featured_image))
+  @section('og_image', $post->featured_image_url)
+@endif
+
+@section('article_published_time', $post->published_at ? $post->published_at->toIso8601String() : ($post->created_at ? $post->created_at->toIso8601String() : date('c')))
+@section('article_modified_time', $post->updated_at ? $post->updated_at->toIso8601String() : date('c'))
+@section('article_author', $authorName)
+@if ($post->category)
+  @section('article_section', $post->category->name)
+@endif
+
 @section('content')
 <!-- Scroll Reading Progress Bar -->
 <div id="readingProgressBar" class="reading-progress-bar"></div>
@@ -94,7 +135,7 @@
     @if ($post->featured_image)
     <figure class="blog-featured-image-wrapper mb-4 mb-md-5">
       <div class="featured-image-frame position-relative overflow-hidden">
-        <img src="{{ $post->featured_image_url }}" alt="{{ $post->featured_image_alt ?: $post->title }}" class="img-fluid w-100 featured-hero-img" loading="eager" />
+        <img src="{{ $post->featured_image_url }}" alt="{{ $post->featured_image_alt ?: $post->title }}" class="img-fluid w-100 featured-hero-img" width="1200" height="675" fetchpriority="high" decoding="async" />
       </div>
       @if ($post->featured_image_alt)
         <figcaption class="text-center text-muted small mt-2 fst-italic">
@@ -464,14 +505,19 @@
 }
 .featured-hero-img {
   width: 100%;
-  max-height: 520px;
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   display: block;
 }
 @media (max-width: 768px) {
   .featured-image-frame {
     border-radius: 14px;
-    max-height: 320px;
+    max-height: 360px;
+  }
+  .featured-hero-img {
+    aspect-ratio: 16 / 9;
+    height: auto;
   }
 }
 

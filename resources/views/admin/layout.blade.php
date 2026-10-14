@@ -404,6 +404,27 @@
               </div><!-- /end collapse blogMenu -->
               @endif
 
+              @if (auth()->user()->hasPermission('seo_pages') || auth()->user()->hasPermission('full_access'))
+              <li class="nav-item">
+                  <a href="#seoPagesMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/seo-pages*')) active @endif" @if (request()->is('panel/admin/seo-pages*')) aria-expanded="true" @endif>
+                      <i class="bi-file-earmark-richtext me-2"></i> SEO Landing Pages
+                  </a>
+              </li><!-- /end list -->
+
+              <div class="collapse w-100 @if (request()->is('panel/admin/seo-pages*')) show @endif ps-3" id="seoPagesMenu">
+                <li>
+                  <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/seo-pages') || request()->is('panel/admin/seo-pages/edit/*')) text-white @endif" href="{{ url('panel/admin/seo-pages') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> All Landing Pages
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->is('panel/admin/seo-pages/create')) text-white @endif" href="{{ url('panel/admin/seo-pages/create') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> {{ trans('misc.add_new') }} Landing Page
+                  </a>
+                </li>
+              </div><!-- /end collapse seoPagesMenu -->
+              @endif
+
                 @if (auth()->user()->hasPermission('payment_settings'))
               <li class="nav-item">
                   <a href="#payments" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/payments') || request()->is('panel/admin/payments/*')) active @endif" @if (request()->is('panel/admin/payments') || request()->is('panel/admin/payments/*')) aria-expanded="true" @endif>

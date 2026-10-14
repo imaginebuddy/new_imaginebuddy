@@ -185,6 +185,10 @@ Route::get('blog/tag/{slug}', [\App\Http\Controllers\BlogController::class, 'tag
 Route::get('blog/preview/{token}', [\App\Http\Controllers\BlogController::class, 'preview'])->name('blog.preview');
 Route::get('blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
+// SEO Landing Pages & Prompt Guides System
+Route::get('guides/preview/{token}', [\App\Http\Controllers\SeoLandingPageController::class, 'preview'])->name('guides.preview');
+Route::get('guides/{slug}', [\App\Http\Controllers\SeoLandingPageController::class, 'show'])->name('guides.show');
+
 /*
  |
  |-----------------------------------
@@ -704,6 +708,22 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/blog/categories/edit/{id}', [\App\Http\Controllers\AdminBlogCategoryController::class, 'edit'])->name('blog.categories.edit');
 	Route::post('panel/admin/blog/categories/update/{id}', [\App\Http\Controllers\AdminBlogCategoryController::class, 'update']);
 	Route::post('panel/admin/blog/categories/delete/{id}', [\App\Http\Controllers\AdminBlogCategoryController::class, 'destroy']);
+
+	// SEO Landing Pages & Guide Builder
+	Route::get('panel/admin/seo-pages', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'index'])->name('seo.pages');
+	Route::get('panel/admin/seo-pages/create', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'create'])->name('seo.pages.create');
+	Route::post('panel/admin/seo-pages/create', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'store']);
+	Route::post('panel/admin/seo-pages/import-json', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'importJson'])->name('seo.pages.import');
+	Route::get('panel/admin/seo-pages/edit/{id}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'edit'])->name('seo.pages.edit');
+	Route::post('panel/admin/seo-pages/update/{id}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'update']);
+	Route::post('panel/admin/seo-pages/delete/{id}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'destroy']);
+	Route::post('panel/admin/seo-pages/{id}/section/save', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'saveSection']);
+	Route::post('panel/admin/seo-pages/{pageId}/section/delete/{sectionId}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'deleteSection']);
+	Route::post('panel/admin/seo-pages/{id}/sections/reorder', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'reorderSections']);
+	Route::get('panel/admin/seo-pages/search/prompts', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'searchPrompts']);
+	Route::get('panel/admin/seo-pages/search/photoshoots', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'searchPhotoshoots']);
+	Route::post('panel/admin/seo-pages/{id}/items/attach', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'attachItem']);
+	Route::post('panel/admin/seo-pages/{pageId}/items/detach/{itemId}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'detachItem']);
 
 });//<--- End Group Role
 

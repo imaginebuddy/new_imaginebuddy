@@ -164,6 +164,11 @@ class Images extends Model
 	 	 return $this->belongsTo(CollectionsImages::class);
 	 }
 
+	 public function landingPageItems()
+	 {
+	 	 return $this->hasMany(SeoLandingPageItem::class, 'item_id')->where('item_type', 'prompt');
+	 }
+
 	  public function tags()
 		{
 	 	 return $this->hasMany(Images::class, 'tags');
