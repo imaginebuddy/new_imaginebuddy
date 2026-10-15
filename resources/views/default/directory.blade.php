@@ -273,11 +273,12 @@
     position: sticky;
     top: 70px;
     z-index: 95;
+    background: var(--dir-surface);
     background: var(--dir-sticky-bg);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--dir-border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
     transition: all 0.2s ease;
   }
 
@@ -306,7 +307,9 @@
     display: none;
   }
 
-  .dir-nav-btn {
+  .dir-nav-btn,
+  .dir-nav-btn:link,
+  .dir-nav-btn:visited {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -314,24 +317,51 @@
     border-radius: 9999px;
     font-size: 0.83rem;
     font-weight: 600;
-    color: var(--dir-text-muted);
-    text-decoration: none;
+    color: var(--dir-text-muted) !important;
+    text-decoration: none !important;
     white-space: nowrap;
     border: 1px solid transparent;
     transition: all 0.15s ease;
     cursor: pointer;
     flex-shrink: 0;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .dir-nav-btn i {
+    color: inherit !important;
   }
 
   .dir-nav-btn:hover {
-    color: var(--dir-text-heading);
-    background: var(--dir-surface-muted);
+    color: var(--dir-text-heading) !important;
+    background: var(--dir-surface-muted) !important;
+    text-decoration: none !important;
   }
 
-  .dir-nav-btn.active {
+  .dir-nav-btn:focus,
+  .dir-nav-btn:focus-visible,
+  .dir-nav-btn:active {
+    color: var(--dir-text-muted) !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .dir-nav-btn.active,
+  .dir-nav-btn.active:link,
+  .dir-nav-btn.active:visited,
+  .dir-nav-btn.active:hover,
+  .dir-nav-btn.active:focus,
+  .dir-nav-btn.active:focus-visible {
     color: #ffffff !important;
     background: var(--dir-accent) !important;
-    box-shadow: 0 2px 10px rgba(0, 214, 144, 0.35);
+    box-shadow: 0 2px 10px rgba(0, 214, 144, 0.35) !important;
+    border-color: transparent !important;
+  }
+
+  .dir-nav-btn.active i {
+    color: #ffffff !important;
   }
 
   .dir-nav-count {
@@ -405,7 +435,7 @@
   .dir-section {
     padding-top: 4rem;
     padding-bottom: 2rem;
-    scroll-margin-top: 130px;
+    scroll-margin-top: 155px;
   }
 
   .dir-section-header {
@@ -1921,10 +1951,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function syncStickyNavTop() {
+    const mainHeader = document.getElementById('header');
+    const stickyNav = document.getElementById('directoryNav');
+    if (mainHeader && stickyNav) {
+      const h = mainHeader.offsetHeight;
+      stickyNav.style.top = h + 'px';
+    }
+  }
+  syncStickyNavTop();
+  window.addEventListener('resize', syncStickyNavTop, { passive: true });
+
   function getStickyOffset() {
+    const mainHeader = document.getElementById('header');
+    const headerH = mainHeader ? mainHeader.offsetHeight : 70;
     const stickyNav = document.getElementById('directoryNav');
     const navHeight = stickyNav ? stickyNav.offsetHeight : 54;
-    return 70 + navHeight; // 70px main site header + sticky nav height
+    return headerH + navHeight + 20; // Exact header + nav height + 20px comfortable breathing room
   }
 
   let isClickScrolling = false;
@@ -1934,6 +1977,7 @@ document.addEventListener('DOMContentLoaded', function () {
   navBtns.forEach(btn => {
     btn.addEventListener('click', function (e) {
       e.preventDefault();
+      this.blur();
       const filter = this.getAttribute('data-filter');
       
       setActiveTab(filter);
@@ -1949,7 +1993,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const targetSection = document.getElementById('section-' + filter);
         if (targetSection) {
           const stickyOffset = getStickyOffset();
-          const targetY = targetSection.getBoundingClientRect().top + window.pageYOffset - stickyOffset + 5;
+          const targetY = targetSection.getBoundingClientRect().top + window.pageYOffset - stickyOffset;
           window.scrollTo({
             top: Math.max(0, targetY),
             behavior: 'smooth'
