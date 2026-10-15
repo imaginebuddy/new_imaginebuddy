@@ -497,7 +497,14 @@ class Query extends Model
 
 	public static function categoryImages($slug)
 	{
-		$category = Categories::with(['subcategories:id,category_id,name,slug'])->where('slug', '=', $slug)->firstOrFail();
+		$category = Categories::with(['subcategories:id,category_id,name,slug'])->where('slug', '=', $slug)->first();
+		if (!$category && str_ends_with($slug, '-prompts')) {
+			$baseSlug = preg_replace('/-prompts$/', '', $slug);
+			$category = Categories::with(['subcategories:id,category_id,name,slug'])->where('slug', '=', $baseSlug)->first();
+		}
+		if (!$category) {
+			abort(404);
+		}
 
 		$images   = Images::selectFieldsRelation()
 			->where('status', 'active')
@@ -511,7 +518,8 @@ class Query extends Model
 
 	public static function subCategoryImages($slug, $subcategory)
 	{
-		$subcategory = Subcategories::with(['category:id,name,slug'])->where('slug', '=', $subcategory)->firstOrFail();
+		$subSlug = str_ends_with($subcategory, '-prompts') ? preg_replace('/-prompts$/', '', $subcategory) : $subcategory;
+		$subcategory = Subcategories::with(['category:id,name,slug'])->where('slug', '=', $subSlug)->firstOrFail();
 
 		$images   = Images::selectFieldsRelation()
 			->where('status', 'active')

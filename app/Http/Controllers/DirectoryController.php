@@ -523,22 +523,24 @@ class DirectoryController extends Controller
             ];
 
             // Helper resolvers for dynamic database linking (Zero hardcoded links)
-            $resolveCategoryGoal = function (array $keywords, string $defaultTitle, string $desc, string $icon) use ($categories) {
+            $resolveCategoryGoal = function (array $keywords, string $defaultTitle, string $desc, string $icon, string $customSlug = '') use ($categories) {
                 $matched = null;
                 foreach ($keywords as $kw) {
-                    $matched = $categories->first(function ($c) use ($kw) {
-                        return $c->slug === $kw || str_contains($c->slug, $kw);
+                    $cleanKw = preg_replace('/-prompts$/', '', $kw);
+                    $matched = $categories->first(function ($c) use ($kw, $cleanKw) {
+                        return $c->slug === $kw || $c->slug === $cleanKw || str_contains($c->slug, $cleanKw);
                     });
                     if ($matched) break;
                 }
                 $cat = $matched ?? $categories->first();
+                $slug = $customSlug ?: ($cat ? $cat->slug : 'categories');
                 return [
                     'type' => 'category',
                     'type_label' => 'Product Category',
                     'badge_icon' => 'bi-bag-check',
                     'icon' => $icon,
                     'title' => $defaultTitle,
-                    'url' => $cat ? url('category/' . $cat->slug) : url('categories'),
+                    'url' => url('category/' . $slug),
                     'desc' => $desc,
                     'action_text' => 'Explore Category',
                 ];
@@ -588,39 +590,44 @@ class DirectoryController extends Controller
 
             // 8. Browse by Creative Goal (Dynamic linking from Categories, Guides & Blog tables)
             $creativeGoals = [
-                // Category Destinations (Dynamic from Categories Table)
+                // Category Destinations (Dynamic from Categories Table with -prompts targeted slugs)
                 $resolveCategoryGoal(
-                    ['beauty-and-skincare-prompts', 'skincare', 'cosmetics'],
+                    ['beauty-and-skincare', 'skincare', 'cosmetics'],
                     'Luxury D2C Beauty & Skincare Campaign',
                     'Water splashes, acrylic pedestals, soft diffused rim light, and frosted glass dropper bottles.',
-                    'bi-droplet-half'
+                    'bi-droplet-half',
+                    'beauty-and-skincare-prompts'
                 ),
                 $resolveCategoryGoal(
-                    ['jewellery-and-accessories-prompts', 'jewellery', 'jewelry'],
+                    ['jewellery-and-accessories', 'jewellery', 'jewelry'],
                     'High-End Jewellery Macro Sparkle & Reflections',
                     'Faceted diamond fire, brushed 18k gold reflections on deep slate or rich velvet surfaces.',
-                    'bi-gem'
+                    'bi-gem',
+                    'jewellery-and-accessories-prompts'
                 ),
                 $resolveCategoryGoal(
-                    ['fashion-and-apparel-prompts', 'fashion', 'apparel'],
+                    ['fashion-and-apparel', 'fashion', 'apparel'],
                     'Apparel & Fashion Ghost Mannequin / On-Model',
                     'Wrinkle-free garment shape, stitch-level macro texture, and editorial streetwear lookbooks.',
-                    'bi-person-standing'
+                    'bi-person-standing',
+                    'fashion-and-apparel-prompts'
                 ),
                 $resolveCategoryGoal(
-                    ['electronics-and-gadgets-prompts', 'electronics', 'gadgets'],
+                    ['electronics-and-gadgets', 'electronics', 'gadgets'],
                     'Modern Minimalist Tech & Consumer Gadgets',
                     'Exploded perspective, matte tactile finishes, brushed metal, and futuristic clean studio scenes.',
-                    'bi-phone'
+                    'bi-phone',
+                    'electronics-and-gadgets-prompts'
                 ),
                 $resolveCategoryGoal(
-                    ['foods-and-drinks-prompts', 'food', 'drinks'],
+                    ['foods-and-drinks', 'food', 'drinks'],
                     'Gourmet Food & Pouring Beverage Motion',
                     'Condensation droplets, ice cube splash, steam wisps, and fresh farm ingredient styling.',
-                    'bi-cup-hot'
+                    'bi-cup-hot',
+                    'foods-and-drinks-prompts'
                 ),
                 $resolveCategoryGoal(
-                    ['health-and-supplements-prompts', 'supplements', 'personal-care'],
+                    ['health-and-supplements', 'supplements', 'personal-care'],
                     'Health, Supplements & Organic Wellness',
                     'Clean botanical backdrop, amber glass bottles, certified organic labels, and morning sunlight.',
                     'bi-capsule'
