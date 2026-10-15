@@ -335,12 +335,13 @@
 .hire-gallery-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(15, 23, 42, 0.9) 100%);
+  background: linear-gradient(180deg, transparent 60%, rgba(15, 23, 42, 0.65) 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 20px;
+  padding: 14px;
   color: #ffffff;
+  pointer-events: none;
 }
 
 .hire-gallery-tag {
@@ -348,13 +349,21 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #ffffff;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 9999px;
   align-self: flex-start;
-  margin-bottom: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Hide GLightbox slide description bar */
+.gslide-description,
+.gslide-description.description-bottom {
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -983,14 +992,10 @@ th.hire-matrix-highlight-col {
           @endphp
           <div class="col-6 col-md-4 col-lg-3 portfolio-item" data-category="{{ $styleCategory }}">
             <div class="hire-gallery-card">
-              <a href="{{ $previewUrl }}" class="glightbox" data-gallery="hire-gallery" data-title="{{ $item->title }} — {{ $styleName }}">
+              <a href="{{ $previewUrl }}" class="glightbox" data-gallery="hire-gallery">
                 <img src="{{ $previewUrl }}" alt="{{ $item->title }} - {{ $styleName }}" loading="lazy">
                 <div class="hire-gallery-overlay">
                   <span class="hire-gallery-tag">{{ $styleName }}</span>
-                  <div class="small fw-bold text-truncate">{{ $item->title }}</div>
-                  @if($item->photoshoot)
-                    <div class="text-white-50" style="font-size: 0.75rem;">From {{ $item->photoshoot->title }}</div>
-                  @endif
                 </div>
               </a>
             </div>
