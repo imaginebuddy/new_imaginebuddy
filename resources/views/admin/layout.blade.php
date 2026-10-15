@@ -143,6 +143,34 @@
               </li><!-- /end list -->
               @endif
 
+              @if (auth()->user()->hasPermission('hire_service') || auth()->user()->hasPermission('full_access'))
+              <li class="nav-item">
+                  <a href="#hireMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/hire*')) active @endif" @if (request()->is('panel/admin/hire*')) aria-expanded="true" @endif>
+                      <i class="bi-briefcase me-2"></i>
+                      @if (($hireNewInquiriesCount ?? 0) > 0)
+                      <span class="badge rounded-pill bg-primary text-white me-1">{{ $hireNewInquiriesCount }}</span>
+                      @endif
+                      Hire Service
+                  </a>
+              </li><!-- /end list -->
+
+              <div class="collapse w-100 @if (request()->is('panel/admin/hire*')) show @endif ps-3" id="hireMenu">
+                <li>
+                  <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/hire/inquiries*')) text-white @endif" href="{{ url('panel/admin/hire/inquiries') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> Inquiries / Leads
+                    @if (($hireNewInquiriesCount ?? 0) > 0)
+                    <span class="badge rounded-pill bg-primary ms-1">{{ $hireNewInquiriesCount }}</span>
+                    @endif
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->is('panel/admin/hire/settings')) text-white @endif" href="{{ url('panel/admin/hire/settings') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> Service & Pricing Settings
+                  </a>
+                </li>
+              </div><!-- /end collapse hireMenu -->
+              @endif
+
             @if (auth()->user()->hasPermission('deposits'))
               <li class="nav-item">
                   <a href="{{ url('panel/admin/deposits') }}" class="nav-link text-truncate @if (request()->is('panel/admin/deposits')) active @endif">

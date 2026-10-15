@@ -27,6 +27,10 @@
 
               <li><a href="{{url('blog')}}" class="nav-link px-2 link-dark @if (request()->is('blog*')) fw-bold @endif">Blog</a></li>
 
+              @if ((\App\Models\HireSetting::getSettings()->status ?? 'on') == 'on')
+                <li><a href="{{url('hire')}}" class="nav-link px-2 link-dark @if (request()->is('hire*')) fw-bold text-color-default @endif">Hire</a></li>
+              @endif
+
 
               {{-- HIDDEN_NAV: Feed (/feed) --}}
               @if(false)
@@ -170,6 +174,14 @@
               Blog
             </a>
           </li>
+
+          @if ((\App\Models\HireSetting::getSettings()->status ?? 'on') == 'on')
+          <li>
+            <a href="{{url('hire')}}" class="nav-link link-dark text-truncate @if (request()->is('hire*')) fw-bold text-color-default @endif">
+              Hire
+            </a>
+          </li>
+          @endif
 
           {{-- HIDDEN_NAV: Feed (/feed) --}}
           @if(false)

@@ -40,6 +40,7 @@ class ViewServiceProvider extends ServiceProvider
 			$imagesPendingCount = Images::selectRaw('COUNT(id) as total')->whereStatus('pending')->pluck('total')->first();
 			$usersReported = UsersReported::selectRaw('COUNT(id) as total')->pluck('total')->first();
 			$imagesReported = ImagesReported::selectRaw('COUNT(id) as total')->pluck('total')->first();
+			$hireNewInquiriesCount = \Illuminate\Support\Facades\Schema::hasTable('hire_inquiries') ? \App\Models\HireInquiry::where('status', 'new')->count() : 0;
 
 			view()->share(compact(
 				'settings',
@@ -55,7 +56,8 @@ class ViewServiceProvider extends ServiceProvider
 				'withdrawalsPendingCount',
 				'imagesPendingCount',
 				'usersReported',
-				'imagesReported'
+				'imagesReported',
+				'hireNewInquiriesCount'
 			));
 		} catch (\Exception $e) {
 		}

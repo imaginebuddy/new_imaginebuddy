@@ -135,7 +135,7 @@
     @if ($post->featured_image)
     <figure class="blog-featured-image-wrapper mb-4 mb-md-5">
       <div class="featured-image-frame position-relative overflow-hidden">
-        <img src="{{ $post->featured_image_url }}" alt="{{ $post->featured_image_alt ?: $post->title }}" class="img-fluid w-100 featured-hero-img" width="1200" height="675" fetchpriority="high" decoding="async" />
+        <img src="{{ $post->featured_image_url }}" alt="{{ $post->featured_image_alt ?: $post->title }}" class="img-fluid w-100 featured-hero-img" fetchpriority="high" decoding="async" />
       </div>
       @if ($post->featured_image_alt)
         <figcaption class="text-center text-muted small mt-2 fst-italic">
@@ -500,24 +500,17 @@
   border-radius: 20px;
   border: 1px solid var(--blog-border-subtle);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.14);
-  max-height: 520px;
-  background: #0f1216;
+  background: var(--blog-bg-surface);
+  overflow: hidden;
 }
 .featured-hero-img {
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
   display: block;
 }
 @media (max-width: 768px) {
   .featured-image-frame {
     border-radius: 14px;
-    max-height: 360px;
-  }
-  .featured-hero-img {
-    aspect-ratio: 16 / 9;
-    height: auto;
   }
 }
 

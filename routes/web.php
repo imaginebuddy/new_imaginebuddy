@@ -43,6 +43,8 @@ use App\Http\Controllers\RedirectsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\AdminFaqController;
 use App\Http\Controllers\DirectoryController;
+use App\Http\Controllers\HireController;
+use App\Http\Controllers\AdminHireController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -87,6 +89,14 @@ Route::get('explore/vectors', [HomeController::class, 'vectors']);
 Route::post('prompt/copy/{id}', [ImagesController::class, 'copyPrompt']);
 Route::post('analytics/ping', [AnalyticsController::class, 'ping']);
 Route::post('analytics/event', [AnalyticsController::class, 'clientEvent']);
+
+/*
+ |-----------------------------------
+ | Custom AI Photoshoots "Hire Us" Service
+ |-----------------------------------
+ */
+Route::get('hire', [HireController::class, 'index'])->name('hire');
+Route::post('hire/inquiry', [HireController::class, 'storeInquiry'])->name('hire.inquiry');
 
 /*
  |-----------------------------------
@@ -728,6 +738,15 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/seo-pages/search/photoshoots', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'searchPhotoshoots']);
 	Route::post('panel/admin/seo-pages/{id}/items/attach', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'attachItem']);
 	Route::post('panel/admin/seo-pages/{pageId}/items/detach/{itemId}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'detachItem']);
+
+	// Hire Service Settings & Inquiries CRM
+	Route::get('panel/admin/hire/settings', [AdminHireController::class, 'settings'])->name('hire.settings');
+	Route::post('panel/admin/hire/settings', [AdminHireController::class, 'updateSettings']);
+	Route::get('panel/admin/hire/inquiries', [AdminHireController::class, 'inquiries'])->name('hire.inquiries');
+	Route::get('panel/admin/hire/inquiries/export', [AdminHireController::class, 'exportCsv'])->name('hire.inquiries.export');
+	Route::get('panel/admin/hire/inquiries/{id}', [AdminHireController::class, 'showInquiry'])->name('hire.inquiries.show');
+	Route::post('panel/admin/hire/inquiries/{id}/status', [AdminHireController::class, 'updateInquiryStatus']);
+	Route::post('panel/admin/hire/inquiries/{id}/delete', [AdminHireController::class, 'deleteInquiry']);
 
 });//<--- End Group Role
 
