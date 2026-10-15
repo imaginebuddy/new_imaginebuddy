@@ -42,6 +42,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\RedirectsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\AdminFaqController;
+use App\Http\Controllers\DirectoryController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -126,6 +127,9 @@ Route::group(['middleware' => 'guest'], function() {
 
 // Members
 Route::get('members',[HomeController::class, 'members']);
+
+ // Directory / Resource Index
+ Route::get('directory', [DirectoryController::class, 'index'])->name('directory');
 
  // Categories
  Route::get('categories',[HomeController::class, 'categories']);

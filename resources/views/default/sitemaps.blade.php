@@ -74,6 +74,12 @@
             <priority>0.8</priority>
          </url>
 
+         <url>
+            <loc>{{ url('directory') }}</loc>
+            <lastmod>{{$date}}</lastmod>
+            <priority>0.9</priority>
+         </url>
+
          @foreach (App\Models\Images::getAiModels() as $aiModel)
             <url>
             <loc>{{ url('ai-model', Str::slug($aiModel)) }}</loc>

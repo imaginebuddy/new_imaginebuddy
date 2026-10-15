@@ -46,6 +46,7 @@
               <li><a class="text-white text-decoration-none" href="{{url('page', $page->slug) }}">{{ $page->title }}</a></li>
               @endforeach
               <li><a class="text-white text-decoration-none" href="{{ url('blog') }}">{{ __('misc.blog') }}</a></li>
+              <li><a class="text-white text-decoration-none" href="{{ url('directory') }}">Directory</a></li>
               <li><a class="text-white text-decoration-none" href="{{ url('contact') }}">{{ __('misc.contact') }}</a></li>
               <li><a class="text-white text-decoration-none" href="{{ url('frequently-asked-questions') }}">{{ __('admin.faq') }}</a></li>
            </ul>
