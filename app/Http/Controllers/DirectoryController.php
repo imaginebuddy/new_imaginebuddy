@@ -306,6 +306,20 @@ class DirectoryController extends Controller
                 ->take(12)
                 ->get(['id', 'title', 'slug']);
 
+            // Helper to dynamically resolve Blog URLs from database (Zero hardcoded links)
+            $resolveBlogUrl = function ($keywords, $fallback = 'blog') use ($blogPosts) {
+                $keywords = (array) $keywords;
+                foreach ($keywords as $kw) {
+                    $matched = $blogPosts->first(function ($b) use ($kw) {
+                        return $b->slug === $kw || str_contains($b->slug, $kw) || str_contains(strtolower($b->title), $kw);
+                    });
+                    if ($matched) {
+                        return url('blog/' . $matched->slug);
+                    }
+                }
+                return url($fallback);
+            };
+
             // 5. AI Image Prompts by Engine (Structured with direct URLs)
             $engines = [
                 [
@@ -318,7 +332,7 @@ class DirectoryController extends Controller
                         ['title' => 'Macro Commercial Photography', 'url' => url('search?q=gemini+macro'), 'keywords' => 'macro 100mm extreme detail gemini'],
                         ['title' => 'Lifestyle & Advertising Campaigns', 'url' => url('search?q=lifestyle+advertising'), 'keywords' => 'lifestyle campaign model d2c'],
                         ['title' => 'Clean Studio Backgrounds & Scenes', 'url' => url('search?q=studio+background'), 'keywords' => 'podium pastel minimal studio'],
-                        ['title' => 'Gemini Prompt Writing Tutorial', 'url' => url('blog/how-to-use-prompts-in-google-flow'), 'keywords' => 'gemini guide tutorial prompt recipe'],
+                        ['title' => 'Gemini Prompt Writing Tutorial', 'url' => $resolveBlogUrl(['google-flow', 'gemini']), 'keywords' => 'gemini guide tutorial prompt recipe'],
                         ['title' => 'All Google Gemini Prompts', 'url' => url('ai-model/gemini'), 'keywords' => 'gemini prompts archive collection'],
                     ],
                 ],
@@ -332,7 +346,7 @@ class DirectoryController extends Controller
                         ['title' => 'SDXL Product & E-commerce Mockups', 'url' => url('search?q=sdxl+product'), 'keywords' => 'stable diffusion sdxl mockup ecommerce'],
                         ['title' => 'Editorial & Modern Lifestyle Prompts', 'url' => url('search?q=editorial+lifestyle'), 'keywords' => 'editorial lifestyle fashion mood'],
                         ['title' => 'Artistic & Illustrated Concept Art', 'url' => url('search?q=artistic+style'), 'keywords' => 'artistic 3d render vector illustration'],
-                        ['title' => 'Negative Prompt Formulas Cheat Sheet', 'url' => url('blog/negative-prompts-decoded-how-to-eliminate-artifacts-and-distortions'), 'keywords' => 'negative prompts avoid distortions clean image'],
+                        ['title' => 'Negative Prompt Formulas Cheat Sheet', 'url' => $resolveBlogUrl(['negative-prompts', 'artifacts']), 'keywords' => 'negative prompts avoid distortions clean image'],
                         ['title' => 'Browse All Supported AI Engines', 'url' => url('ai-models'), 'keywords' => 'all models engines midjourney gemini chatgpt'],
                     ],
                 ],
@@ -499,26 +513,158 @@ class DirectoryController extends Controller
                     'title' => 'Curated Prompt Reference Cheat Sheets',
                     'icon' => 'bi-file-earmark-text',
                     'links' => [
-                        ['title' => 'Lighting Terminology Reference Sheet', 'url' => url('blog/mastering-lighting-terminology-for-photorealistic-ai-prompts'), 'keywords' => 'lighting terms guide softbox rim key fill'],
-                        ['title' => 'Negative Prompts & Anti-Artifact Formula', 'url' => url('blog/negative-prompts-decoded-how-to-eliminate-artifacts-and-distortions'), 'keywords' => 'negative prompt tokens avoid blur distortion'],
-                        ['title' => 'Consistent Character & Model Guide', 'url' => url('blog/complete-guide-to-consistent-character-and-model-photoshoots-with-ai'), 'keywords' => 'consistent character face seed model photography'],
-                        ['title' => 'High-Converting E-Commerce Visuals Guide', 'url' => url('blog/how-to-create-high-converting-product-images-with-ai'), 'keywords' => 'ecommerce conversion rate product hero clickthrough'],
-                        ['title' => '50 Visual Assets in One Afternoon Playbook', 'url' => url('blog/ecommerce-product-launch-playbook-creating-50-visual-assets'), 'keywords' => 'batch workflow speed production catalog'],
+                        ['title' => 'Lighting Terminology Reference Sheet', 'url' => $resolveBlogUrl(['lighting-terminology', 'lighting']), 'keywords' => 'lighting terms guide softbox rim key fill'],
+                        ['title' => 'Negative Prompts & Anti-Artifact Formula', 'url' => $resolveBlogUrl(['negative-prompts', 'artifacts']), 'keywords' => 'negative prompt tokens avoid blur distortion'],
+                        ['title' => 'Consistent Character & Model Guide', 'url' => $resolveBlogUrl(['consistent-character', 'model-photoshoots']), 'keywords' => 'consistent character face seed model photography'],
+                        ['title' => 'High-Converting E-Commerce Visuals Guide', 'url' => $resolveBlogUrl(['converting', 'ecommerce']), 'keywords' => 'ecommerce conversion rate product hero clickthrough'],
+                        ['title' => '50 Visual Assets in One Afternoon Playbook', 'url' => $resolveBlogUrl(['50-visual-assets', 'launch']), 'keywords' => 'batch workflow speed production catalog'],
                     ],
                 ],
             ];
 
-            // 8. Browse by Creative Goal (Actionable outcomes)
+            // Helper resolvers for dynamic database linking (Zero hardcoded links)
+            $resolveCategoryGoal = function (array $keywords, string $defaultTitle, string $desc, string $icon) use ($categories) {
+                $matched = null;
+                foreach ($keywords as $kw) {
+                    $matched = $categories->first(function ($c) use ($kw) {
+                        return $c->slug === $kw || str_contains($c->slug, $kw);
+                    });
+                    if ($matched) break;
+                }
+                $cat = $matched ?? $categories->first();
+                return [
+                    'type' => 'category',
+                    'type_label' => 'Product Category',
+                    'badge_icon' => 'bi-bag-check',
+                    'icon' => $icon,
+                    'title' => $defaultTitle,
+                    'url' => $cat ? url('category/' . $cat->slug) : url('categories'),
+                    'desc' => $desc,
+                    'action_text' => 'Explore Category',
+                ];
+            };
+
+            $resolveGuideGoal = function (array $keywords, string $defaultTitle, string $desc, string $icon) use ($guides) {
+                $matched = null;
+                foreach ($keywords as $kw) {
+                    $matched = $guides->first(function ($g) use ($kw) {
+                        return $g->slug === $kw || str_contains($g->slug, $kw) || str_contains(strtolower($g->title), $kw);
+                    });
+                    if ($matched) break;
+                }
+                $guide = $matched ?? $guides->first();
+                return [
+                    'type' => 'guide',
+                    'type_label' => 'Prompt Masterclass',
+                    'badge_icon' => 'bi-book',
+                    'icon' => $icon,
+                    'title' => $defaultTitle,
+                    'url' => $guide ? url('guides/' . $guide->slug) : url('categories'),
+                    'desc' => $desc,
+                    'action_text' => 'Read Masterclass',
+                ];
+            };
+
+            $resolveBlogGoal = function (array $keywords, string $defaultTitle, string $desc, string $icon) use ($blogPosts) {
+                $matched = null;
+                foreach ($keywords as $kw) {
+                    $matched = $blogPosts->first(function ($b) use ($kw) {
+                        return $b->slug === $kw || str_contains($b->slug, $kw) || str_contains(strtolower($b->title), $kw);
+                    });
+                    if ($matched) break;
+                }
+                $blog = $matched ?? $blogPosts->first();
+                return [
+                    'type' => 'blog',
+                    'type_label' => 'Blog Playbook',
+                    'badge_icon' => 'bi-journal-text',
+                    'icon' => $icon,
+                    'title' => $defaultTitle,
+                    'url' => $blog ? url('blog/' . $blog->slug) : url('blog'),
+                    'desc' => $desc,
+                    'action_text' => 'Read Playbook',
+                ];
+            };
+
+            // 8. Browse by Creative Goal (Dynamic linking from Categories, Guides & Blog tables)
             $creativeGoals = [
-                ['title' => 'Amazon & Shopify White-Background Hero Shot', 'url' => url('search?q=clean+white+background+product'), 'desc' => 'Pure white background (#FFFFFF) with natural grounding shadow, compliant with marketplace specs.'],
-                ['title' => 'Luxury D2C Beauty & Skincare Campaign', 'url' => url('category/beauty-and-skincare'), 'desc' => 'Water splashes, acrylic pedestals, soft diffused rim light, and frosted glass dropper bottles.'],
-                ['title' => 'High-End Jewellery Macro Sparkle', 'url' => url('category/jewellery-and-accessories'), 'desc' => 'Faceted diamond fire, brushed 18k gold reflections on deep slate or rich velvet surfaces.'],
-                ['title' => 'Apparel & Fashion Ghost Mannequin / On-Model', 'url' => url('category/fashion-and-apparel'), 'desc' => 'Wrinkle-free garment shape, stitch-level macro texture, and editorial streetwear lookbooks.'],
-                ['title' => 'Gourmet Food & Pouring Beverage Motion', 'url' => url('category/foods-and-drinks'), 'desc' => 'Condensation droplets, ice cube splash, steam wisps, and fresh farm ingredient styling.'],
-                ['title' => 'Modern Minimalist Tech & Consumer Gadgets', 'url' => url('category/electronics-and-gadgets'), 'desc' => 'Exploded perspective, matte tactile finishes, brushed metal, and futuristic clean studio scenes.'],
-                ['title' => 'Seasonal Holiday & Festive Ad Campaigns', 'url' => url('guides/navratri-jewellery-ai-product-photography-prompts'), 'desc' => 'Festive lighting, bokeh ornaments, warm holiday atmosphere, and celebration themes.'],
-                ['title' => 'Social Media Viral Flat-Lays (Instagram & TikTok)', 'url' => url('search?q=flat+lay+aesthetic'), 'desc' => 'Top-down color-coordinated aesthetic compositions optimized for vertical engagement.'],
-                ['title' => 'Botanical & Sun-Dappled Organic Scenes', 'url' => url('search?q=botanical+natural+product+photography'), 'desc' => 'Dappled sunlight, organic leaf shadows, travertine stone pedestals, and earthy terracotta textures.'],
+                // Category Destinations (Dynamic from Categories Table)
+                $resolveCategoryGoal(
+                    ['beauty-and-skincare', 'skincare', 'cosmetics'],
+                    'Luxury D2C Beauty & Skincare Campaign',
+                    'Water splashes, acrylic pedestals, soft diffused rim light, and frosted glass dropper bottles.',
+                    'bi-droplet-half'
+                ),
+                $resolveCategoryGoal(
+                    ['jewellery-and-accessories', 'jewellery', 'jewelry'],
+                    'High-End Jewellery Macro Sparkle & Reflections',
+                    'Faceted diamond fire, brushed 18k gold reflections on deep slate or rich velvet surfaces.',
+                    'bi-gem'
+                ),
+                $resolveCategoryGoal(
+                    ['fashion-and-apparel', 'fashion', 'apparel'],
+                    'Apparel & Fashion Ghost Mannequin / On-Model',
+                    'Wrinkle-free garment shape, stitch-level macro texture, and editorial streetwear lookbooks.',
+                    'bi-person-standing'
+                ),
+                $resolveCategoryGoal(
+                    ['electronics-and-gadgets', 'electronics', 'gadgets'],
+                    'Modern Minimalist Tech & Consumer Gadgets',
+                    'Exploded perspective, matte tactile finishes, brushed metal, and futuristic clean studio scenes.',
+                    'bi-phone'
+                ),
+                $resolveCategoryGoal(
+                    ['foods-and-drinks', 'food', 'drinks'],
+                    'Gourmet Food & Pouring Beverage Motion',
+                    'Condensation droplets, ice cube splash, steam wisps, and fresh farm ingredient styling.',
+                    'bi-cup-hot'
+                ),
+                $resolveCategoryGoal(
+                    ['health-and-supplements', 'supplements', 'personal-care'],
+                    'Health, Supplements & Organic Wellness',
+                    'Clean botanical backdrop, amber glass bottles, certified organic labels, and morning sunlight.',
+                    'bi-capsule'
+                ),
+
+                // Guide Destinations (Dynamic from SeoLandingPage Table)
+                $resolveGuideGoal(
+                    ['navratri', 'festive', 'holiday', 'jewellery'],
+                    'Seasonal Holiday & Festive Ad Campaigns',
+                    'Festive ambient lighting, bokeh ornaments, warm cultural atmosphere, and celebration themes.',
+                    'bi-stars'
+                ),
+                $resolveGuideGoal(
+                    ['footwear', 'shoes', 'sneakers'],
+                    'Commercial Action & Footwear Hero Launch',
+                    'Dynamic floating angles, motion particles, sole tread details, and high-impact lifestyle lighting.',
+                    'bi-tag'
+                ),
+                $resolveGuideGoal(
+                    ['skincare', 'beauty', 'top-10'],
+                    'Top 10 Skincare Commercial Formulations',
+                    'Curated studio recipes, lighting prompt tags, and commercial camera angles for skincare bottles.',
+                    'bi-droplet'
+                ),
+
+                // Blog Destinations (Dynamic from BlogPost Table)
+                $resolveBlogGoal(
+                    ['converting', 'product-images', 'ecommerce'],
+                    'Amazon & Shopify High-Converting Hero Visuals',
+                    'Pure white background (#FFFFFF), natural contact shadow, and conversion rate optimization formulas.',
+                    'bi-graph-up-arrow'
+                ),
+                $resolveBlogGoal(
+                    ['50-visual-assets', 'product-launch', 'playbook'],
+                    'E-Commerce Product Launch: 50 Visual Assets',
+                    'Batch production workflow to create complete catalog visual assets in a single afternoon.',
+                    'bi-collection'
+                ),
+                $resolveBlogGoal(
+                    ['consistent-character', 'model-photoshoots', 'consistent'],
+                    'Consistent Model & Brand Photoshoots with AI',
+                    'Face consistency seed methods, lighting replication, and multi-pose model styling across shots.',
+                    'bi-people'
+                ),
             ];
 
             // 9. Company, Membership & Legal Information

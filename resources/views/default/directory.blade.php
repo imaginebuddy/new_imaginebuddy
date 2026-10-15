@@ -1459,10 +1459,17 @@
 
         <div class="dir-grid-3">
           @foreach ($creativeGoals as $goal)
-          <div class="dir-goal-card dir-item-group" data-item-type="goal" data-search-text="{{ strtolower($goal['title'] . ' ' . $goal['desc']) }}">
+          <div class="dir-goal-card dir-item-group" data-item-type="goal" data-search-text="{{ strtolower($goal['title'] . ' ' . $goal['desc'] . ' ' . ($goal['type_label'] ?? '')) }}">
             <div>
-              <div class="dir-card-icon-box mb-3">
-                <i class="bi-check2-circle"></i>
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="dir-card-icon-box">
+                  <i class="{{ $goal['icon'] ?? 'bi-bullseye' }}"></i>
+                </div>
+                @if (!empty($goal['type_label']))
+                <span class="dir-badge-pill">
+                  <i class="{{ $goal['badge_icon'] ?? 'bi-link-45deg' }} me-1"></i> {{ $goal['type_label'] }}
+                </span>
+                @endif
               </div>
               <h3 class="dir-goal-title">
                 <a href="{{ $goal['url'] }}" class="text-decoration-none text-reset stretched-link">
@@ -1474,7 +1481,7 @@
               </p>
             </div>
             <div class="dir-view-all">
-              Start Generating <i class="bi-arrow-right"></i>
+              {{ $goal['action_text'] ?? 'Explore Prompts' }} <i class="bi-arrow-right"></i>
             </div>
           </div>
           @endforeach
