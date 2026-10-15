@@ -590,49 +590,53 @@ class DirectoryController extends Controller
             $creativeGoals = [
                 // Category Destinations (Dynamic from Categories Table)
                 $resolveCategoryGoal(
-                    ['beauty-and-skincare', 'skincare', 'cosmetics'],
+                    ['beauty-and-skincare-prompts', 'skincare', 'cosmetics'],
                     'Luxury D2C Beauty & Skincare Campaign',
                     'Water splashes, acrylic pedestals, soft diffused rim light, and frosted glass dropper bottles.',
                     'bi-droplet-half'
                 ),
                 $resolveCategoryGoal(
-                    ['jewellery-and-accessories', 'jewellery', 'jewelry'],
+                    ['jewellery-and-accessories-prompts', 'jewellery', 'jewelry'],
                     'High-End Jewellery Macro Sparkle & Reflections',
                     'Faceted diamond fire, brushed 18k gold reflections on deep slate or rich velvet surfaces.',
                     'bi-gem'
                 ),
                 $resolveCategoryGoal(
-                    ['fashion-and-apparel', 'fashion', 'apparel'],
+                    ['fashion-and-apparel-prompts', 'fashion', 'apparel'],
                     'Apparel & Fashion Ghost Mannequin / On-Model',
                     'Wrinkle-free garment shape, stitch-level macro texture, and editorial streetwear lookbooks.',
                     'bi-person-standing'
                 ),
                 $resolveCategoryGoal(
-                    ['electronics-and-gadgets', 'electronics', 'gadgets'],
+                    ['electronics-and-gadgets-prompts', 'electronics', 'gadgets'],
                     'Modern Minimalist Tech & Consumer Gadgets',
                     'Exploded perspective, matte tactile finishes, brushed metal, and futuristic clean studio scenes.',
                     'bi-phone'
                 ),
                 $resolveCategoryGoal(
-                    ['foods-and-drinks', 'food', 'drinks'],
+                    ['foods-and-drinks-prompts', 'food', 'drinks'],
                     'Gourmet Food & Pouring Beverage Motion',
                     'Condensation droplets, ice cube splash, steam wisps, and fresh farm ingredient styling.',
                     'bi-cup-hot'
                 ),
                 $resolveCategoryGoal(
-                    ['health-and-supplements', 'supplements', 'personal-care'],
+                    ['health-and-supplements-prompts', 'supplements', 'personal-care'],
                     'Health, Supplements & Organic Wellness',
                     'Clean botanical backdrop, amber glass bottles, certified organic labels, and morning sunlight.',
                     'bi-capsule'
                 ),
 
-                // Guide Destinations (Dynamic from SeoLandingPage Table)
-                $resolveGuideGoal(
-                    ['navratri', 'festive', 'holiday', 'jewellery'],
-                    'Seasonal Holiday & Festive Ad Campaigns',
-                    'Festive ambient lighting, bokeh ornaments, warm cultural atmosphere, and celebration themes.',
-                    'bi-stars'
-                ),
+                // Seasonal & Holiday Campaigns (Direct Search Query)
+                [
+                    'type' => 'search',
+                    'type_label' => '',
+                    'badge_icon' => 'bi-search',
+                    'icon' => 'bi-stars',
+                    'title' => 'Seasonal Holiday & Festive Ad Campaigns',
+                    'url' => url('search?q=seasonal+holiday+festive+campaigns'),
+                    'desc' => 'Festive lighting, bokeh ornaments, warm holiday atmosphere, and celebration themes.',
+                    'action_text' => 'Explore Prompts',
+                ],
                 $resolveGuideGoal(
                     ['footwear', 'shoes', 'sneakers'],
                     'Commercial Action & Footwear Hero Launch',

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'ImagineBuddy Directory — AI Prompts, Product Photography & Tools')
-@section('description_override', 'Explore the ImagineBuddy directory to discover 180+ AI image prompts, commercial product photography collections, creative styles, free tools, and practical resources.')
+@section('description_override', 'Explore the ImagineBuddy directory to discover thousands of AI product image prompts, commercial product photography collections, creative styles, free tools, and practical resources.')
 
 @section('css')
 <style>
