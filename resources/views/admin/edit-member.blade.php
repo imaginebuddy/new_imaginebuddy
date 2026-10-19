@@ -100,6 +100,40 @@
               </div>
             </fieldset><!-- end row -->
 
+            @php
+              $testSub = $data->activeTestSubscription();
+              $paidSub = $data->activePaidSubscription();
+            @endphp
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label text-lg-end">Pro Plan Access</label>
+              <div class="col-sm-10">
+                @if ($testSub)
+                  <div class="alert alert-info border-0 d-flex justify-content-between align-items-center mb-0">
+                    <div>
+                      <i class="bi bi-star-fill text-warning me-1"></i>
+                      <strong>Active Pro Photography Plan (Test Access)</strong>
+                      <div class="small text-muted">Expires on {{ Helper::formatDate($testSub->ends_at) }} ({{ $testSub->days_remaining }})</div>
+                      @if ($testSub->test_notes)
+                        <div class="small text-muted">Note: {{ $testSub->test_notes }}</div>
+                      @endif
+                    </div>
+                  </div>
+                @elseif ($paidSub)
+                  <div class="alert alert-success border-0 d-flex align-items-center mb-0">
+                    <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                    <div>
+                      <strong>Active Paid Subscription</strong>
+                      <div class="small">Billed via {{ $paidSub->payment_gateway }} &bull; Ends on {{ Helper::formatDate($paidSub->ends_at) }}</div>
+                    </div>
+                  </div>
+                @else
+                  <div class="alert alert-light border d-flex justify-content-between align-items-center mb-0">
+                    <span class="text-muted"><i class="bi bi-info-circle me-1"></i> Standard Free Member (No active subscription)</span>
+                  </div>
+                @endif
+              </div>
+            </div>
+
 						<div class="row mb-3">
 		          <div class="col-sm-10 offset-sm-2">
 		            <button type="submit" class="btn btn-dark mt-3 px-5 me-2">{{ __('admin.save') }}</button>

@@ -259,13 +259,19 @@
                      <!-- Payment & Method Column -->
                      <td>
                        <div>
-                         <span class="badge {{ $subscription->payment_gateway === 'Razorpay' ? 'bg-dark' : ($subscription->payment_gateway === 'PayPal' ? 'bg-primary' : 'bg-info') }}">
-                           {{ $subscription->payment_gateway ?: 'Payment' }}
-                         </span>
-                         @if ($subscription->payment_method)
-                           <span class="badge bg-secondary-subtle text-dark border ms-1 text-uppercase fs-small">
-                             {{ $subscription->payment_method }}
+                         @if ($subscription->is_test)
+                           <span class="badge" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
+                             <i class="bi bi-star-fill me-1"></i> Admin Test
                            </span>
+                         @else
+                           <span class="badge {{ $subscription->payment_gateway === 'Razorpay' ? 'bg-dark' : ($subscription->payment_gateway === 'PayPal' ? 'bg-primary' : 'bg-info') }}">
+                             {{ $subscription->payment_gateway ?: 'Payment' }}
+                           </span>
+                           @if ($subscription->payment_method)
+                             <span class="badge bg-secondary-subtle text-dark border ms-1 text-uppercase fs-small">
+                               {{ $subscription->payment_method }}
+                             </span>
+                           @endif
                          @endif
                        </div>
                        @php

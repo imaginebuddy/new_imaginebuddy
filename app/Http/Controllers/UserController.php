@@ -880,8 +880,8 @@ class UserController extends Controller
 
 	public function subscription()
 	{
-		$subscription  = auth()->user()->mySubscription()->latest()->first();
-		$subscriptions = auth()->user()->mySubscription()->latest()->paginate(10);
+		$subscription  = auth()->user()->getSubscription() ?: auth()->user()->mySubscription()->where('is_test', false)->latest()->first();
+		$subscriptions = auth()->user()->mySubscription()->where('is_test', false)->latest()->paginate(10);
 
 		return view('users.subscription')->with([
 			'subscription' => $subscription,

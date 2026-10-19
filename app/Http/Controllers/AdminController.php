@@ -1663,6 +1663,9 @@ class AdminController extends Controller
 				case 'expired':
 					$query->where('ends_at', '<', $now);
 					break;
+				case 'test':
+					$query->where('is_test', true);
+					break;
 			}
 		}
 
@@ -1695,8 +1698,8 @@ class AdminController extends Controller
 			'expiring_soon' => Subscriptions::where('ends_at', '>=', $now)->where('ends_at', '<=', $now->copy()->addDays(3))->where('cancelled', 'no')->count(),
 			'expired' => Subscriptions::where('ends_at', '<', $now)->count(),
 			'cancelled' => Subscriptions::where('cancelled', 'yes')->count(),
-			'revenue_inr' => Subscriptions::where('currency', 'INR')->sum('amount'),
-			'revenue_usd' => Subscriptions::where('currency', 'USD')->sum('amount'),
+			'revenue_inr' => Subscriptions::where('is_test', false)->where('currency', 'INR')->sum('amount'),
+			'revenue_usd' => Subscriptions::where('is_test', false)->where('currency', 'USD')->sum('amount'),
 		];
 
 		$subscriptions = $query->paginate(30)->appends($request->except('page'));

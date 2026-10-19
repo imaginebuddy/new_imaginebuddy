@@ -65,10 +65,10 @@
   <div class="card">
     <div class="card-body">
       <small>{{ __('misc.plan') }}</small>
-      <h6>{{ $subscription->plan->name }}</h6>
+      <h6>{{ $subscription->plan ? $subscription->plan->name : 'Pro Plan' }} @if($subscription->is_test)<span class="badge ms-1" style="background-color: #f3e8ff; color: #7e22ce; font-size: 0.75rem;">(Test Access)</span>@endif</h6>
 
       <small>{{ __('misc.billed') }}</small>
-      <h6>{{ $subscription->interval == 'month' ? __('misc.monthly') : __('misc.yearly') }}</h6>
+      <h6>{{ $subscription->is_test ? 'Complimentary Test Grant (Free)' : ($subscription->interval == 'month' ? __('misc.monthly') : __('misc.yearly')) }}</h6>
 
       <small>{{ __('misc.ends_at') }}</small>
       <h6>
@@ -103,7 +103,18 @@
 
       @endif
 
-      @if (auth()->user()->getSubscription()
+      @if ($subscription->is_test)
+        @if ($subscription->cancelled == 'no' && !\Carbon\Carbon::parse($subscription->ends_at)->isPast())
+          <div class="mt-2">
+            <span class="badge bg-success rounded-pill py-2 px-3">
+              <i class="bi-check-circle-fill me-1"></i> Active Test Access (Non-Renewing)
+            </span>
+          </div>
+        @else
+          <small>{{ __('misc.status') }}</small>
+          <h6 class="text-danger">{{ __('misc.cancelled') }}</h6>
+        @endif
+      @elseif (auth()->user()->getSubscription()
           && $subscription->stripe_status == 'active'
           && $subscription->cancelled == 'no'
           || auth()->user()->getSubscription()

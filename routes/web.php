@@ -524,6 +524,11 @@ Route::group(['middleware' => 'role'], function() {
 
 	// Members
 	Route::get('panel/admin/members',[AdminUserController::class, 'index'])->name('members');
+	Route::get('panel/admin/members/create',[AdminUserController::class, 'create'])->name('members');
+	Route::post('panel/admin/members/create',[AdminUserController::class, 'store'])->name('members.store');
+	Route::get('panel/admin/members/{id}/detail',[AdminUserController::class, 'detail'])->name('members');
+	Route::post('panel/admin/members/{id}/grant-test-pro',[AdminUserController::class, 'grantTestPro'])->name('members.grant_test_pro');
+	Route::post('panel/admin/members/{id}/revoke-test-pro',[AdminUserController::class, 'revokeTestPro'])->name('members.revoke_test_pro');
 	Route::get('panel/admin/members/edit/{id}',[AdminUserController::class, 'edit'])->name('members');
 	Route::post('panel/admin/members/edit/{id}', [AdminUserController::class, 'update']);
 	Route::post('panel/admin/members/{id}', [AdminUserController::class, 'destroy'])->name('user.destroy');

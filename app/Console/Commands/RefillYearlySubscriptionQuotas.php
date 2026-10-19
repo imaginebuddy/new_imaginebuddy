@@ -32,6 +32,7 @@ class RefillYearlySubscriptionQuotas extends Command
         $this->info('Checking yearly subscriptions for monthly quota refill...');
 
         $yearlySubscriptions = Subscriptions::where('interval', 'year')
+            ->where('is_test', false)
             ->where('ends_at', '>', now())
             ->where('cancelled', 'no')
             ->where('stripe_status', 'active')

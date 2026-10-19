@@ -478,12 +478,50 @@ class User extends Authenticatable
             });
         })
         ->orWhere(function ($q) {
+          $q->where('is_test', false)
+            ->where('cancelled', 'yes')
+            ->where('ends_at', '>=', now());
+        });
+      })
+      ->orderBy('id', 'desc')
+      ->first();
+  }
+
+  public function activeTestSubscription()
+  {
+    return $this->mySubscription()
+      ->where('is_test', true)
+      ->where('ends_at', '>=', now())
+      ->where('cancelled', 'no')
+      ->orderBy('id', 'desc')
+      ->first();
+  }
+
+  public function activePaidSubscription()
+  {
+    return $this->mySubscription()
+      ->where('is_test', false)
+      ->where('ends_at', '>=', now())
+      ->where(function ($query) {
+        $query->where(function ($q) {
+          $q->where('cancelled', 'no')
+            ->where(function ($sq) {
+              $sq->whereNull('stripe_status')
+                ->orWhere('stripe_status', 'active');
+            });
+        })
+        ->orWhere(function ($q) {
           $q->where('cancelled', 'yes')
             ->where('ends_at', '>=', now());
         });
       })
       ->orderBy('id', 'desc')
       ->first();
+  }
+
+  public function isTestPro(): bool
+  {
+    return $this->activeTestSubscription() !== null;
   }
 
   public function oneSignalDevices()

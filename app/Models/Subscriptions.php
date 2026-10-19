@@ -98,7 +98,10 @@ class Subscriptions extends Model
 
 	public function getFormattedAmountAttribute()
 	{
-		$amount = $this->amount ?: ($this->invoice ? $this->invoice->amount : ($this->interval === 'year' ? 27.00 : 3.00));
+		if ($this->is_test) {
+			return 'Free (Test)';
+		}
+		$amount = ($this->amount !== null) ? $this->amount : ($this->invoice ? $this->invoice->amount : ($this->interval === 'year' ? 27.00 : 3.00));
 		$curr = $this->currency ?: ($this->payment_gateway === 'Razorpay' ? 'INR' : 'USD');
 		return \App\Helper::formatPrice($amount, $curr);
 	}
