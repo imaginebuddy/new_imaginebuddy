@@ -587,6 +587,15 @@ class Helper
 
 	public static function resolveUserCountry()
 	{
+		// 0. Manual URL query param override for testing (e.g. ?country=US or ?country=IN)
+		if (request()->has('country')) {
+			$testCountry = strtoupper(trim(request()->get('country')));
+			if (strlen($testCountry) === 2) {
+				session()->put('user_country', $testCountry);
+				return $testCountry;
+			}
+		}
+
 		// 1. Session check
 		if (session()->has('user_country')) {
 			return session('user_country');

@@ -1488,12 +1488,26 @@ class AdminController extends Controller
 
 	public function billingStore(Request $request)
 	{
+		$request->validate([
+			'gstin' => ['nullable', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i'],
+			'gst_percentage' => 'nullable|numeric|min:0|max:100',
+			'supplier_state' => 'nullable|string|max:100',
+			'lut_number' => 'nullable|string|max:100',
+		], [
+			'gstin.regex' => 'The Business GSTIN format is invalid. It must be a valid 15-character Indian GSTIN (e.g. 27AAPFU0939F1ZV).',
+			'gst_percentage.numeric' => 'The GST Percentage must be a valid number between 0 and 100.',
+		]);
+
 		$this->settings->company = $request->company;
 		$this->settings->country = $request->country;
 		$this->settings->address = $request->address;
 		$this->settings->city = $request->city;
 		$this->settings->zip = $request->zip;
 		$this->settings->vat = $request->vat;
+		$this->settings->gstin = $request->gstin ? strtoupper(trim($request->gstin)) : null;
+		$this->settings->gst_percentage = ($request->gst_percentage !== null && $request->gst_percentage !== '') ? $request->gst_percentage : 0.00;
+		$this->settings->supplier_state = $request->supplier_state;
+		$this->settings->lut_number = $request->lut_number ? strtoupper(trim($request->lut_number)) : null;
 		$this->settings->save();
 
 		return back()->withSuccessMessage(trans('admin.success_update'));

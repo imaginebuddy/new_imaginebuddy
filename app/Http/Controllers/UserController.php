@@ -47,6 +47,8 @@ class UserController extends Controller
 			'username'  => 'required|min:3|max:15|ascii_only|alpha_dash|letters|unique:pages,slug|unique:reserved,name|unique:users,username,' . $id,
 			'email'     => 'required|email|unique:users,email,' . $id,
 			'countries_id' => 'required',
+			'state' => 'nullable|string|max:100',
+			'customer_gstin' => ['nullable', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i'],
 			'paypal_account' => 'email',
 			'website'   => 'url',
 			'facebook'   => 'url',
@@ -338,6 +340,8 @@ class UserController extends Controller
 		$user->email        = trim($input['email']);
 		$user->username = $input['username'];
 		$user->countries_id    = $input['countries_id'];
+		$user->state           = $input['state'] ?? null;
+		$user->customer_gstin  = !empty($input['customer_gstin']) ? strtoupper(trim($input['customer_gstin'])) : null;
 		$user->author_exclusive = $input['author_exclusive'] ?? auth()->user()->author_exclusive;
 		$user->paypal_account = trim($input['paypal_account']);
 		$user->website     = trim(strtolower($input['website']));
@@ -347,6 +351,10 @@ class UserController extends Controller
 		$user->bio = $input['description'];
 		$user->two_factor_auth = $input['two_factor_auth'] ?? 'no';
 		$user->save();
+
+		if ($user->country() && !empty($user->country()->country_code)) {
+			session()->put('user_country', strtoupper($user->country()->country_code));
+		}
 
 		\Session::flash('notification', __('auth.success_update'));
 
@@ -805,18 +813,59 @@ class UserController extends Controller
 			abort(404);
 		}
 
-		$taxes = TaxRates::whereIn('id', collect(explode('_', $data->taxes)))->get();
-		$totalTaxes = ($data->amount * $taxes->sum('percentage') / 100);
+		// Backward compatibility & dynamic fallback
+		if (empty($data->tax_type)) {
+			// If legacy invoice has specific old Stripe tax rates, preserve them
+			if (!empty($data->taxes)) {
+				$taxes = TaxRates::whereIn('id', collect(explode('_', $data->taxes)))->get();
+				$totalTaxes = ($data->amount * $taxes->sum('percentage') / 100);
+				$totalAmount = ($data->amount + $data->transaction_fee + $totalTaxes);
+				$isGstInvoice = false;
+			} else {
+				$settings = AdminSettings::first();
+				if (!empty($settings->gstin)) {
+					$gst = \App\Services\TaxService::calculateGst((float)$data->amount, $data->user(), $data->currency, true);
+					$data->taxable_amount = $gst['taxable_amount'];
+					$data->gst_rate = $gst['gst_rate'];
+					$data->cgst_rate = $gst['cgst_rate'];
+					$data->cgst_amount = $gst['cgst_amount'];
+					$data->sgst_rate = $gst['sgst_rate'];
+					$data->sgst_amount = $gst['sgst_amount'];
+					$data->igst_rate = $gst['igst_rate'];
+					$data->igst_amount = $gst['igst_amount'];
+					$data->total_tax_amount = $gst['total_tax_amount'];
+					$data->total_amount = $gst['total_amount'];
+					$data->tax_type = $gst['tax_type'];
+					$data->tax_details = $gst['tax_details'];
 
-		$totalAmount = ($data->amount + $data->transaction_fee + $totalTaxes);
+					$taxes = collect();
+					$totalTaxes = $gst['total_tax_amount'];
+					$totalAmount = $gst['total_amount'] + ($data->transaction_fee ?? 0);
+					$isGstInvoice = true;
+				} else {
+					$taxes = collect();
+					$totalTaxes = 0;
+					$totalAmount = ($data->amount + ($data->transaction_fee ?? 0));
+					$isGstInvoice = false;
+				}
+			}
+		} else {
+			$taxes = collect();
+			$totalTaxes = $data->total_tax_amount;
+			$totalAmount = $data->total_amount ?: ($data->taxable_amount + $data->total_tax_amount + $data->transaction_fee);
+			$isGstInvoice = true;
+		}
 
 		return view('users.invoice', [
 			'data' => $data,
-			'amount' => $data->amount,
+			'amount' => $data->taxable_amount !== null ? $data->taxable_amount : $data->amount,
+			'subtotal' => $data->taxable_amount !== null ? $data->taxable_amount : $data->amount,
 			'percentageApplied' => $data->percentage_applied,
 			'transactionFee' => $data->transaction_fee,
 			'totalAmount' => $totalAmount,
-			'taxes' => $taxes
+			'totalTaxes' => $totalTaxes,
+			'taxes' => $taxes,
+			'isGstInvoice' => $isGstInvoice,
 		]);
 	}
 

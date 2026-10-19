@@ -9,7 +9,11 @@ class Invoices extends Model
 {
     use HasFactory;
 
-	protected $fillable = ['status'];
+	protected $guarded = ['id'];
+
+    protected $casts = [
+        'tax_details' => 'array',
+    ];
 
     public function user()
   	{

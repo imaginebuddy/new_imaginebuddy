@@ -344,18 +344,14 @@
   background-color: var(--pricing-card-bg) !important;
   color: var(--pricing-text-primary) !important;
   border: 1px solid var(--pricing-card-border) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+.pricing-modal-header {
+  border-bottom: 1px solid var(--pricing-modal-box-border) !important;
 }
 .pricing-modal-box {
   background-color: var(--pricing-modal-box-bg) !important;
   border: 1px solid var(--pricing-modal-box-border) !important;
-  color: var(--pricing-text-primary) !important;
-}
-.pricing-modal-radio {
-  background-color: var(--pricing-modal-box-bg) !important;
-  border: 1px solid var(--pricing-modal-box-border) !important;
-  color: var(--pricing-text-primary) !important;
-}
-.pricing-modal-radio label {
   color: var(--pricing-text-primary) !important;
 }
 .pricing-modal-title {
@@ -366,6 +362,53 @@
 }
 .pricing-modal-muted {
   color: var(--pricing-text-muted) !important;
+}
+.payment-method-card {
+  background-color: var(--pricing-modal-box-bg);
+  border: 1.5px solid var(--pricing-modal-box-border) !important;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+.payment-method-card:hover {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  background-color: rgba(16, 185, 129, 0.02) !important;
+}
+.payment-method-card.active,
+.payment-method-card:has(input[type="radio"]:checked) {
+  border-color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.04) !important;
+  box-shadow: 0 0 0 1px #10b981, 0 4px 12px rgba(16, 185, 129, 0.08);
+}
+.payment-method-card .form-check-input {
+  cursor: pointer;
+  width: 1.15em;
+  height: 1.15em;
+}
+.payment-method-card .form-check-input:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+.letter-spacing-1 {
+  letter-spacing: 0.05em;
+}
+.checkout-modal-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+.checkout-trust-badges {
+  font-size: 0.72rem;
+  color: var(--pricing-text-muted);
+  gap: 0.5rem;
+  line-height: 1.2;
+}
+.trust-badge-item {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.trust-badge-dot {
+  opacity: 0.4;
+  font-size: 0.65rem;
 }
 
 /* Mobile Optimizations */
@@ -654,7 +697,7 @@
               <div class="mt-auto">
                 <a
                   data-plan-id="{{ $plan->plan_id }}"
-                  data-plan-name="{{ __('misc.plan_name', ['plan' => $plan->name]) }}"
+                  data-plan-name="{{ str_ends_with(strtolower(trim($plan->name)), 'plan') ? $plan->name : __('misc.plan_name', ['plan' => $plan->name]) }}"
                   data-price="{{ Helper::formatPrice($monthlyPrice, $curr['code']) }}"
                   data-price-total="{{ Helper::formatPrice($monthlyPrice, $curr['code'], true) }}"
                   data-price-gross="{{ $monthlyPrice }}"
@@ -1003,7 +1046,7 @@
           <div class="mb-4">
             <a
               data-plan-id="{{ $firstPlan->plan_id }}"
-              data-plan-name="{{ __('misc.plan_name', ['plan' => $firstPlan->name]) }}"
+              data-plan-name="{{ str_ends_with(strtolower(trim($firstPlan->name)), 'plan') ? $firstPlan->name : __('misc.plan_name', ['plan' => $firstPlan->name]) }}"
               data-price="{{ Helper::formatPrice($mPrice, $curr['code']) }}"
               data-price-total="{{ Helper::formatPrice($mPrice, $curr['code'], true) }}"
               data-price-gross="{{ $mPrice }}"
@@ -1053,31 +1096,40 @@
 <!-- CHECKOUT MODAL (For Logged-in Users) -->
 @if (auth()->check())
 <div class="modal fade" tabindex="-1" id="checkout">
-  <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
-    <div class="modal-content rounded-4 border-0 shadow-lg pricing-modal-content">
-      <div class="modal-body p-lg-4">
-        <h5 class="mb-3 fw-bold pricing-modal-title">
-          <i class="bi bi-cart2 me-1"></i> {{ __('misc.checkout') }}
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
+    <div class="modal-content rounded-4 border-0 shadow-lg pricing-modal-content overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="modal-header pricing-modal-header px-4 py-3 align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success" style="width: 40px; height: 40px; font-size: 1.15rem;">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold pricing-modal-title mb-0 lh-1">{{ __('misc.checkout') }}</h5>
+            <small class="pricing-modal-muted" style="font-size: 0.78rem;">Safe, 256-bit encrypted checkout</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
-          <span class="float-end c-pointer" data-bs-dismiss="modal" aria-label="Close">
-            <i class="bi bi-x-lg"></i>
-          </span>
-        </h5>
-        
-        <div class="container-fluid p-0">
-          <div class="row g-4">
+      <div class="modal-body p-4">
+        <form method="post" action="{{url('buy/subscription')}}" id="formBuySubscription">
+          @csrf
+
+          <input type="hidden" id="interval" name="interval" value="month">
+          <input type="hidden" id="planId" name="plan" value="">
+
+          <div class="row g-4 align-items-stretch">
 
             <!-- Payment Options Column -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <strong class="pricing-modal-text">{{ __('misc.payments_options') }}</strong>
+            <div class="col-md-6 d-flex flex-column">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="pricing-modal-text text-uppercase fw-bold small letter-spacing-1">{{ __('misc.payments_options') }}</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem; font-weight: 600;">
+                  <i class="bi bi-patch-check-fill me-1"></i> Instant Activation
+                </span>
               </div>
-
-              <form method="post" action="{{url('buy/subscription')}}" class="d-inline" id="formBuySubscription">
-                @csrf
-
-                <input type="hidden" id="interval" name="interval" value="month">
-                <input type="hidden" id="planId" name="plan" value="">
 
               @php
                 $allGateways = PaymentGateways::whereEnabled('1')->whereSubscription('1')->orderBy('type', 'DESC')->get();
@@ -1093,122 +1145,212 @@
                 }
               @endphp
 
-              @forelse ($availableGateways as $payment)
-                <div class="form-check custom-radio mb-2 p-3 border rounded-3 pricing-modal-radio">
-                  <input name="payment_gateway" value="{{$payment->id}}" id="payment_radio{{$payment->id}}" class="form-check-input radio-bws" type="radio" @if($loop->first) checked @endif>
-                  <label class="form-check-label ps-2" for="payment_radio{{$payment->id}}">
-                    <span><img class="me-1 rounded" src="{{ url('public/img/payments', $payment->logo) }}" width="20" /> <strong class="pricing-modal-text">{{ $payment->name }}</strong></span>
-                    <small class="w-100 d-block pricing-modal-muted mt-1">
-                      @if ($payment->name == 'Razorpay')
-                        @if ($isIndia)
-                          UPI, Google Pay, PhonePe, Paytm, RuPay & Cards
-                        @else
-                          Credit / Debit Cards (Visa, Mastercard, Amex)
-                        @endif
-                      @elseif ($payment->name == 'PayPal')
-                        PayPal, Credit/Debit Cards, Apple Pay
-                      @elseif ($payment->type == 'card')
-                        {{ __('misc.debit_credit_card') }}
-                      @endif
-                    </small>
+              <div class="payment-methods-list mb-3">
+                @forelse ($availableGateways as $payment)
+                  <label class="payment-method-card d-block p-3 mb-2.5 rounded-3 border @if($loop->first) active @endif" for="payment_radio{{$payment->id}}">
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="pt-1">
+                        <input name="payment_gateway" value="{{$payment->id}}" id="payment_radio{{$payment->id}}" class="form-check-input radio-bws m-0" type="radio" @if($loop->first) checked @endif>
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                          <span class="fw-bold pricing-modal-text d-flex align-items-center gap-2">
+                            <img class="rounded" src="{{ url('public/img/payments', $payment->logo) }}" height="22" style="max-height: 22px; width: auto;" alt="{{ $payment->name }}" />
+                            <span>{{ $payment->name }}</span>
+                          </span>
+                          @if ($payment->name == 'Razorpay')
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem; font-weight: 600;">Preferred</span>
+                          @endif
+                        </div>
+
+                        <small class="pricing-modal-muted d-block mb-2 lh-sm" style="font-size: 0.78rem;">
+                          @if ($payment->name == 'Razorpay')
+                            @if ($isIndia)
+                              UPI (GPay, PhonePe, Paytm), RuPay, Cards & NetBanking
+                            @else
+                              Credit / Debit Cards (Visa, Mastercard, Amex)
+                            @endif
+                          @elseif ($payment->name == 'PayPal')
+                            PayPal Balance, Linked Bank Accounts & Cards
+                          @elseif ($payment->type == 'card')
+                            {{ __('misc.debit_credit_card') }}
+                          @endif
+                        </small>
+
+                        <!-- Method Badges -->
+                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                          @if ($payment->name == 'Razorpay' && $isIndia)
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">UPI / QR</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">GPay</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">PhonePe</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">Paytm</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">Cards</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">NetBanking</span>
+                          @elseif ($payment->name == 'Razorpay' && !$isIndia)
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">Visa</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">Mastercard</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">Amex</span>
+                          @elseif ($payment->name == 'PayPal')
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">PayPal</span>
+                            <span class="badge bg-secondary-subtle text-secondary border py-0.5 px-1.5" style="font-size: 0.65rem; font-weight: 500;">Credit/Debit</span>
+                          @endif
+                        </div>
+                      </div>
+                    </div>
                   </label>
+                @empty
+                  @if ($isIndia)
+                    <div class="alert alert-warning py-2 mb-2 small">
+                      <i class="bi bi-exclamation-triangle me-1"></i> Razorpay gateway is currently unavailable.
+                    </div>
+                  @else
+                    <div class="alert alert-warning py-2 mb-2 small">
+                      <i class="bi bi-exclamation-triangle me-1"></i> Payment gateway is currently unavailable.
+                    </div>
+                  @endif
+                @endforelse
+              </div>
+
+              <!-- Buyer Protection Guarantee Card -->
+              <div class="p-3 rounded-3 mt-auto" style="background: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.3);">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-shield-check text-success fs-5"></i>
+                  <span class="fw-bold pricing-modal-text small">Safe &amp; Protected Checkout</span>
                 </div>
-              @empty
-                @if ($isIndia)
-                  <div class="alert alert-warning py-2 mb-2 small">
-                    <i class="bi bi-exclamation-triangle me-1"></i> Razorpay gateway is currently unavailable.
-                  </div>
-                @else
-                  <div class="alert alert-warning py-2 mb-2 small">
-                    <i class="bi bi-exclamation-triangle me-1"></i> Payment gateway is currently unavailable.
-                  </div>
-                @endif
-              @endforelse
+                <small class="pricing-modal-muted d-block lh-sm" style="font-size: 0.74rem;">
+                  Your payment is processed through RBI &amp; PCI-DSS compliant secure gateways. Card details are never stored on our servers.
+                </small>
+              </div>
 
             </div>
 
             <!-- Order Summary Column -->
-            <div class="col-md-6">
-              <div class="p-3 rounded-4 border pricing-modal-box">
-                <div class="mb-2">
-                  <strong class="pricing-modal-text">{{ __('misc.order_summary') }}</strong>
+            <div class="col-md-6 d-flex flex-column">
+              <div class="p-3.5 p-lg-4 rounded-4 border pricing-modal-box flex-grow-1 d-flex flex-column">
+                <div>
+                  <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="pricing-modal-text text-uppercase fw-bold small letter-spacing-1">{{ __('misc.order_summary') }}</span>
+                    <span class="badge bg-light text-muted border py-1 px-2" style="font-size: 0.7rem; font-weight: 500;">
+                      <i class="bi bi-receipt me-1 text-success"></i> GST Invoice
+                    </span>
+                  </div>
+
+                  <!-- Plan Header Banner -->
+                  <div class="p-3 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--pricing-modal-box-border);">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <span class="d-block fw-bold fs-6 pricing-modal-text" id="summaryPlan"></span>
+                        <small class="planMonthly pricing-modal-muted"><i class="bi bi-arrow-repeat me-1 text-success"></i>{{ __('misc.billed_monthly') }}</small>
+                        <small class="planYearly display-none pricing-modal-muted"><i class="bi bi-arrow-repeat me-1 text-success"></i>{{ __('misc.billed_yearly') }}</small>
+                      </div>
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">
+                        Active Plan
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Calculation Breakdown -->
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between py-1.5">
+                      <span class="pricing-modal-muted small">{{ __('misc.subtotal') }}:</span>
+                      <span class="fw-semibold pricing-modal-text" id="subtotal"></span>
+                    </div>
+
+                    @if (auth()->user()->isTaxable()->count())
+                      <ul class="list-unstyled p-0 m-0">
+                        @foreach (auth()->user()->isTaxable() as $tax)
+                          <li class="d-flex align-items-center justify-content-between py-1.5 isTaxable">
+                            <span class="pricing-modal-muted small">{{ $tax->name }} {{ $tax->percentage }}%:</span>
+                            <span class="percentageAppliedTax{{$loop->iteration}}" data="{{ $tax->percentage }}">
+                              <span class="fw-semibold pricing-modal-text">
+                                {{ $curr['symbol'] }}<span class="amount{{$loop->iteration}}"></span>
+                              </span>
+                            </span>
+                          </li>
+                        @endforeach
+                      </ul>
+                    @else
+                      <div class="d-flex align-items-center justify-content-between py-1.5">
+                        <span class="pricing-modal-muted small">
+                          <i class="bi bi-shield-check me-1 text-success"></i> Taxes:
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold" style="font-size: 0.72rem;">
+                          @if ($isIndia)
+                            GST ({{ $settings->gst_percentage ?? 18 }}%) Included
+                          @else
+                            0% GST (Zero-Rated Export)
+                          @endif
+                        </span>
+                      </div>
+                    @endif
+
+                    <!-- Total Due Today Row -->
+                    <div class="d-flex align-items-center justify-content-between pt-2.5 mt-2 border-top">
+                      <div>
+                        <span class="fw-bold pricing-modal-text fs-6 d-block">{{ __('misc.total') }}:</span>
+                        <small class="pricing-modal-muted" style="font-size: 0.72rem;">All taxes included</small>
+                      </div>
+                      <div class="text-end">
+                        <span class="pricing-modal-text fs-4 fw-bolder" id="total"></span>
+                        <span class="pricing-modal-muted fw-bold small ms-1">{{ $curr['code'] }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Subscription Terms Disclaimer -->
+                  <div class="mb-3 p-2.5 rounded-2 bg-light-subtle border" style="font-size: 0.75rem; line-height: 1.45;">
+                    <span class="pricing-modal-muted">
+                      {!! __('misc.agree_subscription', [
+                        'company' => $settings->company ?: $settings->title,
+                        'terms' => '<a href="'.$settings->link_terms.'" target="_blank" class="text-decoration-underline pricing-modal-text fw-bold">'. __('misc.terms_services') .'</a>'
+                      ]) !!}
+                    </span>
+                  </div>
+
+                  <!-- Error Purchase Container -->
+                  <div class="alert alert-danger py-2 display-none" id="errorPurchase">
+                    <ul class="list-unstyled m-0 small" id="showErrorsPurchase"></ul>
+                  </div>
                 </div>
 
-                <ul class="list-group list-group-flush bg-transparent">
-                  <li class="list-group-item py-2 px-0 bg-transparent">
-                    <div class="row">
-                      <div class="col">
-                        <span class="d-block w-100 fw-bold pricing-modal-text" id="summaryPlan"></span>
-                        <small class="planMonthly pricing-modal-muted">{{ __('misc.billed_monthly') }}</small>
-                        <small class="planYearly display-none pricing-modal-muted">{{ __('misc.billed_yearly') }}</small>
-                      </div>
-                    </div>
-                  </li>
-
-                  <li class="list-group-item py-2 px-0 bg-transparent">
-                    <div class="row">
-                      <div class="col">
-                        <small class="pricing-modal-muted">{{ __('misc.subtotal') }}:</small>
-                      </div>
-                      <div class="col-auto">
-                        <small class="fw-bold pricing-modal-text" id="subtotal"></small>
-                      </div>
-                    </div>
-                  </li>
-
-                @if (auth()->user()->isTaxable()->count())
-                  @foreach (auth()->user()->isTaxable() as $tax)
-                    <li class="list-group-item py-2 px-0 bg-transparent isTaxable">
-                      <div class="row">
-                        <div class="col">
-                          <small class="pricing-modal-muted">{{ $tax->name }} {{ $tax->percentage }}%:</small>
-                        </div>
-                        <div class="col-auto percentageAppliedTax{{$loop->iteration}}" data="{{ $tax->percentage }}">
-                          <small class="fw-bold pricing-modal-text">
-                            {{ $curr['symbol'] }}<span class="amount{{$loop->iteration}}"></span>
-                          </small>
-                        </div>
-                      </div>
-                    </li>
-                  @endforeach
-                @endif
-
-                  <li class="list-group-item py-2 px-0 bg-transparent border-top">
-                    <div class="row">
-                      <div class="col">
-                        <span class="fw-bold pricing-modal-text">{{ __('misc.total') }}:</span>
-                      </div>
-                      <div class="col-auto fw-bold">
-                        <span class="pricing-modal-text" id="total"></span> {{ $curr['code'] }}
-                      </div>
-                    </div>
-                  </li>
-                </ul>
-
-                <small class="d-block my-3 pricing-modal-muted" style="font-size: 0.78rem;">
-                  {!! __('misc.agree_subscription', ['terms' => '<a href="'.$settings->link_terms.'" target="_blank" class="text-decoration-underline pricing-modal-text fw-bold">'. __('misc.terms_services') .'</a>']) !!}
-                </small>
-
-                <div class="alert alert-danger py-2 display-none" id="errorPurchase">
-                  <ul class="list-unstyled m-0" id="showErrorsPurchase"></ul>
-                </div>
-
-                <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill py-2.5 fw-bold shadow-sm" id="subscribe">
-                  <i></i> {{ __('misc.pay') }}
-                </button>
-                <div class="w-100 d-block text-center mt-2">
-                  <button type="button" class="btn btn-link e-none text-decoration-none pricing-modal-muted small" data-bs-dismiss="modal">
-                    {{ __('admin.cancel') }}
+                <div class="checkout-modal-footer">
+                  <!-- Submit / Pay Button -->
+                  <button type="submit" class="btn btn-success btn-lg w-100 rounded-3 py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2" id="subscribe" style="font-size: 1.05rem;">
+                    <i></i>
+                    <span class="bi bi-lock-fill"></span>
+                    <span>{{ __('misc.pay') }} &amp; Subscribe</span>
                   </button>
+
+                  <!-- Trust Badges Row -->
+                  <div class="checkout-trust-badges d-flex flex-wrap align-items-center justify-content-center text-center mb-1">
+                    <span class="trust-badge-item">
+                      <i class="bi bi-shield-lock-fill text-success me-1"></i>256-Bit SSL
+                    </span>
+                    <span class="trust-badge-dot">•</span>
+                    <span class="trust-badge-item">
+                      <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Instant Access
+                    </span>
+                    <span class="trust-badge-dot">•</span>
+                    <span class="trust-badge-item">
+                      <i class="bi bi-arrow-repeat text-primary me-1"></i>Cancel Anytime
+                    </span>
+                  </div>
+
+                  <!-- Cancel Dismiss Link -->
+                  <div class="text-center mt-1">
+                    <button type="button" class="btn btn-link text-decoration-none pricing-modal-muted small p-0 border-0 lh-sm" data-bs-dismiss="modal" style="font-size: 0.78rem;">
+                      {{ __('admin.cancel') }}
+                    </button>
+                  </div>
                 </div>
+
               </div>
             </div>
 
-            </form>
           </div><!-- row -->
-        </div><!-- container -->
-
+        </form>
       </div><!-- modal-body -->
+
     </div><!-- modal-content -->
   </div><!-- modal-dialog -->
 </div><!-- modal -->
@@ -1219,6 +1361,12 @@
 @section('javascript')
   @auth
     <script src="{{ asset('public/js/subscription.js') }}?v={{$settings->version}}"></script>
+    <script type="text/javascript">
+      $(document).on('change', 'input[name="payment_gateway"]', function () {
+        $('.payment-method-card').removeClass('active');
+        $(this).closest('.payment-method-card').addClass('active');
+      });
+    </script>
   @endauth
 
   <script type="text/javascript">

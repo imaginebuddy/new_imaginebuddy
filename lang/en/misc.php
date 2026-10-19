@@ -628,7 +628,7 @@ return array(
 	'stripe_text_info_5' => 'Please provide your name and e-mail address.',
 	'subscription_plan' => 'Plan :name',// Not remove  :name
 	'subscription_exists' => 'You have an active subscription.',
-	'agree_subscription' => 'By clicking pay you agree to the :terms and authorize Gostock to charge your payment method on a recurring basis. You may cancel at any time.', // Not remove :term
+	'agree_subscription' => 'By clicking pay you agree to the :terms and authorize :company to charge your payment method on a recurring basis. You may cancel at any time.', // Not remove :term
 	'terms_services' => 'Terms of service',
 	'subscription' => 'Subscription',
 	'subscription_success' => 'Subscription created successfully!',

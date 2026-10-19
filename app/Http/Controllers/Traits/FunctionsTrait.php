@@ -16,6 +16,8 @@ use App\Notifications\NewSale;
 use App\Models\PaymentGateways;
 use App\Models\ReferralTransactions;
 use App\Notifications\SendTwoFactorCode;
+use App\Services\TaxService;
+use App\Helper;
 
 trait FunctionsTrait
 {
@@ -127,8 +129,12 @@ trait FunctionsTrait
 		return $purchase;
 	}
 
-	protected function invoice($userId, $purchaseId, $amount, $percentageApplied, $taxes, $approved)
+	protected function invoice($userId, $purchaseId, $amount, $percentageApplied, $taxes, $approved, $currency = null)
 	{
+		$user = User::find($userId);
+		$currencyCode = $currency ?: (Helper::isIndia() ? 'INR' : 'USD');
+		$gst = TaxService::calculateGst((float)$amount, $user, $currencyCode, true);
+
 		$invoice = new Invoices();
 		$invoice->user_id = $userId;
 		$invoice->purchases_id = $purchaseId;
@@ -136,6 +142,19 @@ trait FunctionsTrait
 		$invoice->status = $approved ? 'paid' : 'pending';
 		$invoice->percentage_applied = $percentageApplied;
 		$invoice->taxes = $taxes;
+		$invoice->currency = $currencyCode;
+		$invoice->taxable_amount = $gst['taxable_amount'];
+		$invoice->gst_rate = $gst['gst_rate'];
+		$invoice->cgst_rate = $gst['cgst_rate'];
+		$invoice->cgst_amount = $gst['cgst_amount'];
+		$invoice->sgst_rate = $gst['sgst_rate'];
+		$invoice->sgst_amount = $gst['sgst_amount'];
+		$invoice->igst_rate = $gst['igst_rate'];
+		$invoice->igst_amount = $gst['igst_amount'];
+		$invoice->total_tax_amount = $gst['total_tax_amount'];
+		$invoice->total_amount = $gst['total_amount'];
+		$invoice->tax_type = $gst['tax_type'];
+		$invoice->tax_details = $gst['tax_details'];
 		$invoice->save();
 	}
 
@@ -238,8 +257,12 @@ trait FunctionsTrait
 		return $sql;
 	}
 
-	protected function invoiceDeposits($userId, $depositId, $amount, $percentageApplied, $transactionFee, $taxes, $status)
+	protected function invoiceDeposits($userId, $depositId, $amount, $percentageApplied, $transactionFee, $taxes, $status, $currency = null)
 	{
+		$user = User::find($userId);
+		$currencyCode = $currency ?: (Helper::isIndia() ? 'INR' : 'USD');
+		$gst = TaxService::calculateGst((float)$amount, $user, $currencyCode, true);
+
 		$invoice = new Invoices();
 		$invoice->user_id = $userId;
 		$invoice->deposits_id = $depositId;
@@ -248,18 +271,47 @@ trait FunctionsTrait
 		$invoice->percentage_applied = $percentageApplied;
 		$invoice->transaction_fee = $transactionFee;
 		$invoice->taxes = $taxes;
+		$invoice->currency = $currencyCode;
+		$invoice->taxable_amount = $gst['taxable_amount'];
+		$invoice->gst_rate = $gst['gst_rate'];
+		$invoice->cgst_rate = $gst['cgst_rate'];
+		$invoice->cgst_amount = $gst['cgst_amount'];
+		$invoice->sgst_rate = $gst['sgst_rate'];
+		$invoice->sgst_amount = $gst['sgst_amount'];
+		$invoice->igst_rate = $gst['igst_rate'];
+		$invoice->igst_amount = $gst['igst_amount'];
+		$invoice->total_tax_amount = $gst['total_tax_amount'];
+		$invoice->total_amount = round($gst['total_amount'] + (float)$transactionFee, 2);
+		$invoice->tax_type = $gst['tax_type'];
+		$invoice->tax_details = $gst['tax_details'];
 		$invoice->save();
 	}
 
 	protected function invoiceSubscription($userId, $subscriptionId, $amount, $taxes, $approved, $currency = null)
 	{
+		$user = User::find($userId);
+		$currencyCode = $currency ?: (Helper::isIndia() ? 'INR' : 'USD');
+		$gst = TaxService::calculateGst((float)$amount, $user, $currencyCode, true);
+
 		$invoice = new Invoices();
 		$invoice->user_id = $userId;
 		$invoice->subscriptions_id = $subscriptionId;
 		$invoice->amount = $amount;
 		$invoice->status = $approved ? 'paid' : 'pending';
 		$invoice->taxes = $taxes;
-		$invoice->currency = $currency ?: (Helper::isIndia() ? 'INR' : 'USD');
+		$invoice->currency = $currencyCode;
+		$invoice->taxable_amount = $gst['taxable_amount'];
+		$invoice->gst_rate = $gst['gst_rate'];
+		$invoice->cgst_rate = $gst['cgst_rate'];
+		$invoice->cgst_amount = $gst['cgst_amount'];
+		$invoice->sgst_rate = $gst['sgst_rate'];
+		$invoice->sgst_amount = $gst['sgst_amount'];
+		$invoice->igst_rate = $gst['igst_rate'];
+		$invoice->igst_amount = $gst['igst_amount'];
+		$invoice->total_tax_amount = $gst['total_tax_amount'];
+		$invoice->total_amount = $gst['total_amount'];
+		$invoice->tax_type = $gst['tax_type'];
+		$invoice->tax_details = $gst['tax_details'];
 		$invoice->save();
 	}
 

@@ -45,7 +45,9 @@ class User extends Authenticatable
     'completed_stripe_onboarding',
     'downloads',
     'balance',
-    'funds'
+    'funds',
+    'state',
+    'customer_gstin'
   ];
 
   /**

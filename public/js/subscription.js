@@ -20,6 +20,9 @@
 
 	  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
 	  var modal = $(this);
+	  if (planName) {
+	    planName = planName.replace(/\bplan\s+plan\b/gi, 'Plan');
+	  }
 	  modal.find('#summaryPlan').html(planName);
 	  modal.find('#planId').val(planId);
 

@@ -76,6 +76,27 @@
 				</div><!-- End Col MD-->
 			</div><!-- End row -->
 
+			<div class="row">
+				<div class="col-md-6">
+          <div class="form-floating mb-3">
+            <select name="state" class="form-select" id="inputState">
+              <option value="">Select state (for India)</option>
+              @foreach (\App\Services\TaxService::getIndianStates() as $code => $stateName)
+                <option @if( auth()->user()->state == $stateName || auth()->user()->state == $code ) selected="selected" @endif value="{{ $stateName }}">{{ $code }} - {{ $stateName }}</option>
+              @endforeach
+            </select>
+            <label for="inputState">State / Region (for GST)</label>
+          </div>
+				</div><!-- End Col MD-->
+
+				<div class="col-md-6">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control text-uppercase" id="inputGstin" value="{{ auth()->user()->customer_gstin }}" name="customer_gstin" placeholder="GSTIN (Optional)" maxlength="15">
+            <label for="inputGstin">GSTIN (Optional for Business ITC)</label>
+          </div>
+				</div><!-- End Col MD-->
+			</div><!-- End row -->
+
       {{-- HIDDEN_FIELD: Exclusivity of your items (author_exclusive) --}}
       @if(false)
       @if ($settings->who_can_sell == 'all'
