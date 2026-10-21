@@ -1945,6 +1945,8 @@ class AdminController extends Controller
 			'title' => 'required|string|min:3|max:255',
 			'slug' => 'nullable|string|max:255',
 			'ai_model' => 'nullable|string|max:100',
+			'raw_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
+			'transformed_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
 			'meta_title' => 'nullable|string|max:255',
 			'meta_description' => 'nullable|string|max:500',
 			'meta_keywords' => 'nullable|string|max:255',
@@ -1995,6 +1997,16 @@ class AdminController extends Controller
 			}
 		}
 
+		$rawImageName = null;
+		if ($request->hasFile('raw_image') && $request->file('raw_image')->isValid()) {
+			$rawImageName = $this->handleRawProductImageUpload($request->file('raw_image'));
+		}
+
+		$transformedImageName = null;
+		if ($request->hasFile('transformed_image') && $request->file('transformed_image')->isValid()) {
+			$transformedImageName = $this->handleTransformedProductImageUpload($request->file('transformed_image'));
+		}
+
 		$photoshoot = Photoshoot::create([
 			'uuid' => 'batch_' . uniqid(),
 			'title' => $title,
@@ -2003,6 +2015,8 @@ class AdminController extends Controller
 			'user_id' => auth()->id(),
 			'categories_id' => $request->categories_id ?: null,
 			'ai_model' => $request->ai_model ? trim($request->ai_model) : null,
+			'raw_image' => $rawImageName,
+			'transformed_image' => $transformedImageName,
 			'prompts_count' => 0,
 			'meta_title' => $metaTitle !== '' ? $metaTitle : null,
 			'meta_description' => $metaDescription !== '' ? $metaDescription : null,
@@ -2044,6 +2058,8 @@ class AdminController extends Controller
 			'title' => 'required|string|min:3|max:255',
 			'slug' => 'nullable|string|max:255',
 			'ai_model' => 'nullable|string|max:100',
+			'raw_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
+			'transformed_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
 			'meta_title' => 'nullable|string|max:255',
 			'meta_description' => 'nullable|string|max:500',
 			'meta_keywords' => 'nullable|string|max:255',
@@ -2055,6 +2071,28 @@ class AdminController extends Controller
 		$photoshoot->ai_model = $request->ai_model ? trim($request->ai_model) : null;
 		if ($request->has('description')) {
 			$photoshoot->description = trim($request->description ?: '');
+		}
+
+		// Handle raw product image removal or replacement
+		if ($request->boolean('remove_raw_image')) {
+			$this->deleteRawProductImageFile($photoshoot->raw_image);
+			$photoshoot->raw_image = null;
+		}
+
+		if ($request->hasFile('raw_image') && $request->file('raw_image')->isValid()) {
+			$this->deleteRawProductImageFile($photoshoot->raw_image);
+			$photoshoot->raw_image = $this->handleRawProductImageUpload($request->file('raw_image'));
+		}
+
+		// Handle transformed product image removal or replacement
+		if ($request->boolean('remove_transformed_image')) {
+			$this->deleteTransformedProductImageFile($photoshoot->transformed_image);
+			$photoshoot->transformed_image = null;
+		}
+
+		if ($request->hasFile('transformed_image') && $request->file('transformed_image')->isValid()) {
+			$this->deleteTransformedProductImageFile($photoshoot->transformed_image);
+			$photoshoot->transformed_image = $this->handleTransformedProductImageUpload($request->file('transformed_image'));
 		}
 
 		$metaTitle = trim($request->meta_title ?? '');
@@ -2121,10 +2159,108 @@ class AdminController extends Controller
 		// Unlink all images belonging to this photoshoot without deleting the images
 		Images::where('photoshoot_id', $photoshoot->id)->update(['photoshoot_id' => null]);
 		
+		if (!empty($photoshoot->raw_image)) {
+			$this->deleteRawProductImageFile($photoshoot->raw_image);
+		}
+
+		if (!empty($photoshoot->transformed_image)) {
+			$this->deleteTransformedProductImageFile($photoshoot->transformed_image);
+		}
+
 		$photoshoot->delete();
 
 		return redirect('panel/admin/photoshoots')
 			->withSuccessMessage('Photoshoot deleted successfully. Associated prompts remain in database as standalone prompts.');
+	}
+
+	/**
+	 * Helper to process, resize and store uploaded raw product image for a photoshoot.
+	 */
+	protected function handleRawProductImageUpload($file): string
+	{
+		$path = config('path.photoshoots_raw', 'uploads/photoshoots/raw/');
+		$fullDir = public_path($path);
+		if (!\Illuminate\Support\Facades\File::exists($fullDir)) {
+			\Illuminate\Support\Facades\File::makeDirectory($fullDir, 0755, true, true);
+		}
+
+		$extension = strtolower($file->getClientOriginalExtension());
+		if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
+			$extension = 'jpg';
+		}
+		$imageName = 'raw-' . \Illuminate\Support\Str::random(16) . '-' . time() . '.' . $extension;
+
+		// Resize to optimal dimensions (max 1800px width/height), preserving aspect ratio
+		$img = Image::make($file)->orientate()->resize(1800, null, function ($constraint) {
+			$constraint->aspectRatio();
+			$constraint->upsize();
+		})->encode($extension, 90);
+
+		$fullPath = $fullDir . $imageName;
+		file_put_contents($fullPath, (string) $img);
+		Storage::put($path . $imageName, (string) $img, 'public');
+
+		return $imageName;
+	}
+
+	/**
+	 * Helper to safely remove raw product image from disk.
+	 */
+	protected function deleteRawProductImageFile(?string $imageName): void
+	{
+		if (!empty($imageName)) {
+			$path = config('path.photoshoots_raw', 'uploads/photoshoots/raw/');
+			Storage::delete($path . $imageName);
+			$fullPath = public_path($path . $imageName);
+			if (\Illuminate\Support\Facades\File::exists($fullPath)) {
+				\Illuminate\Support\Facades\File::delete($fullPath);
+			}
+		}
+	}
+
+	/**
+	 * Helper to process, resize and store uploaded high-resolution transformed product image for a photoshoot.
+	 */
+	protected function handleTransformedProductImageUpload($file): string
+	{
+		$path = config('path.photoshoots_transformed', 'uploads/photoshoots/transformed/');
+		$fullDir = public_path($path);
+		if (!\Illuminate\Support\Facades\File::exists($fullDir)) {
+			\Illuminate\Support\Facades\File::makeDirectory($fullDir, 0755, true, true);
+		}
+
+		$extension = strtolower($file->getClientOriginalExtension());
+		if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
+			$extension = 'jpg';
+		}
+		$imageName = 'transformed-' . \Illuminate\Support\Str::random(16) . '-' . time() . '.' . $extension;
+
+		// Resize to optimal dimensions (max 1800px width/height), preserving aspect ratio with high quality
+		$img = Image::make($file)->orientate()->resize(1800, null, function ($constraint) {
+			$constraint->aspectRatio();
+			$constraint->upsize();
+		})->encode($extension, 92);
+
+		$fullPath = $fullDir . $imageName;
+		file_put_contents($fullPath, (string) $img);
+		Storage::put($path . $imageName, (string) $img, 'public');
+
+		return $imageName;
+	}
+
+	/**
+	 * Helper to safely remove transformed product image from disk.
+	 */
+	protected function deleteTransformedProductImageFile(?string $imageName): void
+	{
+		if (!empty($imageName)) {
+			$path = config('path.photoshoots_transformed', 'uploads/photoshoots/transformed/');
+			Storage::delete($path . $imageName);
+			$fullPath = public_path($path . $imageName);
+			if (\Illuminate\Support\Facades\File::exists($fullPath)) {
+				\Illuminate\Support\Facades\File::delete($fullPath);
+			}
+		}
 	}
 
 	public function searchPromptsForPhotoshoot(Request $request)

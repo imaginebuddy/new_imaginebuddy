@@ -23,6 +23,8 @@ class Photoshoot extends Model
         'meta_description',
         'meta_keywords',
         'ai_model',
+        'raw_image',
+        'transformed_image',
         'creative_direction',
         'show_product_adaptability',
         'product_adaptability',
@@ -47,9 +49,65 @@ class Photoshoot extends Model
             \App\Http\Controllers\SitemapController::clearCache();
         });
 
-        static::deleted(function () {
+        static::deleted(function ($photoshoot) {
             \App\Http\Controllers\SitemapController::clearCache();
+
+            if (!empty($photoshoot->raw_image)) {
+                $path = config('path.photoshoots_raw', 'uploads/photoshoots/raw/');
+                \Illuminate\Support\Facades\Storage::delete($path . $photoshoot->raw_image);
+                $fullPath = public_path($path . $photoshoot->raw_image);
+                if (\Illuminate\Support\Facades\File::exists($fullPath)) {
+                    \Illuminate\Support\Facades\File::delete($fullPath);
+                }
+            }
+
+            if (!empty($photoshoot->transformed_image)) {
+                $path = config('path.photoshoots_transformed', 'uploads/photoshoots/transformed/');
+                \Illuminate\Support\Facades\Storage::delete($path . $photoshoot->transformed_image);
+                $fullPath = public_path($path . $photoshoot->transformed_image);
+                if (\Illuminate\Support\Facades\File::exists($fullPath)) {
+                    \Illuminate\Support\Facades\File::delete($fullPath);
+                }
+            }
         });
+    }
+
+    /**
+     * Helper to get full public URL to raw product image
+     */
+    public function getRawImageUrlAttribute(): ?string
+    {
+        if (!empty($this->raw_image)) {
+            $path = config('path.photoshoots_raw', 'uploads/photoshoots/raw/') . $this->raw_image;
+            if (file_exists(public_path($path))) {
+                return url('public/' . $path);
+            }
+            if (\Illuminate\Support\Facades\Storage::exists($path)) {
+                return \Illuminate\Support\Facades\Storage::url($path);
+            }
+            return url('public/' . $path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper to get full public URL to high-resolution transformed / final product image
+     */
+    public function getTransformedImageUrlAttribute(): ?string
+    {
+        if (!empty($this->transformed_image)) {
+            $path = config('path.photoshoots_transformed', 'uploads/photoshoots/transformed/') . $this->transformed_image;
+            if (file_exists(public_path($path))) {
+                return url('public/' . $path);
+            }
+            if (\Illuminate\Support\Facades\Storage::exists($path)) {
+                return \Illuminate\Support\Facades\Storage::url($path);
+            }
+            return url('public/' . $path);
+        }
+
+        return null;
     }
 
     /**

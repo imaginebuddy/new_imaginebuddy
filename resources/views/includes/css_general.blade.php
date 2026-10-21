@@ -1306,6 +1306,8 @@ body.dark-mode .explore-filters-wrap .form-select {
   object-fit: cover;
   display: block;
   pointer-events: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
 }
 
 .before-img-clip {

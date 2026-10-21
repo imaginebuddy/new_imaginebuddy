@@ -34,4 +34,8 @@ return array(
     // Blog Featured Images
     'blog' => 'uploads/blog/',
 
+    // Photoshoots Raw & Transformed Product Images
+    'photoshoots_raw' => 'uploads/photoshoots/raw/',
+    'photoshoots_transformed' => 'uploads/photoshoots/transformed/',
+
 );

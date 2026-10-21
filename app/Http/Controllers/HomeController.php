@@ -902,6 +902,8 @@ class HomeController extends Controller
       ->orderBy('id', 'desc')
       ->paginate(12);
 
+    $images->load('examples');
+
     $photoshoot->setRelation('images', $images->getCollection());
     Helper::seo()->setEntity($photoshoot);
 

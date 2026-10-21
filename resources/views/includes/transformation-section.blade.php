@@ -1,6 +1,22 @@
 @php
   $isIndia = Helper::isIndia();
   $curr = Helper::currentCurrency();
+
+  $defaultBeforeImage = asset('public/img/White-Oud-Perfume-01.webp');
+  $defaultAfterImage = asset('public/img/premium-white-oud-perfume-ad-02.webp');
+
+  $sliderBeforeImg = !empty($customBeforeImg) ? $customBeforeImg : $defaultBeforeImage;
+  $sliderAfterImg = !empty($customAfterImg) ? $customAfterImg : $defaultAfterImage;
+
+  $sliderBeforeLabel = !empty($customBeforeLabel) ? $customBeforeLabel : 'Raw Snapshot';
+  $sliderAfterLabel = !empty($customAfterLabel) ? $customAfterLabel : 'Campaign Ready';
+
+  $sliderBeforeAlt = !empty($customBeforeAlt) ? $customBeforeAlt : 'Raw Product Snapshot (Before)';
+  $sliderAfterAlt = !empty($customAfterAlt) ? $customAfterAlt : 'Campaign Ready Commercial Visual (After)';
+
+  $sectionEyebrow = !empty($customEyebrow) ? $customEyebrow : 'THE TRANSFORMATION';
+  $sectionHeading = !empty($customHeading) ? $customHeading : 'See the <span class="font-serif-italic">Difference Yourself</span>';
+  $sectionSubheading = !empty($customSubheading) ? $customSubheading : 'Witness how simple, unedited product snapshots are instantly elevated into highly polished, premium brand campaigns.';
 @endphp
 
 <!-- Transformation Showcase Section -->
@@ -10,13 +26,13 @@
     <!-- Section Header -->
     <div class="text-center mb-5">
       <div class="transformation-eyebrow text-uppercase fw-bold mb-2">
-        <span class="eyebrow-dash me-1">—</span> THE TRANSFORMATION
+        <span class="eyebrow-dash me-1">—</span> {{ $sectionEyebrow }}
       </div>
       <h2 class="transformation-heading display-5 fw-bold title-custom mb-3">
-        See the <span class="font-serif-italic">Difference Yourself</span>
+        {!! $sectionHeading !!}
       </h2>
       <p class="transformation-subheading lead text-muted mx-auto" style="max-width: 660px;">
-        Witness how simple, unedited product snapshots are instantly elevated into highly polished, premium brand campaigns.
+        {{ $sectionSubheading }}
       </p>
     </div>
 
@@ -30,31 +46,35 @@
             
             <!-- Background: Campaign Ready Image (After) -->
             <img 
-              src="{{ asset('public/img/premium-white-oud-perfume-ad-02.webp') }}" 
-              alt="Campaign Ready Commercial Visual" 
+              src="{{ $sliderAfterImg }}" 
+              alt="{{ $sliderAfterAlt }}" 
               class="before-after-img after-img w-100 h-100" 
               draggable="false"
+              loading="lazy"
+              onerror="if (this.src !== '{{ $defaultAfterImage }}') this.src='{{ $defaultAfterImage }}';"
             >
 
             <!-- Foreground: Raw Snapshot Image (Before) -->
             <div class="before-img-clip position-absolute top-0 start-0 w-100 h-100 overflow-hidden" id="beforeImgClip">
               <img 
-                src="{{ asset('public/img/White-Oud-Perfume-01.webp') }}" 
-                alt="Raw Desk Snapshot" 
+                src="{{ $sliderBeforeImg }}" 
+                alt="{{ $sliderBeforeAlt }}" 
                 class="before-after-img before-img position-absolute top-0 start-0 w-100 h-100" 
                 draggable="false"
+                loading="lazy"
+                onerror="if (this.src !== '{{ $defaultBeforeImage }}') this.src='{{ $defaultBeforeImage }}';"
               >
             </div>
 
             <!-- Floating Pill Badges -->
             <div class="slider-badge slider-badge-before position-absolute">
               <span class="badge rounded-pill bg-dark text-white px-3 py-2 fw-semibold shadow-sm">
-                <i class="bi bi-camera me-1"></i> Raw Snapshot
+                <i class="bi bi-camera me-1"></i> {{ $sliderBeforeLabel }}
               </span>
             </div>
             <div class="slider-badge slider-badge-after position-absolute">
               <span class="badge rounded-pill badge-campaign-ready px-3 py-2 fw-bold shadow-sm">
-                <i class="bi bi-stars me-1"></i> Campaign Ready
+                <i class="bi bi-stars me-1"></i> {{ $sliderAfterLabel }}
               </span>
             </div>
 

@@ -26,7 +26,7 @@
       <!-- Alert Container for AJAX notifications -->
       <div id="ajaxAlertContainer"></div>
 
-      <form method="POST" action="{{ url('panel/admin/photoshoots/update') }}">
+      <form method="POST" action="{{ url('panel/admin/photoshoots/update') }}" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="id" value="{{ $data->id }}">
 
@@ -88,6 +88,118 @@
                 <div class="form-floating">
                   <textarea class="form-control" name="description" id="description" placeholder="Description" style="height: 90px;">{{ $data->description }}</textarea>
                   <label for="description">Description (Optional)</label>
+                </div>
+              </div>
+
+              <!-- Raw Product Image (Before Image) -->
+              <div class="col-12 mt-4">
+                <h6 class="fw-bold text-muted text-uppercase small mb-2 border-bottom pb-2">
+                  <i class="bi bi-camera me-1"></i> Raw Product Image (Before Transformation)
+                </h6>
+              </div>
+
+              <div class="col-md-12">
+                <div class="p-3 border rounded-3 bg-light">
+                  <label for="raw_image" class="form-label fw-bold mb-1">Raw Product Image</label>
+                  <p class="text-muted small mb-3">Upload the original, unedited raw product snapshot. This image is displayed as the <strong>"Before"</strong> image in the public photoshoot transformation showcase.</p>
+
+                  @if ($data->raw_image)
+                    <div class="mb-3 p-3 border rounded-3 bg-white shadow-xs" style="max-width: 520px;">
+                      <div class="d-flex align-items-center gap-3">
+                        <img src="{{ $data->raw_image_url }}" alt="Current Raw Product" class="rounded-2 border" style="width: 100px; height: 100px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                          <span class="badge bg-success text-white rounded-pill px-2.5 py-1 mb-1 small">Current Raw Image Active</span>
+                          <div class="small text-muted mb-2 font-monospace text-truncate" style="max-width: 320px;">{{ $data->raw_image }}</div>
+                          <div class="d-flex align-items-center gap-2">
+                            <a href="{{ $data->raw_image_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2" style="font-size: 0.75rem;">
+                              <i class="bi bi-box-arrow-up-right me-1"></i> View Full
+                            </a>
+                            <div class="form-check m-0">
+                              <input class="form-check-input" type="checkbox" name="remove_raw_image" value="1" id="removeRawCheck">
+                              <label class="form-check-label text-danger small fw-semibold" for="removeRawCheck">
+                                Remove raw image
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  @else
+                    <div class="mb-3 text-muted small fst-italic">
+                      <i class="bi bi-info-circle me-1"></i> No raw product image uploaded yet.
+                    </div>
+                  @endif
+
+                  <div class="input-group mb-2">
+                    <input type="file" name="raw_image" id="raw_image" accept="image/jpeg,image/png,image/webp,image/jpg" class="form-control custom-file rounded-pill">
+                  </div>
+                  <small class="text-muted d-block mb-2">
+                    {{ $data->raw_image ? 'Select a new file to replace the current image. ' : '' }}Accepted formats: JPG, PNG, WEBP (Max: 8MB).
+                  </small>
+
+                  <!-- Live Replacement Preview Container -->
+                  <div id="rawImagePreviewContainer" class="d-none mt-2">
+                    <div class="d-inline-flex flex-column align-items-start p-2 border rounded-3 bg-white shadow-xs">
+                      <span class="badge bg-primary text-white rounded-pill px-2 py-1 mb-2 small"><i class="bi bi-eye me-1"></i> New Replacement Preview</span>
+                      <img id="rawImagePreviewImg" src="#" alt="New Raw Preview" class="rounded-2" style="max-height: 220px; max-width: 100%; object-fit: contain;">
+                      <button type="button" id="btnClearRawImage" class="btn btn-sm btn-outline-danger rounded-pill mt-2">
+                        <i class="bi bi-x-circle me-1"></i> Clear replacement
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transformed Product Image (After Image) -->
+              <div class="col-md-12 mt-3">
+                <div class="p-3 border rounded-3 bg-light">
+                  <label for="transformed_image" class="form-label fw-bold mb-1">Transformed AI Shoot Image (After - Optional)</label>
+                  <p class="text-muted small mb-3">Upload a dedicated high-resolution version of the final transformed AI shoot image (serves as the <strong>"After"</strong> image in the transformation slider). If left empty, the photoshoot's primary prompt image will be used automatically.</p>
+
+                  @if ($data->transformed_image)
+                    <div class="mb-3 p-3 border rounded-3 bg-white shadow-xs" style="max-width: 520px;">
+                      <div class="d-flex align-items-center gap-3">
+                        <img src="{{ $data->transformed_image_url }}" alt="Current Transformed Product" class="rounded-2 border" style="width: 100px; height: 100px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                          <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 mb-1 small">High-Res Transformed Image Active</span>
+                          <div class="small text-muted mb-2 font-monospace text-truncate" style="max-width: 320px;">{{ $data->transformed_image }}</div>
+                          <div class="d-flex align-items-center gap-2">
+                            <a href="{{ $data->transformed_image_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2" style="font-size: 0.75rem;">
+                              <i class="bi bi-box-arrow-up-right me-1"></i> View Full
+                            </a>
+                            <div class="form-check m-0">
+                              <input class="form-check-input" type="checkbox" name="remove_transformed_image" value="1" id="removeTransCheck">
+                              <label class="form-check-label text-danger small fw-semibold" for="removeTransCheck">
+                                Remove transformed image
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  @else
+                    <div class="mb-3 text-muted small fst-italic">
+                      <i class="bi bi-info-circle me-1"></i> No custom high-res transformed image uploaded yet. (Using photoshoot's primary prompt image).
+                    </div>
+                  @endif
+
+                  <div class="input-group mb-2">
+                    <input type="file" name="transformed_image" id="transformed_image" accept="image/jpeg,image/png,image/webp,image/jpg" class="form-control custom-file rounded-pill">
+                  </div>
+                  <small class="text-muted d-block mb-2">
+                    {{ $data->transformed_image ? 'Select a new file to replace the current image. ' : 'Upload a high-resolution final visual (up to 1800px+). ' }}Accepted formats: JPG, PNG, WEBP (Max: 8MB).
+                  </small>
+
+                  <!-- Live Replacement Preview Container -->
+                  <div id="transformedImagePreviewContainer" class="d-none mt-2">
+                    <div class="d-inline-flex flex-column align-items-start p-2 border rounded-3 bg-white shadow-xs">
+                      <span class="badge bg-primary text-white rounded-pill px-2 py-1 mb-2 small"><i class="bi bi-eye me-1"></i> New Replacement Preview</span>
+                      <img id="transformedImagePreviewImg" src="#" alt="New Transformed Preview" class="rounded-2" style="max-height: 220px; max-width: 100%; object-fit: contain;">
+                      <button type="button" id="btnClearTransformedImage" class="btn btn-sm btn-outline-danger rounded-pill mt-2">
+                        <i class="bi bi-x-circle me-1"></i> Clear replacement
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -728,6 +840,74 @@ $(document).ready(function() {
       }
       $('#show_faqs').prop('checked', true).trigger('change');
     }
+  });
+
+  // Raw Product Image Live Preview
+  var $rawInput = $('#raw_image');
+  var $previewContainer = $('#rawImagePreviewContainer');
+  var $previewImg = $('#rawImagePreviewImg');
+  var $btnClear = $('#btnClearRawImage');
+
+  $rawInput.on('change', function(e) {
+    var file = this.files && this.files[0];
+    if (file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('File is too large. Maximum allowed size is 8MB.');
+        $rawInput.val('');
+        $previewContainer.addClass('d-none');
+        $previewImg.attr('src', '#');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        $previewImg.attr('src', evt.target.result);
+        $previewContainer.removeClass('d-none');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      $previewContainer.addClass('d-none');
+      $previewImg.attr('src', '#');
+    }
+  });
+
+  $btnClear.on('click', function() {
+    $rawInput.val('');
+    $previewContainer.addClass('d-none');
+    $previewImg.attr('src', '#');
+  });
+
+  // Transformed Product Image Live Preview
+  var $transformedInput = $('#transformed_image');
+  var $transPreviewContainer = $('#transformedImagePreviewContainer');
+  var $transPreviewImg = $('#transformedImagePreviewImg');
+  var $btnTransClear = $('#btnClearTransformedImage');
+
+  $transformedInput.on('change', function(e) {
+    var file = this.files && this.files[0];
+    if (file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('File is too large. Maximum allowed size is 8MB.');
+        $transformedInput.val('');
+        $transPreviewContainer.addClass('d-none');
+        $transPreviewImg.attr('src', '#');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        $transPreviewImg.attr('src', evt.target.result);
+        $transPreviewContainer.removeClass('d-none');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      $transPreviewContainer.addClass('d-none');
+      $transPreviewImg.attr('src', '#');
+    }
+  });
+
+  $btnTransClear.on('click', function() {
+    $transformedInput.val('');
+    $transPreviewContainer.addClass('d-none');
+    $transPreviewImg.attr('src', '#');
   });
 
 });

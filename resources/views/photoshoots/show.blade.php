@@ -31,6 +31,17 @@
     return $stock ? Storage::url(config('path.small') . $stock->name) : '';
   };
 
+  $getHighResHeroImgUrl = function($img) use ($getHeroImgUrl) {
+    if (!$img) return '';
+    if (isset($img->examples) && $img->examples && $img->examples->isNotEmpty()) {
+      $ex = $img->examples->first();
+      if (!empty($ex->file) && file_exists(public_path(config('path.examples') . $ex->file))) {
+        return Storage::url(config('path.examples') . $ex->file);
+      }
+    }
+    return $getHeroImgUrl($img);
+  };
+
   $hSrc0 = $getHeroImgUrl($hImg0);
   $hSrc1 = $getHeroImgUrl($hImg1);
   $hSrc2 = $getHeroImgUrl($hImg2);
@@ -84,6 +95,12 @@
             <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 d-inline-flex align-items-center" style="font-size: 0.8rem; font-weight: 500;">
               <i class="bi bi-patch-check-fill text-mint me-1"></i> Commercial License Ready
             </span>
+
+            @if (!empty($photoshoot->raw_image))
+              <a href="#transformation-showcase" class="badge badge-mint-subtle rounded-pill px-3 py-2 d-inline-flex align-items-center text-decoration-none shadow-xs" style="font-size: 0.8rem; font-weight: 500;">
+                <i class="bi bi-arrow-left-right text-mint me-1"></i> Before &amp; After Included
+              </a>
+            @endif
           </div>
 
           <!-- Main H1 Heading -->
@@ -202,8 +219,32 @@
       </div>
     </div>
 
+    <!-- Visual Transformation Proof: Before / After Showcase (Positioned directly below Hero Banner) -->
+    @php
+      $rawBeforeUrl = $photoshoot->raw_image_url;
+      $transformedAfterUrl = $photoshoot->transformed_image_url ?: ($getHighResHeroImgUrl($hImg0) ?: $hSrc0);
+      $hasRawImage = !empty($rawBeforeUrl);
+    @endphp
+    <div id="transformation-showcase" class="photoshoot-transformation-wrapper mb-4 mb-md-5">
+      @include('includes.transformation-section', [
+        'customBeforeImg' => $hasRawImage ? $rawBeforeUrl : null,
+        'customAfterImg' => ($hasRawImage && $transformedAfterUrl) ? $transformedAfterUrl : null,
+        'customBeforeLabel' => 'Before: Raw Product',
+        'customAfterLabel' => 'After: AI Photoshoot',
+        'customBeforeAlt' => 'Original raw unedited product image for ' . $photoshoot->title,
+        'customAfterAlt' => 'Final transformed commercial visual for ' . $photoshoot->title,
+        'customEyebrow' => $hasRawImage ? 'PRODUCT TRANSFORMATION' : null,
+        'customHeading' => $hasRawImage 
+          ? 'From Raw Snapshot <span class="font-serif-italic">to Commercial Lookbook</span>'
+          : null,
+        'customSubheading' => $hasRawImage
+          ? 'Witness how this photoshoot recipe elevates the original unedited product snapshot into high-converting commercial advertising visuals.'
+          : null,
+      ])
+    </div>
+
     <!-- Prompts Grid Section -->
-    <div id="prompts-grid" class="mb-4 mb-md-5 pt-2 pt-md-3">
+    <div id="prompts-grid" class="mb-4 mb-md-5 pt-3 pt-md-4 border-top border-custom">
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end mb-4 pb-3 border-bottom border-custom gap-3">
         <div>
           <span class="badge badge-dark-custom rounded-pill px-3 py-1 fw-bold text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">
@@ -378,11 +419,6 @@
       $showFaqs = !empty($photoshoot->show_faqs) && $hasFaqsData;
       $faqsList = $showFaqs ? $photoshoot->faq_items : [];
     @endphp
-
-    <!-- Visual Transformation Proof: Before / After Showcase -->
-    <div class="photoshoot-transformation-wrapper mt-5 pt-4 pt-md-5 border-top border-custom">
-      @include('includes.transformation-section')
-    </div>
 
     @if ($showFaqs && count($faqsList) > 0)
     <!-- FAQ Accordion (Styled identically to /frequently-asked-questions) -->
