@@ -191,9 +191,22 @@
                 </td>
                 <td>
                   @if($evt->user)
-                    <a href="{{ url($evt->user->username) }}" target="_blank" class="fw-bold text-dark text-decoration-none">
-                      {{ $evt->user->username }}
-                    </a>
+                    @if(!empty(trim($evt->user->name)))
+                      <div class="lh-sm">
+                        <a href="{{ url($evt->user->username) }}" target="_blank" class="fw-bold text-dark text-decoration-none d-block">
+                          {{ $evt->user->name }}
+                        </a>
+                        <small class="text-muted d-block">
+                          <a href="{{ url($evt->user->username) }}" target="_blank" class="text-muted text-decoration-none">
+                            &#64;{{ $evt->user->username }}
+                          </a>
+                        </small>
+                      </div>
+                    @else
+                      <a href="{{ url($evt->user->username) }}" target="_blank" class="fw-bold text-dark text-decoration-none">
+                        {{ $evt->user->username }}
+                      </a>
+                    @endif
                   @else
                     <span class="text-muted">Guest #{{ substr($evt->visitor_id, 0, 8) }}</span>
                   @endif
