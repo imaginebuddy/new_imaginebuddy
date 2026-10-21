@@ -698,15 +698,96 @@
   }
 }
 
-/* --- Photoshoot Detail Transformation Section Tuning --- */
+/* --- Photoshoot Detail Transformation Section Tuning (Tailored Height on /photoshoots/{slug} only) --- */
 .photoshoot-transformation-wrapper .transformation-section {
-  padding-top: 1rem !important;
+  padding-top: 0.75rem !important;
   padding-bottom: 2rem !important;
 }
 .photoshoot-transformation-wrapper .transformation-section .container {
   padding-left: 0 !important;
   padding-right: 0 !important;
   max-width: 100% !important;
+}
+.photoshoot-transformation-wrapper .transformation-section .text-center.mb-5 {
+  margin-bottom: 2rem !important;
+}
+.photoshoot-transformation-wrapper .transformation-heading {
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem) !important;
+  margin-bottom: 0.5rem !important;
+}
+.photoshoot-transformation-wrapper .transformation-subheading {
+  font-size: 0.96rem !important;
+  margin-bottom: 0 !important;
+  line-height: 1.6 !important;
+}
+.photoshoot-transformation-wrapper .transformation-card {
+  padding: 1.5rem 1.75rem !important;
+  border-radius: 22px !important;
+}
+@media (min-width: 992px) {
+  .photoshoot-transformation-wrapper .transformation-card {
+    padding: 2.25rem 2.5rem !important;
+  }
+}
+/* Balanced Before / After Slider Box */
+.photoshoot-transformation-wrapper .before-after-slider-container {
+  aspect-ratio: 4 / 5 !important;
+  width: 100% !important;
+  max-width: 460px !important;
+  min-height: 480px !important;
+  max-height: 540px !important;
+  border-radius: 18px !important;
+}
+@media (min-width: 992px) {
+  .photoshoot-transformation-wrapper .before-after-slider-container {
+    min-height: 520px !important;
+    max-height: 550px !important;
+    max-width: 440px !important;
+  }
+}
+@media (max-width: 576px) {
+  .photoshoot-transformation-wrapper .before-after-slider-container {
+    min-height: 380px !important;
+    max-height: 420px !important;
+    aspect-ratio: 4 / 5 !important;
+  }
+}
+/* Hide floating Before / After pill badges only on mobile view to avoid overlap */
+@media (max-width: 767.98px) {
+  .photoshoot-transformation-wrapper .slider-badge {
+    display: none !important;
+  }
+}
+/* Balanced Right-Hand Transformation Details */
+.photoshoot-transformation-wrapper .transformation-details .display-6 {
+  font-size: clamp(1.35rem, 2vw, 1.7rem) !important;
+  margin-bottom: 0.85rem !important;
+  line-height: 1.3 !important;
+}
+.photoshoot-transformation-wrapper .transformation-details .lead {
+  font-size: 0.94rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 1rem !important;
+}
+.photoshoot-transformation-wrapper .comparison-matrix-card {
+  padding: 0.95rem 1.15rem !important;
+  margin-bottom: 1rem !important;
+  border-radius: 16px !important;
+}
+.photoshoot-transformation-wrapper .comparison-matrix-card ul {
+  margin-bottom: 0.5rem !important;
+}
+.photoshoot-transformation-wrapper .comparison-matrix-card li {
+  font-size: 0.82rem !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.5 !important;
+}
+.photoshoot-transformation-wrapper .pricing-cta-card {
+  padding: 0.95rem 1.25rem !important;
+  border-radius: 16px !important;
+}
+.photoshoot-transformation-wrapper .pricing-cta-card small {
+  font-size: 0.82rem !important;
 }
 </style>
 @endsection
