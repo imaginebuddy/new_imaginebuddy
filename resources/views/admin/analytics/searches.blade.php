@@ -98,7 +98,7 @@
                       @endif
                     </td>
                     <td class="text-end fw-bold">{{ number_format($item->count) }}</td>
-                    <td class="text-end small text-muted">{{ $item->last_searched ? \Carbon\Carbon::parse($item->last_searched)->diffForHumans() : '-' }}</td>
+                    <td class="text-end small text-muted" title="{{ $item->last_searched ? \Carbon\Carbon::parse($item->last_searched)->format('Y-m-d H:i:s') : '' }}">{{ $item->last_searched ? \Carbon\Carbon::parse($item->last_searched)->diffForHumans() : '-' }}</td>
                   </tr>
                 @empty
                   <tr>

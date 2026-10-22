@@ -77,6 +77,13 @@
 
     </main>
 
+    @guest
+      @include('includes.modal-auth-copy')
+      @if (isset($settings->google_login) && $settings->google_login == 'on' && config('services.google.client_id'))
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+      @endif
+    @endguest
+
     @include('includes.javascript_general')
 
     @yield('javascript')

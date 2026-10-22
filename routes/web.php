@@ -126,6 +126,7 @@ Route::post('hire/inquiry', [HireController::class, 'storeInquiry'])->name('hire
 Route::group(['middleware' => 'guest'], function() {
 	Route::get('oauth/{provider}', [SocialAuthController::class, 'redirect'])->where('provider', '(facebook|google|twitter)$');
 	Route::get('oauth/{provider}/callback', [SocialAuthController::class, 'callback'])->where('provider', '(facebook|google|twitter)$');
+	Route::post('oauth/google/one-tap', [SocialAuthController::class, 'oneTap']);
 });//<--- End Group guest
 
 /*

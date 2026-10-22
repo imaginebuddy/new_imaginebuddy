@@ -414,9 +414,10 @@ class AnalyticsController extends Controller
         $uniqueQueries = (clone $query)->distinct('query')->count('query');
         $zeroResultSearches = (clone $query)->where('results_count', 0)->count();
 
-        // Top searched queries
+        // Most searched queries (sorted latest first)
         $topQueries = (clone $query)->select('query', DB::raw('COUNT(id) as count'), DB::raw('AVG(results_count) as avg_results'), DB::raw('MAX(created_at) as last_searched'))
             ->groupBy('query')
+            ->orderByDesc('last_searched')
             ->orderByDesc('count')
             ->paginate(15);
 

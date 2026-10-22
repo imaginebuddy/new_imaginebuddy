@@ -83,6 +83,19 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
   @guest
     $.post(URL_BASE + '/analytics/event', { _token: '{{ csrf_token() }}', event: 'prompt_copy_attempt', image_id: id });
 
+    // Store target ID and update auth modal return URLs
+    if (id) {
+      sessionStorage.setItem('pending_autocopy_id', id);
+      try {
+        var returnTarget = new URL(window.location.href);
+        returnTarget.searchParams.set('autocopy_id', id);
+        var returnUrl = returnTarget.toString();
+        $('#authCopyGoogleBtn').attr('href', URL_BASE + '/oauth/google?return=' + encodeURIComponent(returnUrl));
+        $('#authCopyRegisterBtn').attr('href', URL_BASE + '/register?return=' + encodeURIComponent(returnUrl));
+        $('#authCopyLoginBtn').attr('href', URL_BASE + '/login?return=' + encodeURIComponent(returnUrl));
+      } catch (err) {}
+    }
+
     if ($('#authCopyModal').length > 0) {
       var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
       authModal.show();
@@ -270,20 +283,86 @@ $(document).on('dragstart', '.prompt-guest-protected', function(e) {
   e.preventDefault();
   return false;
 });
+
+@if (isset($settings->google_login) && $settings->google_login == 'on' && config('services.google.client_id'))
+window.handleGoogleOneTap = function(response) {
+  if (response && response.credential) {
+    $.ajax({
+      url: URL_BASE + '/oauth/google/one-tap',
+      type: 'POST',
+      data: {
+        _token: '{{ csrf_token() }}',
+        credential: response.credential
+      },
+      dataType: 'json',
+      success: function(res) {
+        if (res.success) {
+          if ($('#authCopyModal').length > 0) {
+            var authModal = bootstrap.Modal.getInstance(document.getElementById('authCopyModal'));
+            if (authModal) authModal.hide();
+          }
+          var pendingId = sessionStorage.getItem('pending_autocopy_id');
+          if (pendingId) {
+            var targetUrl = new URL(window.location.href);
+            targetUrl.searchParams.set('autocopy_id', pendingId);
+            window.location.href = targetUrl.toString();
+          } else {
+            window.location.reload();
+          }
+        }
+      },
+      error: function(xhr) {
+        console.error('Google One Tap verification failed:', xhr.responseJSON);
+      }
+    });
+  }
+};
+
+$(document).ready(function() {
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    google.accounts.id.initialize({
+      client_id: "{{ config('services.google.client_id') }}",
+      callback: window.handleGoogleOneTap,
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+    google.accounts.id.prompt();
+  }
+});
+@endif
 @else
 $(document).ready(function() {
   var urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('autocopy') === '1') {
+  var autocopyParam = urlParams.get('autocopy_id') || urlParams.get('autocopy');
+  var storageAutocopyId = sessionStorage.getItem('pending_autocopy_id');
+  var targetId = autocopyParam && autocopyParam !== '1' ? autocopyParam : storageAutocopyId;
+
+  if (urlParams.has('autocopy_id') || urlParams.has('autocopy')) {
+    urlParams.delete('autocopy_id');
     urlParams.delete('autocopy');
     var newSearch = urlParams.toString();
     var newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
     window.history.replaceState({}, document.title, newUrl);
+  }
+  sessionStorage.removeItem('pending_autocopy_id');
 
-    var copyBtn = $('.btn-copy-prompt');
+  if (targetId) {
+    var copyBtn = $('.btn-copy-prompt-grid[data-id="' + targetId + '"], .btn-copy-prompt[data-id="' + targetId + '"]');
+    if (copyBtn.length === 0) {
+      copyBtn = $('.btn-copy-prompt');
+    }
+
     if (copyBtn.length > 0) {
       setTimeout(function() {
-        copyBtn.trigger('click');
-      }, 350);
+        copyBtn.first().trigger('click');
+      }, 400);
+    }
+  } else if (autocopyParam === '1') {
+    var defaultCopyBtn = $('.btn-copy-prompt');
+    if (defaultCopyBtn.length > 0) {
+      setTimeout(function() {
+        defaultCopyBtn.first().trigger('click');
+      }, 400);
     }
   }
 });
