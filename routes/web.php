@@ -567,6 +567,11 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/google',[AdminController::class, 'google'])->name('google');
 	Route::post('panel/admin/google',[AdminController::class, 'update_google']);
 
+	// Meta Ads
+	Route::get('panel/admin/meta-ads', [AdminController::class, 'meta_ads'])->name('meta_ads');
+	Route::post('panel/admin/meta-ads', [AdminController::class, 'update_meta_ads']);
+	Route::get('panel/admin/meta', fn() => redirect('panel/admin/meta-ads'));
+
 	//***** Languages
 	Route::get('panel/admin/languages',[LangController::class, 'index'])->name('languages');
 

@@ -501,6 +501,14 @@
               </li><!-- /end list -->
               @endif
 
+              @if (auth()->user()->hasPermission('meta_ads'))
+              <li class="nav-item">
+                  <a href="{{ url('panel/admin/meta-ads') }}" class="nav-link text-truncate @if (request()->is('panel/admin/meta-ads*')) active @endif">
+                      <i class="bi-meta me-2"></i> Meta Ads
+                  </a>
+              </li><!-- /end list -->
+              @endif
+
               @if (auth()->user()->hasPermission('pwa'))
               <li class="nav-item">
                   <a href="{{ url('panel/admin/pwa') }}" class="nav-link text-truncate @if (request()->is('panel/admin/pwa')) active @endif">

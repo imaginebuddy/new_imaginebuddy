@@ -461,6 +461,17 @@
 <div class="row mb-3">
 	<div class="col-sm-10 offset-sm-2">
 		<div class="form-check">
+			<input class="form-check-input check" name="permissions[]" value="meta_ads" @if (isset($permissions) && in_array('meta_ads', $permissions)) checked="checked" @endif type="checkbox" id="meta_ads">
+			<label class="form-check-label" for="meta_ads">
+				Meta Ads
+			</label>
+		</div>
+	</div>
+</div>
+
+<div class="row mb-3">
+	<div class="col-sm-10 offset-sm-2">
+		<div class="form-check">
 			<input class="form-check-input check" name="permissions[]" value="pwa" @if (isset($permissions) && in_array('pwa', $permissions)) checked="checked" @endif type="checkbox" id="pwa">
 			<label class="form-check-label" for="pwa">
 				PWA

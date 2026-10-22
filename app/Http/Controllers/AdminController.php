@@ -983,6 +983,51 @@ class AdminController extends Controller
 		return redirect('panel/admin/google')->withSuccessMessage(__('admin.success_update'));
 	}
 
+	public function meta_ads()
+	{
+		if (!auth()->user()->hasPermission('meta_ads')) {
+			return view('admin.unauthorized');
+		}
+
+		return view('admin.meta-ads');
+	}
+
+	public function update_meta_ads(Request $request)
+	{
+		if (!auth()->user()->hasPermission('meta_ads')) {
+			return view('admin.unauthorized');
+		}
+
+		$request->validate([
+			'meta_pixel' => 'nullable|string',
+			'meta_pixel_status' => 'nullable|in:0,1',
+		]);
+
+		$sql = AdminSettings::first();
+		$sql->meta_pixel_status = $request->has('meta_pixel_status') ? 1 : 0;
+		$sql->meta_pixel        = $request->meta_pixel;
+
+		if (!empty($request->meta_pixel)) {
+			$raw = trim($request->meta_pixel);
+			if (preg_match('/fbq\s*\(\s*[\'"]init[\'"]\s*,\s*[\'"]([0-9]+)[\'"]\s*\)/i', $raw, $matches)) {
+				$sql->meta_pixel_id = $matches[1];
+			} elseif (preg_match('/[?&]id=([0-9]+)/i', $raw, $matches)) {
+				$sql->meta_pixel_id = $matches[1];
+			} elseif (preg_match('/^[0-9]{5,25}$/', $raw)) {
+				$sql->meta_pixel_id = $raw;
+			}
+		} else {
+			$sql->meta_pixel_id = null;
+		}
+
+		$sql->save();
+
+		\Artisan::call('cache:clear');
+		\Artisan::call('view:clear');
+
+		return redirect('panel/admin/meta-ads')->withSuccessMessage(__('admin.success_update'));
+	}
+
 	public function theme()
 	{
 		return view('admin.theme');

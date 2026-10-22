@@ -22,6 +22,8 @@
     @if ($settings->google_analytics != '')
       {!! $settings->google_analytics !!}
     @endif
+
+    @include('includes.meta-pixel')
   </head>
   <body>
     <div class="overlay" data-bs-toggle="offcanvas" data-bs-target="#offcanvas"></div>
