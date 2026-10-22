@@ -1253,7 +1253,7 @@ th.hire-matrix-highlight-col {
               <td><strong>Starting Investment</strong></td>
               <td class="text-muted">$6,000–$12,000+</td>
               <td class="text-muted">Tool subscriptions ($30/mo)</td>
-              <td class="hire-matrix-highlight-col"><strong>Starting at $699 / ₹54,999</strong></td>
+              <td class="hire-matrix-highlight-col"><strong>Starting at $15 / ₹1500</strong></td>
             </tr>
           </tbody>
         </table>
