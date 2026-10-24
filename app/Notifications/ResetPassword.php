@@ -2,17 +2,29 @@
 
 namespace App\Notifications;
 
-use Illuminate\Notifications\Notification;
+use App\Models\EmailSuppression;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
-class ResetPassword extends Notification
+class ResetPassword extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     /**
      * The password reset token.
      *
      * @var string
      */
     public $token;
+
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 3;
 
     /**
      * Create a notification instance.
@@ -23,6 +35,7 @@ class ResetPassword extends Notification
     public function __construct($token)
     {
         $this->token = $token;
+        $this->queue = 'emails-urgent';
     }
 
     /**
@@ -33,6 +46,10 @@ class ResetPassword extends Notification
      */
     public function via($notifiable)
     {
+        if (EmailSuppression::isSuppressed($notifiable->email ?? null)) {
+            return [];
+        }
+
         return ['mail'];
     }
 
@@ -44,8 +61,13 @@ class ResetPassword extends Notification
      */
     public function toMail($notifiable)
     {
+        $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
+        $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy'));
+
         return (new MailMessage)
-         ->view('emails.password_reset',['token' => $this->token])
-         ->subject(trans('emails.password_reset'));
+            ->mailer('ses-transactional')
+            ->from($fromEmail, $fromName)
+            ->view('emails.password_reset', ['token' => $this->token])
+            ->subject(trans('emails.password_reset'));
     }
 }

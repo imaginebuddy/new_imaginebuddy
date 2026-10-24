@@ -8,6 +8,12 @@ class TwoFactorCodes extends Model
 {
   protected $fillable = [
     'user_id',
-    'code'
+    'code',
+    'expires_at',
+    'attempts'
+  ];
+
+  protected $casts = [
+    'expires_at' => 'datetime',
   ];
 }

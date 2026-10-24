@@ -91,6 +91,10 @@ class PagesController extends Controller {
    */
 	public function show($page) {
 
+		if ($page === 'terms-of-service' || $page === 'terms') {
+			return redirect('page/terms-and-conditions', 301);
+		}
+
 		$response = Pages::whereLang(session('locale'))
 		->where('slug','=', $page)
 		->first();

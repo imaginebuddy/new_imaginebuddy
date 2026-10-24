@@ -49,6 +49,14 @@ return [
             'transport' => 'ses',
         ],
 
+        'ses-transactional' => [
+            'transport' => 'ses',
+        ],
+
+        'ses-marketing' => [
+            'transport' => 'ses',
+        ],
+
         'mailgun' => [
             'transport' => 'mailgun',
         ],

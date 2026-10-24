@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use App\Helper;
+use App\Notifications\VerifyAccount;
 use Mail;
 
 class RegisterController extends Controller
@@ -105,29 +106,9 @@ class RegisterController extends Controller
     	$settings    = AdminSettings::first();
 
 		// Verify Settings Admin
-		if( $settings->email_verification == '1' ) {
-
+		if ($settings->email_verification == '1') {
 			$confirmation_code = str_random(100);
 			$status = 'pending';
-
-			//send verification mail to user
-		 $_username      = $data['username'];
-	   $_email_user    = $data['email'];
-		 $_title_site    = $settings->title;
-		 $_email_noreply = $settings->email_no_reply;
-
-		 Mail::send('emails.verify', ['confirmation_code' => $confirmation_code],
-		 function($message) use (
-				 $_username,
-				 $_email_user,
-				 $_title_site,
-				 $_email_noreply
-		 ) {
-          $message->from($_email_noreply, $_title_site);
-          $message->subject(trans('users.title_email_verify'));
-          $message->to($_email_user,$_username);
-            });
-
 		} else {
 			$confirmation_code = '';
 			$status            = 'active';
@@ -144,7 +125,10 @@ class RegisterController extends Controller
     // Get user country
     $country = Countries::whereCountryCode(Helper::userCountry())->first();
 
-		return User::create([
+    $clientIp = request()->header('CF-Connecting-IP') ?: request()->ip();
+    $marketingOptIn = !empty($data['marketing_opt_in']) ? 1 : 0;
+
+		$user = User::create([
 			'username'        => $data['username'],
 			'name'            => '',
       'bio'             => '',
@@ -163,8 +147,17 @@ class RegisterController extends Controller
       'oauth_provider'  => '',
 			'token'           => $token,
       'authorized_to_upload' => $authorized_to_upload,
-      'ip'               => request()->ip()
+      'ip'               => $clientIp,
+      'marketing_opt_in' => $marketingOptIn,
+      'marketing_opt_in_at' => $marketingOptIn ? now() : null,
+      'marketing_opt_in_ip' => $marketingOptIn ? $clientIp : null
 		]);
+
+		if ($settings->email_verification == '1' && !empty($confirmation_code)) {
+			$user->notify(new VerifyAccount($confirmation_code));
+		}
+
+		return $user;
   }// create
 
   /**

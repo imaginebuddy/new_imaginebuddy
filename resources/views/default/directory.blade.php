@@ -1620,7 +1620,7 @@
             </div>
 
             <div class="dir-card-footer">
-              <a href="{{ url('page/terms-of-service') }}" class="dir-view-all">
+              <a href="{{ url('page/terms-and-conditions') }}" class="dir-view-all">
                 Review Terms <i class="bi-arrow-right"></i>
               </a>
             </div>

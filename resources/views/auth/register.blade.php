@@ -55,6 +55,10 @@
 
                     </div><!-- d-flex -->
 
+                    <div class="text-muted small text-center mb-2 px-1" style="font-size: 11px; line-height: 1.4;">
+                      By continuing with social login, you agree to our <a href="{{$settings->link_terms}}" target="_blank" class="text-decoration-underline text-reset">{{__('admin.terms_conditions')}}</a> and to receive platform updates. You can opt out anytime in settings.
+                    </div>
+
                     <small class="btn-block text-center my-3 text-uppercase or">{{ trans('misc.or') }}</small>
                   @endif
 
@@ -103,6 +107,13 @@
 
                   <a href="{{$settings->link_terms}}" class="text-decoration-underline" target="_blank">{{__('admin.terms_conditions')}}</a>,
                     <a href="{{$settings->link_privacy}}" target="_blank" class="text-decoration-underline">{{ trans('admin.privacy_policy') }}</a>
+                </label>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="marketing_opt_in" value="1" id="marketingOptInCheck" @if (old('marketing_opt_in')) checked="checked" @endif>
+                <label class="form-check-label text-muted small" for="marketingOptInCheck" style="font-size: 12px; line-height: 1.4;">
+                  Send me the weekly drop of commercial photoshoot prompts, AI updates, and member discounts. (Optional, 1-click unsubscribe anytime)
                 </label>
               </div>
 

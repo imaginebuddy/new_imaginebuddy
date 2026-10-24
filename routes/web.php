@@ -45,6 +45,7 @@ use App\Http\Controllers\AdminFaqController;
 use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\HireController;
 use App\Http\Controllers\AdminHireController;
+use App\Http\Controllers\NewsletterController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -203,6 +204,15 @@ Route::get('blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])
 // SEO Landing Pages & Prompt Guides System
 Route::get('guides/preview/{token}', [\App\Http\Controllers\SeoLandingPageController::class, 'preview'])->name('guides.preview');
 Route::get('guides/{slug}', [\App\Http\Controllers\SeoLandingPageController::class, 'show'])->name('guides.show');
+
+/*
+ |--------------------------------------------------------------------------
+ | Newsletter & Double Opt-in Routes
+ |--------------------------------------------------------------------------
+ */
+Route::post('newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+Route::get('newsletter/confirm/{token}', [NewsletterController::class, 'confirm'])->name('newsletter.confirm');
+Route::match(['get', 'post'], 'newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
 /*
  |
@@ -666,6 +676,21 @@ Route::group(['middleware' => 'role'], function() {
 	// EMAIL SETTINGS
 	Route::view('panel/admin/settings/email','admin.email-settings')->name('email_settings');
 	Route::post('panel/admin/settings/email',[AdminController::class, 'emailSettings']);
+
+	// EMAIL DELIVERABILITY & AUDIENCE
+	Route::get('panel/admin/email-deliverability', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'index'])->name('email_deliverability');
+	Route::post('panel/admin/email-deliverability/suppressions', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'addSuppression']);
+	Route::post('panel/admin/email-deliverability/suppressions/{id}/delete', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'removeSuppression']);
+	Route::post('panel/admin/email-deliverability/test-send', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'sendTestWeeklyDrop']);
+
+	// EMAIL MARKETING & BROADCAST CAMPAIGNS
+	Route::get('panel/admin/email-marketing/campaigns', [\App\Http\Controllers\AdminEmailMarketingController::class, 'index'])->name('email_campaigns');
+	Route::get('panel/admin/email-marketing/campaigns/create', [\App\Http\Controllers\AdminEmailMarketingController::class, 'create'])->name('email_campaigns.create');
+	Route::post('panel/admin/email-marketing/campaigns', [\App\Http\Controllers\AdminEmailMarketingController::class, 'store']);
+	Route::post('panel/admin/email-marketing/campaigns/{id}/delete', [\App\Http\Controllers\AdminEmailMarketingController::class, 'destroy']);
+	Route::get('panel/admin/email-marketing/segment-preview', [\App\Http\Controllers\AdminEmailMarketingController::class, 'segmentPreview']);
+	Route::post('panel/admin/email-marketing/test-preview', [\App\Http\Controllers\AdminEmailMarketingController::class, 'sendTest']);
+	Route::post('panel/admin/email-marketing/kill-switch', [\App\Http\Controllers\AdminEmailMarketingController::class, 'toggleKillSwitch']);
 
 	// STORAGE
 	Route::view('panel/admin/storage','admin.storage')->name('storage');

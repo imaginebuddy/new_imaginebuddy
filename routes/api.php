@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PushNotificationsController;
+use App\Http\Controllers\AwsSesWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,3 +22,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::post('device/register', [PushNotificationsController::class, 'registerDevice']);
 Route::get('device/delete', [PushNotificationsController::class, 'deleteDevice']);
+
+Route::post('webhooks/aws-ses', [AwsSesWebhookController::class, 'handle']);

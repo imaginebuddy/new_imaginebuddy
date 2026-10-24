@@ -331,7 +331,7 @@ trait FunctionsTrait
 
 	protected function generateTwofaCode($user)
 	{
-		$code = rand(1000, 9999);
+		$code = random_int(100000, 999999);
 
 		// Delete old session user id
 		session()->forget('user:id');
@@ -339,10 +339,14 @@ trait FunctionsTrait
 		// Create session user
 		session()->put('user:id', $user->id);
 
-		TwoFactorCodes::updateOrCreate([
-			'user_id' => $user->id,
-			'code' => $code
-		]);
+		TwoFactorCodes::updateOrCreate(
+			['user_id' => $user->id],
+			[
+				'code' => $code,
+				'expires_at' => now()->addMinutes(10),
+				'attempts' => 0
+			]
+		);
 
 		try {
 			$data = ['code' => $code];

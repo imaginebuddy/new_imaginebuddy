@@ -253,6 +253,18 @@
                       <i class="bi-at me-2"></i> {{ __('admin.email_settings') }}
                   </a>
               </li><!-- /end list -->
+
+              <li class="nav-item">
+                  <a href="{{ url('panel/admin/email-deliverability') }}" class="nav-link text-truncate @if (request()->is('panel/admin/email-deliverability*')) active @endif">
+                      <i class="bi-shield-check me-2"></i> Email Deliverability
+                  </a>
+              </li><!-- /end list -->
+
+              <li class="nav-item">
+                  <a href="{{ url('panel/admin/email-marketing/campaigns') }}" class="nav-link text-truncate @if (request()->is('panel/admin/email-marketing*')) active @endif">
+                      <i class="bi-megaphone me-2"></i> Email Campaigns
+                  </a>
+              </li><!-- /end list -->
               @endif
 
               @if (auth()->user()->hasPermission('storage'))

@@ -47,7 +47,11 @@ class User extends Authenticatable
     'balance',
     'funds',
     'state',
-    'customer_gstin'
+    'customer_gstin',
+    'marketing_opt_in',
+    'marketing_opt_in_at',
+    'marketing_opt_in_ip',
+    'marketing_unsubscribed_at'
   ];
 
   /**
@@ -57,6 +61,9 @@ class User extends Authenticatable
    */
   protected $casts = [
     'completed_stripe_onboarding' => 'bool',
+    'marketing_opt_in' => 'bool',
+    'marketing_opt_in_at' => 'datetime',
+    'marketing_unsubscribed_at' => 'datetime',
   ];
 
   protected $withCount = [

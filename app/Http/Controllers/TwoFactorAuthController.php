@@ -32,7 +32,10 @@ class TwoFactorAuthController extends Controller
 
 				$verifyCode = TwoFactorCodes::whereUserId(session('user:id'))
                         ->where('code', $request->code)
-                        ->where('updated_at', '>=', now()->subMinutes(2))
+                        ->where(function ($query) {
+                            $query->where('expires_at', '>=', now())
+                                  ->orWhere('updated_at', '>=', now()->subMinutes(10));
+                        })
                         ->first();
 
         if ($verifyCode) {
@@ -48,6 +51,8 @@ class TwoFactorAuthController extends Controller
 			        'redirect' => url('/')
 			    ]);
         }
+
+				TwoFactorCodes::whereUserId(session('user:id'))->increment('attempts');
 
 				return response()->json([
 		        'success' => false,

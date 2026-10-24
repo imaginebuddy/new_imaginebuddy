@@ -55,6 +55,10 @@
 
                     </div><!-- d-flex -->
 
+                    <div class="text-muted small text-center mb-2 px-1" style="font-size: 11px; line-height: 1.4;">
+                      By continuing with social login, you agree to our <a href="{{$settings->link_terms}}" target="_blank" class="text-decoration-underline text-reset">{{__('admin.terms_conditions')}}</a> and to receive platform updates. You can opt out anytime in settings.
+                    </div>
+
                     <small class="btn-block text-center my-3 text-uppercase or">{{ __('misc.or') }}</small>
                   @endif
 

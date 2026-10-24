@@ -1,5 +1,8 @@
 <div class="py-5 py-footer-large bg-dark-2 text-light">
-  <footer class="container">
+  <div class="container mb-5">
+    @include('includes.newsletter-box')
+  </div>
+  <footer class="container pt-4 border-top border-secondary border-opacity-10">
      <div class="row">
         <div class="col-md-3">
            <a href="{{ url('/') }}">

@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('queue:work --tries=3 --timeout=8600')
+        $schedule->command('queue:work --queue=emails-urgent,default,emails-bulk --stop-when-empty --tries=3 --timeout=120')
             ->cron('* * * * *')
             ->withoutOverlapping();
 
@@ -33,6 +33,28 @@ class Kernel extends ConsoleKernel
         $schedule->command('subscriptions:check-expirations')->hourly();
         $schedule->command('subscriptions:refill-yearly')->hourly();
         $schedule->command('analytics:rollup')->hourly();
+
+        // Automated Lifecycle Email Campaigns
+        $schedule->command('email:send-weekly-drop')
+            ->weeklyOn(2, '10:00')
+            ->withoutOverlapping();
+
+        $schedule->command('email:send-reengagement --days=30')
+            ->monthlyOn(1, '11:00')
+            ->withoutOverlapping();
+
+        // Lifecycle Automations (Item 10)
+        $schedule->command('email:send-welcome-drip')
+            ->dailyAt('10:30')
+            ->withoutOverlapping();
+
+        $schedule->command('email:send-quota-alerts')
+            ->dailyAt('09:00')
+            ->withoutOverlapping();
+
+        $schedule->command('email:send-abandoned-checkout')
+            ->hourly()
+            ->withoutOverlapping();
     }
 
     /**

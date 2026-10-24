@@ -99,6 +99,8 @@ class SocialAccountService
         $username = Helper::strRandom();
       }
 
+      $clientIp = request()->header('CF-Connecting-IP') ?: request()->ip();
+
       $user = User::create([
         'username'             => $username,
         'name'                 => $providerUser->getName() ?? $username,
@@ -115,7 +117,10 @@ class SocialAccountService
         'oauth_provider'       => $provider,
         'token'                => $token,
         'authorized_to_upload' => $authorized_to_upload,
-        'ip'                   => request()->ip(),
+        'ip'                   => $clientIp,
+        'marketing_opt_in'     => 1,
+        'marketing_opt_in_at'  => now(),
+        'marketing_opt_in_ip'  => $clientIp,
       ]);
 
       // Check Referral
