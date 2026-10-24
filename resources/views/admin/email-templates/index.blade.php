@@ -1,18 +1,22 @@
 @extends('admin.layout')
 
 @section('content')
-<h5 class="mb-4 fw-light">
-    <a class="text-reset" href="{{ url('panel/admin') }}">{{ __('admin.dashboard') }}</a>
-    <i class="bi-chevron-right me-1 fs-6"></i>
-    <span class="text-muted">Email Templates &amp; Configuration</span>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <h5 class="mb-0 fw-light">
+        <a class="text-reset" href="{{ url('panel/admin') }}">{{ __('admin.dashboard') }}</a>
+        <i class="bi-chevron-right me-1 fs-6"></i>
+        <span class="text-muted">Email Templates &amp; Configuration</span>
+    </h5>
 
-    <a href="{{ url('panel/admin/email-deliverability') }}" class="btn btn-sm btn-outline-dark float-lg-end mt-1 mt-lg-0 ms-2">
-        <i class="bi-shield-check me-1"></i> Deliverability Center &rarr;
-    </a>
-    <a href="{{ url('panel/admin/email-marketing/campaigns') }}" class="btn btn-sm btn-outline-primary float-lg-end mt-1 mt-lg-0 ms-2">
-        <i class="bi-megaphone me-1"></i> Marketing Campaigns &rarr;
-    </a>
-</h5>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="{{ url('panel/admin/email-deliverability') }}" class="btn btn-sm btn-outline-dark">
+            <i class="bi-shield-check me-1"></i> Deliverability Center &rarr;
+        </a>
+        <a href="{{ url('panel/admin/email-marketing/campaigns') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi-megaphone me-1"></i> Marketing Campaigns &rarr;
+        </a>
+    </div>
+</div>
 
 <div class="content">
     @if (session('success_message'))
@@ -110,11 +114,11 @@
                     <thead class="table-light">
                         <tr>
                             <th>Template Name</th>
-                            <th>Category</th>
+                            <th class="text-nowrap">Category</th>
                             <th>Subject Line</th>
-                            <th>Sender Stream</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
+                            <th class="text-nowrap">Sender Stream</th>
+                            <th class="text-nowrap">Status</th>
+                            <th class="text-end text-nowrap" style="min-width: 175px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,42 +128,48 @@
                                 <div class="fw-bold text-body">{{ $tmpl->name }}</div>
                                 <code class="small text-muted">{{ $tmpl->slug }}</code>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 @if($tmpl->category === 'security')
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Security OTP</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Security OTP</span>
                                 @elseif($tmpl->category === 'authentication')
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Authentication</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Authentication</span>
                                 @elseif($tmpl->category === 'billing')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Billing &amp; Plans</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Billing &amp; Plans</span>
                                 @else
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">System Alert</span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">System Alert</span>
                                 @endif
                             </td>
                             <td>
-                                <span class="small text-body">{{ Str::limit($tmpl->subject, 48) }}</span>
+                                <div class="small text-body fw-medium text-truncate" style="max-width: 250px;" title="{{ $tmpl->subject }}">
+                                    {{ $tmpl->subject }}
+                                </div>
                             </td>
-                            <td>
-                                <small class="text-muted d-block">
-                                    {{ $tmpl->sender_email ?: ($settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com') }}
-                                </small>
+                            <td class="text-nowrap">
+                                <code class="small text-muted">{{ $tmpl->sender_email ?: ($settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com') }}</code>
                             </td>
-                            <td>
-                                @if($tmpl->is_enabled)
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-secondary">Disabled</span>
-                                @endif
-                                @if($tmpl->is_system)
-                                    <span class="badge bg-light text-dark border ms-1" title="Core System Template"><i class="bi-lock-fill"></i></span>
-                                @endif
+                            <td class="text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    @if($tmpl->is_enabled)
+                                        <span class="badge bg-success">Active</span>
+                                    @else
+                                        <span class="badge bg-secondary">Disabled</span>
+                                    @endif
+                                    @if($tmpl->is_system)
+                                        <span class="badge bg-light text-secondary border" title="Core System Security Template (Protected)">
+                                            <i class="bi-lock-fill"></i>
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
-                            <td class="text-end">
-                                <a href="{{ url('panel/admin/email-templates/' . $tmpl->id . '/preview') }}" class="btn btn-sm btn-outline-secondary me-1" target="_blank" title="View Full Preview">
-                                    <i class="bi-eye me-1"></i> Preview
-                                </a>
-                                <a href="{{ url('panel/admin/email-templates/' . $tmpl->id . '/edit') }}" class="btn btn-sm btn-dark">
-                                    <i class="bi-pencil me-1"></i> Edit
-                                </a>
+                            <td class="text-end text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <a href="{{ url('panel/admin/email-templates/' . $tmpl->id . '/preview') }}" class="btn btn-sm btn-outline-secondary px-2 py-1 d-inline-flex align-items-center" target="_blank" title="View Preview in New Tab">
+                                        <i class="bi-eye me-1"></i> Preview
+                                    </a>
+                                    <a href="{{ url('panel/admin/email-templates/' . $tmpl->id . '/edit') }}" class="btn btn-sm btn-dark px-3 py-1 d-inline-flex align-items-center">
+                                        <i class="bi-pencil me-1"></i> Edit
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         @empty
