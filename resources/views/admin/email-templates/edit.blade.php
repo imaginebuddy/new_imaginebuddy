@@ -88,6 +88,15 @@
                                     </button>
                                 @endforeach
                             @endif
+                            <!-- Dynamic Master Branding Tokens -->
+                            <button type="button" class="btn btn-sm btn-white border var-pill text-body" data-var="{button_color}" title="Click to insert Master Button Color">
+                                <code>{button_color}</code>
+                                <span class="badge bg-primary-subtle text-primary ms-1" style="font-size: 10px;">Branding</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-white border var-pill text-body" data-var="{primary_color}" title="Click to insert Master Accent/Link Color">
+                                <code>{primary_color}</code>
+                                <span class="badge bg-primary-subtle text-primary ms-1" style="font-size: 10px;">Branding</span>
+                            </button>
                         </div>
                         @if(!empty($requiredVars))
                             <small class="text-danger d-block mt-2" style="font-size: 11px;">

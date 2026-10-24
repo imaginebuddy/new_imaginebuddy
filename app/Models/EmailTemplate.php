@@ -75,6 +75,8 @@ class EmailTemplate extends Model
             '{user_name}' => 'Sarah Jenkins',
             '{user_email}' => 'sarah.creator@example.com',
             '{admin_url}' => url('panel/admin/deposits'),
+            '{primary_color}' => $settings->email_primary_color ?? '#4f46e5',
+            '{button_color}' => $settings->email_button_color ?? '#0f172a',
         ];
     }
 

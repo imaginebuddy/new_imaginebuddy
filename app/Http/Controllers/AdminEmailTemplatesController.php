@@ -129,8 +129,8 @@ class AdminEmailTemplatesController extends Controller
     public function updateBranding(Request $request)
     {
         $request->validate([
-            'email_primary_color' => 'nullable|regex:/^#[a-fA-F0-9]{3,6}$/',
-            'email_button_color' => 'nullable|regex:/^#[a-fA-F0-9]{3,6}$/',
+            'email_primary_color' => ['nullable', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
+            'email_button_color' => ['nullable', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'email_sender_name_auth' => 'required|string|max:128',
             'email_sender_address_auth' => 'required|email:filter|max:128',
             'email_footer_text' => 'nullable|string|max:2000',
@@ -148,8 +148,8 @@ class AdminEmailTemplatesController extends Controller
             $settings->email_logo = 'public/img/' . $filename;
         }
 
-        $settings->email_primary_color = $request->input('email_primary_color', '#4f46e5');
-        $settings->email_button_color = $request->input('email_button_color', '#0f172a');
+        $settings->email_primary_color = $request->filled('email_primary_color') ? trim($request->input('email_primary_color')) : '#4f46e5';
+        $settings->email_button_color = $request->filled('email_button_color') ? trim($request->input('email_button_color')) : '#0f172a';
         $settings->email_sender_name_auth = $request->input('email_sender_name_auth', 'Imagine Buddy Security');
         $settings->email_sender_address_auth = $request->input('email_sender_address_auth', 'noreply@auth.imaginebuddy.com');
         $settings->email_footer_text = $request->input('email_footer_text');

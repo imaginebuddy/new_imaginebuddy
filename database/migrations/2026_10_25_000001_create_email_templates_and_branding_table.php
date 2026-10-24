@@ -94,9 +94,9 @@ return new class extends Migration
 <p>Hi {name},</p>
 <p>Thank you for joining Imagine Buddy! To activate your account and start generating commercial AI photoshoots and prompts, please confirm your email address by clicking the button below:</p>
 <div style="text-align: center; margin: 30px 0;">
-    <a href="{action_url}" style="background-color: #0f172a; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Verify Email Address</a>
+    <a href="{action_url}" class="btn-action" style="background-color: {button_color}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Verify Email Address</a>
 </div>
-<p style="color: #64748b; font-size: 13px;">If the button above does not work, copy and paste this link into your browser:<br><a href="{action_url}" style="color: #4f46e5; word-break: break-all;">{action_url}</a></p>',
+<p style="color: #64748b; font-size: 13px;">If the button above does not work, copy and paste this link into your browser:<br><a href="{action_url}" style="color: {primary_color}; word-break: break-all;">{action_url}</a></p>',
                 'content_plain' => "Welcome to {app_name}!\n\nHi {name},\n\nPlease verify your email address by visiting this link:\n{action_url}\n\nThank you!",
                 'variables' => json_encode(['{name}', '{action_url}', '{app_name}', '{support_email}']),
                 'is_enabled' => true,
@@ -117,10 +117,10 @@ return new class extends Migration
 <p>Hi {name},</p>
 <p>We received a request to reset the password for your {app_name} account. Click the button below to choose a new password:</p>
 <div style="text-align: center; margin: 30px 0;">
-    <a href="{action_url}" style="background-color: #0f172a; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Reset Password</a>
+    <a href="{action_url}" class="btn-action" style="background-color: {button_color}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Reset Password</a>
 </div>
 <p style="color: #64748b; font-size: 13px;">This password reset link will expire in <strong>{expire_minutes} minutes</strong>. If you did not request a password reset, no further action is required and your account remains safe.</p>
-<p style="color: #94a3b8; font-size: 12px;">Button not working? Copy and paste this URL:<br><a href="{action_url}" style="color: #4f46e5; word-break: break-all;">{action_url}</a></p>',
+<p style="color: #94a3b8; font-size: 12px;">Button not working? Copy and paste this URL:<br><a href="{action_url}" style="color: {primary_color}; word-break: break-all;">{action_url}</a></p>',
                 'content_plain' => "Reset Your Password\n\nHi {name},\n\nClick the link below to reset your password:\n{action_url}\n\nThis link will expire in {expire_minutes} minutes.\nIf you did not request this, you can safely ignore this email.",
                 'variables' => json_encode(['{name}', '{action_url}', '{expire_minutes}', '{app_name}', '{ip_address}']),
                 'is_enabled' => true,
@@ -142,7 +142,7 @@ return new class extends Migration
 <p>This is a friendly reminder that your <strong>{plan_name}</strong> subscription on {app_name} is set to expire on <strong>{expires_at}</strong>.</p>
 <p>To ensure uninterrupted access to unlimited prompt generations, commercial photoshoots, and your downloaded assets, please renew or update your subscription before your term ends:</p>
 <div style="text-align: center; margin: 30px 0;">
-    <a href="{action_url}" style="background-color: #0f172a; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Renew Subscription &rarr;</a>
+    <a href="{action_url}" class="btn-action" style="background-color: {button_color}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Renew Subscription &rarr;</a>
 </div>
 <p style="color: #64748b; font-size: 13px;">If you have any questions or need assistance, feel free to reply directly to our support team.</p>',
                 'content_plain' => "Your Subscription is Expiring Soon\n\nHi {name},\n\nYour {plan_name} subscription expires on {expires_at}.\n\nRenew your plan here:\n{action_url}",
@@ -185,7 +185,7 @@ return new class extends Migration
     </table>
 </div>
 <div style="text-align: center; margin: 24px 0;">
-    <a href="{action_url}" style="background-color: #0f172a; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">View In My Account</a>
+    <a href="{action_url}" class="btn-action" style="background-color: {button_color}; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">View In My Account</a>
 </div>',
                 'content_plain' => "Payment Confirmed!\n\nHi {name},\n\nTransaction ID: #{transaction_id}\nAmount Paid: {amount}\nPayment Method: {payment_gateway}\nDate: {date}\n\nView details: {action_url}",
                 'variables' => json_encode(['{name}', '{transaction_id}', '{amount}', '{payment_gateway}', '{date}', '{action_url}', '{app_name}']),
@@ -212,7 +212,7 @@ return new class extends Migration
     <p style="margin: 4px 0; font-size: 14px;"><strong>Transaction ID:</strong> #{transaction_id}</p>
 </div>
 <div style="text-align: center; margin: 24px 0;">
-    <a href="{admin_url}" style="background-color: #0f172a; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Open Admin Deposits &rarr;</a>
+    <a href="{admin_url}" class="btn-action" style="background-color: {button_color}; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Open Admin Deposits &rarr;</a>
 </div>',
                 'content_plain' => "New Deposit Awaiting Verification\n\nCustomer: {user_name} ({user_email})\nAmount: {amount}\nTransaction ID: #{transaction_id}\n\nReview in Admin Panel: {admin_url}",
                 'variables' => json_encode(['{user_name}', '{user_email}', '{amount}', '{transaction_id}', '{admin_url}', '{app_name}']),

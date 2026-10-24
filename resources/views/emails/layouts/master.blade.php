@@ -17,6 +17,8 @@
         .content h1, .content h2, .content h3 { color: #0f172a; margin-top: 0; font-weight: 700; line-height: 1.3; }
         .content p { margin: 0 0 16px 0; }
         .content a { color: {{ $primaryColor ?? '#4f46e5' }}; text-decoration: underline; }
+        .content a.btn-action, .content a.btn-primary-action, .content a[style*="display: inline-block"] { text-decoration: none !important; }
+        .btn-action, .btn-primary-action { background-color: {{ $buttonColor ?? '#0f172a' }} !important; color: #ffffff !important; text-decoration: none !important; }
         .footer { padding: 24px 32px 32px 32px; text-align: center; font-size: 12px; line-height: 1.5; color: #64748b; background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
         .footer a { color: #64748b; text-decoration: underline; }
         @media only screen and (max-width: 620px) {
