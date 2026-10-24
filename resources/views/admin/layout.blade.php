@@ -255,6 +255,12 @@
               </li><!-- /end list -->
 
               <li class="nav-item">
+                  <a href="{{ url('panel/admin/email-templates') }}" class="nav-link text-truncate @if (request()->is('panel/admin/email-templates*')) active @endif">
+                      <i class="bi-card-text me-2"></i> Email Templates
+                  </a>
+              </li><!-- /end list -->
+
+              <li class="nav-item">
                   <a href="{{ url('panel/admin/email-deliverability') }}" class="nav-link text-truncate @if (request()->is('panel/admin/email-deliverability*')) active @endif">
                       <i class="bi-shield-check me-2"></i> Email Deliverability
                   </a>

@@ -61,13 +61,41 @@ class ResetPassword extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy'));
+        $name = $notifiable->name ?? 'User';
+        $resetUrl = url('password/reset', $this->token);
 
-        return (new MailMessage)
+        $rendered = \App\Services\EmailTemplateService::render('password-reset', [
+            '{name}' => $name,
+            '{action_url}' => $resetUrl,
+            '{expire_minutes}' => config('auth.passwords.users.expire', 60),
+            '{ip_address}' => request()->ip() ?? 'N/A',
+        ], function () {
+            $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy'));
+            return [
+                'used_custom' => false,
+                'subject' => trans('emails.password_reset'),
+                'html' => null,
+                'sender_name' => $fromName,
+                'sender_email' => $fromEmail,
+                'reply_to' => null,
+            ];
+        });
+
+        $mailMessage = (new MailMessage)
             ->mailer('ses-transactional')
-            ->from($fromEmail, $fromName)
-            ->view('emails.password_reset', ['token' => $this->token])
-            ->subject(trans('emails.password_reset'));
+            ->from($rendered['sender_email'], $rendered['sender_name'])
+            ->subject($rendered['subject']);
+
+        if (!empty($rendered['reply_to'])) {
+            $mailMessage->replyTo($rendered['reply_to']);
+        }
+
+        if (!empty($rendered['html'])) {
+            return $mailMessage->view('emails.raw', ['content' => $rendered['html']]);
+        }
+
+        return $mailMessage
+            ->view('emails.password_reset', ['token' => $this->token]);
     }
 }

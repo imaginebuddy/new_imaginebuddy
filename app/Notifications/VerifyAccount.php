@@ -55,13 +55,40 @@ class VerifyAccount extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy'));
+        $name = $notifiable->name ?? 'User';
+        $verifyUrl = url('verify/account', $this->confirmation_code);
 
-        return (new MailMessage)
+        $rendered = \App\Services\EmailTemplateService::render('verify-account', [
+            '{name}' => $name,
+            '{action_url}' => $verifyUrl,
+            '{support_email}' => config('mail.from.address', 'support@imaginebuddy.com'),
+        ], function () {
+            $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy'));
+            return [
+                'used_custom' => false,
+                'subject' => trans('users.title_email_verify'),
+                'html' => null,
+                'sender_name' => $fromName,
+                'sender_email' => $fromEmail,
+                'reply_to' => null,
+            ];
+        });
+
+        $mailMessage = (new MailMessage)
             ->mailer('ses-transactional')
-            ->from($fromEmail, $fromName)
-            ->view('emails.verify', ['confirmation_code' => $this->confirmation_code])
-            ->subject(trans('users.title_email_verify'));
+            ->from($rendered['sender_email'], $rendered['sender_name'])
+            ->subject($rendered['subject']);
+
+        if (!empty($rendered['reply_to'])) {
+            $mailMessage->replyTo($rendered['reply_to']);
+        }
+
+        if (!empty($rendered['html'])) {
+            return $mailMessage->view('emails.raw', ['content' => $rendered['html']]);
+        }
+
+        return $mailMessage
+            ->view('emails.verify', ['confirmation_code' => $this->confirmation_code]);
     }
 }

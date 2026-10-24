@@ -677,6 +677,14 @@ Route::group(['middleware' => 'role'], function() {
 	Route::view('panel/admin/settings/email','admin.email-settings')->name('email_settings');
 	Route::post('panel/admin/settings/email',[AdminController::class, 'emailSettings']);
 
+	// EMAIL TEMPLATES & CONFIGURATION (auth.imaginebuddy.com)
+	Route::get('panel/admin/email-templates', [\App\Http\Controllers\AdminEmailTemplatesController::class, 'index'])->name('admin.email_templates');
+	Route::get('panel/admin/email-templates/{id}/edit', [\App\Http\Controllers\AdminEmailTemplatesController::class, 'edit'])->name('admin.email_templates.edit');
+	Route::post('panel/admin/email-templates/branding', [\App\Http\Controllers\AdminEmailTemplatesController::class, 'updateBranding'])->name('admin.email_templates.branding');
+	Route::post('panel/admin/email-templates/{id}', [\App\Http\Controllers\AdminEmailTemplatesController::class, 'update'])->name('admin.email_templates.update');
+	Route::get('panel/admin/email-templates/{id}/preview', [\App\Http\Controllers\AdminEmailTemplatesController::class, 'preview'])->name('admin.email_templates.preview');
+	Route::post('panel/admin/email-templates/{id}/test-send', [\App\Http\Controllers\AdminEmailTemplatesController::class, 'sendTest'])->name('admin.email_templates.test_send');
+
 	// EMAIL DELIVERABILITY & AUDIENCE
 	Route::get('panel/admin/email-deliverability', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'index'])->name('email_deliverability');
 	Route::post('panel/admin/email-deliverability/suppressions', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'addSuppression']);

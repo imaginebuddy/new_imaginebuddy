@@ -55,15 +55,42 @@ class SendTwoFactorCode extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy Security'));
+        $code = $this->data['code'] ?? '';
+        $name = $notifiable->name ?? 'User';
 
-        return (new MailMessage)
+        $rendered = \App\Services\EmailTemplateService::render('two-factor-code', [
+            '{name}' => $name,
+            '{code}' => $code,
+            '{minutes}' => '10',
+        ], function () use ($notifiable, $code) {
+            $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-transactional.from.name', config('app.name', 'Imagine Buddy Security'));
+            return [
+                'used_custom' => false,
+                'subject' => trans('misc.two_step_authentication_code'),
+                'html' => null,
+                'sender_name' => $fromName,
+                'sender_email' => $fromEmail,
+                'reply_to' => null,
+            ];
+        });
+
+        $mailMessage = (new MailMessage)
             ->mailer('ses-transactional')
-            ->from($fromEmail, $fromName)
-            ->subject(trans('misc.two_step_authentication_code'))
+            ->from($rendered['sender_email'], $rendered['sender_name'])
+            ->subject($rendered['subject']);
+
+        if (!empty($rendered['reply_to'])) {
+            $mailMessage->replyTo($rendered['reply_to']);
+        }
+
+        if (!empty($rendered['html'])) {
+            return $mailMessage->view('emails.raw', ['content' => $rendered['html']]);
+        }
+
+        return $mailMessage
             ->greeting(trans('emails.hello') . ' ' . $notifiable->name)
-            ->line(trans('misc.your_code_is', ['code' => $this->data['code']]));
+            ->line(trans('misc.your_code_is', ['code' => $code]));
     }
 
     /**
