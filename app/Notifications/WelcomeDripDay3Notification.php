@@ -41,22 +41,41 @@ class WelcomeDripDay3Notification extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
-
+        $recipientName = $this->recipient->name ?? 'Creator';
         $token = $this->recipient->unsubscribe_token ?? base64_encode($this->recipient->email);
         $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $token]);
         $vaultUrl = url('prompts/free');
 
-        $mailMessage = (new MailMessage)
-            ->mailer('ses-marketing')
-            ->from($fromEmail, $fromName)
-            ->subject('3 studio lighting secrets for photorealistic AI mockups 💡')
-            ->view('emails.welcome-drip-day3', [
-                'recipient' => $this->recipient,
-                'vaultUrl' => $vaultUrl,
-                'unsubscribeUrl' => $unsubscribeUrl,
-            ]);
+        $rendered = \App\Services\EmailTemplateService::render('welcome-drip-day3', [
+            '{name}' => $recipientName,
+            '{action_url}' => $vaultUrl,
+            '{unsubscribe_url}' => $unsubscribeUrl,
+        ]);
+
+        if ($rendered['used_custom']) {
+            $mailMessage = (new MailMessage)
+                ->mailer($rendered['mailer'] ?? 'ses-marketing')
+                ->from($rendered['sender_email'], $rendered['sender_name'])
+                ->subject($rendered['subject'])
+                ->view('emails.raw', ['content' => $rendered['html']]);
+
+            if (!empty($rendered['reply_to'])) {
+                $mailMessage->replyTo($rendered['reply_to']);
+            }
+        } else {
+            $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
+
+            $mailMessage = (new MailMessage)
+                ->mailer('ses-marketing')
+                ->from($fromEmail, $fromName)
+                ->subject('3 studio lighting secrets for photorealistic AI mockups 💡')
+                ->view('emails.welcome-drip-day3', [
+                    'recipient' => $this->recipient,
+                    'vaultUrl' => $vaultUrl,
+                    'unsubscribeUrl' => $unsubscribeUrl,
+                ]);
+        }
 
         $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl) {
             $message->getHeaders()

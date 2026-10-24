@@ -46,21 +46,38 @@ class NewsletterDoubleOptIn extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
-
         $confirmUrl = route('newsletter.confirm', ['token' => $this->subscriber->verification_token]);
         $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $this->subscriber->verification_token]);
 
-        $mailMessage = (new MailMessage)
-            ->mailer('ses-marketing')
-            ->from($fromEmail, $fromName)
-            ->subject('Confirm your subscription to Imagine Buddy (and unlock 50+ AI Prompts)')
-            ->view('emails.newsletter-double-opt-in', [
-                'subscriber' => $this->subscriber,
-                'confirmUrl' => $confirmUrl,
-                'unsubscribeUrl' => $unsubscribeUrl,
-            ]);
+        $rendered = \App\Services\EmailTemplateService::render('newsletter-double-opt-in', [
+            '{confirm_url}' => $confirmUrl,
+            '{unsubscribe_url}' => $unsubscribeUrl,
+        ]);
+
+        if ($rendered['used_custom']) {
+            $mailMessage = (new MailMessage)
+                ->mailer($rendered['mailer'] ?? 'ses-marketing')
+                ->from($rendered['sender_email'], $rendered['sender_name'])
+                ->subject($rendered['subject'])
+                ->view('emails.raw', ['content' => $rendered['html']]);
+
+            if (!empty($rendered['reply_to'])) {
+                $mailMessage->replyTo($rendered['reply_to']);
+            }
+        } else {
+            $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
+
+            $mailMessage = (new MailMessage)
+                ->mailer('ses-marketing')
+                ->from($fromEmail, $fromName)
+                ->subject('Confirm your subscription to Imagine Buddy (and unlock 50+ AI Prompts)')
+                ->view('emails.newsletter-double-opt-in', [
+                    'subscriber' => $this->subscriber,
+                    'confirmUrl' => $confirmUrl,
+                    'unsubscribeUrl' => $unsubscribeUrl,
+                ]);
+        }
 
         $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl) {
             $message->getHeaders()

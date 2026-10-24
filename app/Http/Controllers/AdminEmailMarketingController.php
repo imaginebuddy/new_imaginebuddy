@@ -42,7 +42,7 @@ class AdminEmailMarketingController extends Controller
         $killSwitchActive = AdminSettings::isBulkEmailKillSwitchActive();
         $totalAudience = AudienceService::getDeliverableMarketingAudience()->count();
 
-        // Template Presets
+        // Template Presets (Crisp Light-Mode Theme)
         $presets = [
             'prompts_showcase' => [
                 'name' => 'AI Prompts Showcase',
@@ -51,10 +51,10 @@ class AdminEmailMarketingController extends Controller
                 'preview' => 'Copy studio-tested prompts for Midjourney, ChatGPT & Gemini.',
                 'html' => '<h2>This Week’s Top Curated Prompts 📸</h2>
 <p>Hi {name}, here are the highest-converting AI photography prompts our team tested this week. Copy and paste them directly into your generator:</p>
-<div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:16px; margin:20px 0;">
-    <h3 style="margin-top:0; color:#f8fafc;">1. Luxury Perfume Obsidian Reflection</h3>
-    <p style="font-family:monospace; background:#0f172a; padding:12px; border-radius:6px; color:#cbd5e1; font-size:13px;">Luxury fragrance bottle on polished black marble with subtle water droplets, dramatic rim lighting, soft volumetric haze, 85mm lens, f/1.8 --ar 16:9 --style raw</p>
-    <p><a href="{vaultUrl}" class="btn-custom" style="padding:10px 24px;">Explore In Prompt Vault &rarr;</a></p>
+<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:18px; margin:20px 0;">
+    <h3 style="margin-top:0; color:#0f172a; font-size:16px;">1. Luxury Perfume Obsidian Reflection</h3>
+    <p style="font-family:\'Courier New\', Courier, monospace; background:#ffffff; border:1px solid #cbd5e1; padding:12px; border-radius:6px; color:#0f172a; font-size:13px; line-height:1.5;">Luxury fragrance bottle on polished black marble with subtle water droplets, dramatic rim lighting, soft volumetric haze, 85mm lens, f/1.8 --ar 16:9 --style raw</p>
+    <p style="margin-bottom:0;"><a href="{vaultUrl}" class="btn-custom" style="padding:10px 24px;">Explore In Prompt Vault &rarr;</a></p>
 </div>
 <p>Want more commercial styles? Access our full library of 1,000+ free prompts on Imagine Buddy.</p>',
             ],
@@ -66,11 +66,13 @@ class AdminEmailMarketingController extends Controller
                 'html' => '<h2>Introducing Our New AI Photoshoot Engine ✨</h2>
 <p>Hi {name},</p>
 <p>We are thrilled to announce a major update to Imagine Buddy! We have just released the Product Photoshoot Suite designed to help creators and brands generate commercial catalog photos in seconds.</p>
-<ul style="padding-left:20px; color:#cbd5e1; line-height:1.8;">
-    <li><strong>1-Click Prompt Copying:</strong> Formatted for Midjourney v6, ChatGPT, and Gemini.</li>
-    <li><strong>Lighting Presets:</strong> Studio softbox, sunset golden hour, and cyberpunk neon.</li>
-    <li><strong>Commercial License:</strong> 100% royalty-free for client and e-commerce use.</li>
-</ul>
+<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:18px; margin:20px 0;">
+    <ul style="padding-left:20px; color:#334155; line-height:1.8; margin-bottom:0;">
+        <li><strong>1-Click Prompt Copying:</strong> Formatted for Midjourney v6, ChatGPT, and Gemini.</li>
+        <li><strong>Lighting Presets:</strong> Studio softbox, sunset golden hour, and cyberpunk neon.</li>
+        <li><strong>Commercial License:</strong> 100% royalty-free for client and e-commerce use.</li>
+    </ul>
+</div>
 <p style="text-align:center; margin:30px 0;">
     <a href="{vaultUrl}" class="btn-custom">Try the New Photoshoot Tools &rarr;</a>
 </p>',
@@ -81,14 +83,14 @@ class AdminEmailMarketingController extends Controller
                 'subject' => '⚡ Limited Flash Sale: 40% Off Imagine Buddy Pro Plans',
                 'preview' => 'Unlock unlimited commercial prompts and high-res downloads.',
                 'html' => '<div style="text-align:center;">
-    <span style="background:#00d690; color:#041b11; font-weight:700; padding:6px 14px; border-radius:50px; font-size:12px; text-transform:uppercase;">Limited Time Flash Sale</span>
-    <h2 style="font-size:26px; margin:16px 0;">Upgrade to Pro with 40% Off</h2>
-    <p>Unlock unlimited commercial downloads, priority photoshoot generation, and exclusive VIP prompt vaults.</p>
-    <div style="background:#1e293b; border:2px dashed #00d690; border-radius:8px; padding:18px; margin:24px auto; max-width:320px;">
-        <span style="font-size:12px; color:#94a3b8; display:block; text-transform:uppercase;">Use Coupon Code:</span>
-        <strong style="font-size:22px; color:#00d690; letter-spacing:2px;">PROMPT40</strong>
+    <span style="background:#0f172a; color:#ffffff; font-weight:700; padding:6px 16px; border-radius:50px; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Limited Time Flash Sale</span>
+    <h2 style="font-size:26px; margin:18px 0; color:#0f172a;">Upgrade to Pro with 40% Off</h2>
+    <p style="color:#475569; max-width:480px; margin:0 auto 20px auto;">Unlock unlimited commercial downloads, priority photoshoot generation, and exclusive VIP prompt vaults.</p>
+    <div style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:8px; padding:18px; margin:24px auto; max-width:320px;">
+        <span style="font-size:12px; color:#64748b; display:block; text-transform:uppercase; font-weight:600;">Use Coupon Code:</span>
+        <strong style="font-size:24px; color:#0f172a; letter-spacing:2px;">PROMPT40</strong>
     </div>
-    <a href="' . url('plans') . '" class="btn-custom" style="font-size:16px; padding:14px 36px;">Claim 40% Discount Now &rarr;</a>
+    <a href="' . url('plans') . '" class="btn-custom" style="font-size:15px; padding:14px 36px;">Claim 40% Discount Now &rarr;</a>
 </div>',
             ],
             'plain_text' => [

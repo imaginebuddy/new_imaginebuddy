@@ -1,6 +1,15 @@
 @extends('admin.layout')
 
 @section('content')
+@php
+    $isUpdates = ($template->channel ?? 'auth') === 'updates';
+    $defaultSenderName = $isUpdates
+        ? ($settings->email_sender_name_updates ?: 'Imagine Buddy Updates')
+        : ($settings->email_sender_name_auth ?: 'Imagine Buddy Security');
+    $defaultSenderEmail = $isUpdates
+        ? ($settings->email_sender_address_updates ?: 'hello@updates.imaginebuddy.com')
+        : ($settings->email_sender_address_auth ?: 'noreply@auth.imaginebuddy.com');
+@endphp
 <h5 class="mb-4 fw-light">
     <a class="text-reset" href="{{ url('panel/admin') }}">{{ __('admin.dashboard') }}</a>
     <i class="bi-chevron-right me-1 fs-6"></i>
@@ -34,9 +43,20 @@
         <!-- LEFT COLUMN: TEMPLATE EDITOR FORM -->
         <div class="col-lg-7">
             <div class="card shadow-custom border-0 p-4 mb-4">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
                     <div>
-                        <h6 class="fw-bold mb-0 text-body"><i class="bi-pencil-square me-1 text-primary"></i> Template Details</h6>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h6 class="fw-bold mb-0 text-body"><i class="bi-pencil-square me-1 text-primary"></i> {{ $template->name }}</h6>
+                            @if($isUpdates)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                    <i class="bi-megaphone me-1"></i> updates.imaginebuddy.com
+                                </span>
+                            @else
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+                                    <i class="bi-shield-lock me-1"></i> auth.imaginebuddy.com
+                                </span>
+                            @endif
+                        </div>
                         <small class="text-muted">{{ $template->description }}</small>
                     </div>
                     <span class="badge bg-light text-dark border">
@@ -58,13 +78,13 @@
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Sender Name Override</label>
-                            <input type="text" name="sender_name" class="form-control form-control-sm" value="{{ old('sender_name', $template->sender_name) }}" placeholder="{{ $settings->email_sender_name_auth ?: 'Imagine Buddy Security' }}">
-                            <small class="text-muted" style="font-size: 11px;">Leave empty to use global default.</small>
+                            <input type="text" name="sender_name" class="form-control form-control-sm" value="{{ old('sender_name', $template->sender_name) }}" placeholder="{{ $defaultSenderName }}">
+                            <small class="text-muted" style="font-size: 11px;">Default: <em>{{ $defaultSenderName }}</em></small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Sender Email Address Override</label>
-                            <input type="email" name="sender_email" class="form-control form-control-sm" value="{{ old('sender_email', $template->sender_email) }}" placeholder="{{ $settings->email_sender_address_auth ?: 'noreply@auth.imaginebuddy.com' }}">
-                            <small class="text-muted" style="font-size: 11px;">Must be verified under <code>auth.imaginebuddy.com</code>.</small>
+                            <input type="email" name="sender_email" class="form-control form-control-sm" value="{{ old('sender_email', $template->sender_email) }}" placeholder="{{ $defaultSenderEmail }}">
+                            <small class="text-muted" style="font-size: 11px;">Default: <code>{{ $defaultSenderEmail }}</code></small>
                         </div>
                     </div>
 
@@ -153,7 +173,7 @@
             <div class="card shadow-custom border-0 p-3 mb-4">
                 <h6 class="fw-bold mb-1 text-body"><i class="bi-send me-1 text-primary"></i> Send Real Test Preview</h6>
                 <small class="text-muted mb-3 d-block">
-                    Dispatches an exact replica with sample test data through Amazon SES (<code>{{ $template->sender_email ?: ($settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com') }}</code>) to verify real inbox rendering.
+                    Dispatches an exact replica with sample test data through Amazon SES (<code>{{ $template->sender_email ?: $defaultSenderEmail }}</code>) to verify real inbox rendering.
                 </small>
                 <form method="POST" action="{{ url('panel/admin/email-templates/' . $template->id . '/test-send') }}" class="row g-2">
                     @csrf

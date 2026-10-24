@@ -47,20 +47,40 @@ class WeeklyPromptDropNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
-
         $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $this->recipient->unsubscribe_token]);
+        $vaultUrl = url('prompts/free');
 
-        $mailMessage = (new MailMessage)
-            ->mailer('ses-marketing')
-            ->from($fromEmail, $fromName)
-            ->subject('This Week\'s Top Curated AI Prompts & Photoshoot Recipes 📸')
-            ->view('emails.weekly-prompt-drop', [
-                'recipient' => $this->recipient,
-                'prompts' => $this->prompts,
-                'unsubscribeUrl' => $unsubscribeUrl,
-            ]);
+        $rendered = \App\Services\EmailTemplateService::render('weekly-prompt-drop', [
+            '{name}' => $this->recipient->name ?: 'Creator',
+            '{vault_url}' => $vaultUrl,
+            '{current_date}' => now()->format('M d, Y'),
+            '{unsubscribe_url}' => $unsubscribeUrl,
+        ]);
+
+        if ($rendered['used_custom']) {
+            $mailMessage = (new MailMessage)
+                ->mailer($rendered['mailer'] ?? 'ses-marketing')
+                ->from($rendered['sender_email'], $rendered['sender_name'])
+                ->subject($rendered['subject'])
+                ->view('emails.raw', ['content' => $rendered['html']]);
+
+            if (!empty($rendered['reply_to'])) {
+                $mailMessage->replyTo($rendered['reply_to']);
+            }
+        } else {
+            $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
+
+            $mailMessage = (new MailMessage)
+                ->mailer('ses-marketing')
+                ->from($fromEmail, $fromName)
+                ->subject('This Week\'s Top Curated AI Prompts & Photoshoot Recipes 📸')
+                ->view('emails.weekly-prompt-drop', [
+                    'recipient' => $this->recipient,
+                    'prompts' => $this->prompts,
+                    'unsubscribeUrl' => $unsubscribeUrl,
+                ]);
+        }
 
         $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl) {
             $message->getHeaders()

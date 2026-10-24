@@ -47,20 +47,39 @@ class UserReengagementNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
-
         $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $this->recipient->unsubscribe_token]);
+        $vaultUrl = url('prompts/free');
 
-        $mailMessage = (new MailMessage)
-            ->mailer('ses-marketing')
-            ->from($fromEmail, $fromName)
-            ->subject('We miss you! Explore new AI photoshoot prompts on Imagine Buddy ✨')
-            ->view('emails.user-reengagement', [
-                'recipient' => $this->recipient,
-                'prompts' => $this->prompts,
-                'unsubscribeUrl' => $unsubscribeUrl,
-            ]);
+        $rendered = \App\Services\EmailTemplateService::render('user-reengagement', [
+            '{name}' => $this->recipient->name ?: 'Creator',
+            '{vault_url}' => $vaultUrl,
+            '{unsubscribe_url}' => $unsubscribeUrl,
+        ]);
+
+        if ($rendered['used_custom']) {
+            $mailMessage = (new MailMessage)
+                ->mailer($rendered['mailer'] ?? 'ses-marketing')
+                ->from($rendered['sender_email'], $rendered['sender_name'])
+                ->subject($rendered['subject'])
+                ->view('emails.raw', ['content' => $rendered['html']]);
+
+            if (!empty($rendered['reply_to'])) {
+                $mailMessage->replyTo($rendered['reply_to']);
+            }
+        } else {
+            $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
+
+            $mailMessage = (new MailMessage)
+                ->mailer('ses-marketing')
+                ->from($fromEmail, $fromName)
+                ->subject('We miss you! Explore new AI photoshoot prompts on Imagine Buddy ✨')
+                ->view('emails.user-reengagement', [
+                    'recipient' => $this->recipient,
+                    'prompts' => $this->prompts,
+                    'unsubscribeUrl' => $unsubscribeUrl,
+                ]);
+        }
 
         $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl) {
             $message->getHeaders()

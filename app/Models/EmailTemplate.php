@@ -14,6 +14,7 @@ class EmailTemplate extends Model
     protected $fillable = [
         'slug',
         'category',
+        'channel',
         'name',
         'description',
         'subject',
@@ -40,12 +41,23 @@ class EmailTemplate extends Model
     public static function requiredVariables(): array
     {
         return [
+            // Auth channel templates (auth.imaginebuddy.com)
             'two-factor-code' => ['{code}'],
             'verify-account' => ['{action_url}'],
             'password-reset' => ['{action_url}'],
             'subscription-expiring' => ['{action_url}'],
             'payment-receipt' => ['{transaction_id}'],
             'admin-deposit-pending' => ['{admin_url}'],
+
+            // Updates channel templates (updates.imaginebuddy.com)
+            'broadcast-campaign' => ['{unsubscribe_url}'],
+            'newsletter-double-opt-in' => ['{confirm_url}', '{unsubscribe_url}'],
+            'newsletter-welcome' => ['{vault_url}', '{unsubscribe_url}'],
+            'weekly-prompt-drop' => ['{unsubscribe_url}'],
+            'welcome-drip-day3' => ['{action_url}', '{unsubscribe_url}'],
+            'abandoned-checkout' => ['{checkout_url}', '{unsubscribe_url}'],
+            'user-reengagement' => ['{vault_url}', '{unsubscribe_url}'],
+            'quota-refilled' => ['{quota_amount}', '{unsubscribe_url}'],
         ];
     }
 
@@ -56,6 +68,15 @@ class EmailTemplate extends Model
     {
         $settings = AdminSettings::first();
         $appName = $settings->title ?? 'Imagine Buddy';
+
+        $isUpdates = ($this->channel ?? 'auth') === 'updates';
+        $primaryColor = $isUpdates
+            ? ($settings->email_updates_primary_color ?? ($settings->email_primary_color ?? '#4f46e5'))
+            : ($settings->email_primary_color ?? '#4f46e5');
+
+        $buttonColor = $isUpdates
+            ? ($settings->email_updates_button_color ?? ($settings->email_button_color ?? '#0f172a'))
+            : ($settings->email_button_color ?? '#0f172a');
 
         return [
             '{name}' => 'Alex Mercer',
@@ -75,8 +96,20 @@ class EmailTemplate extends Model
             '{user_name}' => 'Sarah Jenkins',
             '{user_email}' => 'sarah.creator@example.com',
             '{admin_url}' => url('panel/admin/deposits'),
-            '{primary_color}' => $settings->email_primary_color ?? '#4f46e5',
-            '{button_color}' => $settings->email_button_color ?? '#0f172a',
+            '{primary_color}' => $primaryColor,
+            '{button_color}' => $buttonColor,
+
+            // Updates & Marketing Tokens
+            '{unsubscribe_url}' => route('newsletter.unsubscribe', ['token' => 'sample-test-token-123']),
+            '{vault_url}' => url('prompts/free'),
+            '{confirm_url}' => route('newsletter.confirm', ['token' => 'sample-test-token-123']),
+            '{checkout_url}' => url('plans'),
+            '{quota_amount}' => '150',
+            '{current_date}' => now()->format('M d, Y'),
+            '{campaign_subject}' => '🔥 3 New AI Product Photoshoot Prompts Ready to Copy',
+            '{heading}' => 'This Week’s Top Curated Prompts 📸',
+            '{body_message}' => 'Here are the highest-converting AI photography prompts our team tested this week. Copy and paste them directly into your generator of choice:',
+            '{action_text}' => 'Explore In Prompt Vault &rarr;',
         ];
     }
 

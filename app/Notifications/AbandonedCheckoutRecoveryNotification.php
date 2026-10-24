@@ -39,23 +39,42 @@ class AbandonedCheckoutRecoveryNotification extends Notification implements Shou
 
     public function toMail($notifiable)
     {
-        $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
-        $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
-
         $token = $notifiable->token ?? base64_encode($notifiable->email);
         $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $token]);
         $checkoutUrl = url('plans');
 
-        $mailMessage = (new MailMessage)
-            ->mailer('ses-marketing')
-            ->from($fromEmail, $fromName)
-            ->subject('Did you leave something behind? Complete your Imagine Buddy upgrade')
-            ->view('emails.abandoned-checkout-recovery', [
-                'user' => $notifiable,
-                'plan' => $this->plan,
-                'checkoutUrl' => $checkoutUrl,
-                'unsubscribeUrl' => $unsubscribeUrl,
-            ]);
+        $rendered = \App\Services\EmailTemplateService::render('abandoned-checkout', [
+            '{name}' => $notifiable->name ?? 'Creator',
+            '{plan_name}' => $this->plan->name ?? 'Pro Creator',
+            '{checkout_url}' => $checkoutUrl,
+            '{unsubscribe_url}' => $unsubscribeUrl,
+        ]);
+
+        if ($rendered['used_custom']) {
+            $mailMessage = (new MailMessage)
+                ->mailer($rendered['mailer'] ?? 'ses-marketing')
+                ->from($rendered['sender_email'], $rendered['sender_name'])
+                ->subject($rendered['subject'])
+                ->view('emails.raw', ['content' => $rendered['html']]);
+
+            if (!empty($rendered['reply_to'])) {
+                $mailMessage->replyTo($rendered['reply_to']);
+            }
+        } else {
+            $fromEmail = config('mail.mailers.ses-marketing.from.address', 'hello@updates.imaginebuddy.com');
+            $fromName = config('mail.mailers.ses-marketing.from.name', config('app.name', 'Imagine Buddy'));
+
+            $mailMessage = (new MailMessage)
+                ->mailer('ses-marketing')
+                ->from($fromEmail, $fromName)
+                ->subject('Did you leave something behind? Complete your Imagine Buddy upgrade')
+                ->view('emails.abandoned-checkout-recovery', [
+                    'user' => $notifiable,
+                    'plan' => $this->plan,
+                    'checkoutUrl' => $checkoutUrl,
+                    'unsubscribeUrl' => $unsubscribeUrl,
+                ]);
+        }
 
         $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl) {
             $message->getHeaders()

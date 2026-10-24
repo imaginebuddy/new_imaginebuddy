@@ -13,15 +13,20 @@ use Illuminate\Support\Str;
 class AdminEmailTemplatesController extends Controller
 {
     /**
-     * Display a listing of email templates grouped by category + branding tab.
+     * Display a listing of email templates grouped by channel & category + branding tab.
      */
     public function index(Request $request)
     {
         $tab = $request->input('tab', 'templates');
+        $channel = $request->input('channel', 'all');
         $category = $request->input('category', 'all');
         $q = trim($request->input('q', ''));
 
         $query = EmailTemplate::query();
+
+        if ($channel !== 'all') {
+            $query->where('channel', $channel);
+        }
 
         if ($category !== 'all') {
             $query->where('category', $category);
@@ -35,13 +40,18 @@ class AdminEmailTemplatesController extends Controller
             });
         }
 
-        $templates = $query->orderBy('category')->orderBy('name')->get();
+        $templates = $query->orderBy('channel')->orderBy('category')->orderBy('name')->get();
 
         $counts = [
             'all' => EmailTemplate::count(),
+            'auth' => EmailTemplate::where('channel', 'auth')->count(),
+            'updates' => EmailTemplate::where('channel', 'updates')->count(),
             'authentication' => EmailTemplate::where('category', 'authentication')->count(),
             'security' => EmailTemplate::where('category', 'security')->count(),
             'billing' => EmailTemplate::where('category', 'billing')->count(),
+            'newsletters' => EmailTemplate::where('category', 'newsletters')->count(),
+            'marketing' => EmailTemplate::where('category', 'marketing')->count(),
+            'lifecycle' => EmailTemplate::where('category', 'lifecycle')->count(),
             'notifications' => EmailTemplate::where('category', 'notifications')->count(),
         ];
 
@@ -49,6 +59,7 @@ class AdminEmailTemplatesController extends Controller
 
         return view('admin.email-templates.index', [
             'tab' => $tab,
+            'channel' => $channel,
             'category' => $category,
             'q' => $q,
             'templates' => $templates,
@@ -124,17 +135,26 @@ class AdminEmailTemplatesController extends Controller
     }
 
     /**
-     * Update global email branding and sender defaults.
+     * Update global email branding and sender defaults for both channels.
      */
     public function updateBranding(Request $request)
     {
         $request->validate([
+            // Auth Channel
             'email_primary_color' => ['nullable', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'email_button_color' => ['nullable', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
-            'email_sender_name_auth' => 'required|string|max:128',
-            'email_sender_address_auth' => 'required|email:filter|max:128',
+            'email_sender_name_auth' => 'nullable|string|max:128',
+            'email_sender_address_auth' => 'nullable|email:filter|max:128',
             'email_footer_text' => 'nullable|string|max:2000',
             'email_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+
+            // Updates Channel
+            'email_updates_primary_color' => ['nullable', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
+            'email_updates_button_color' => ['nullable', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
+            'email_sender_name_updates' => 'nullable|string|max:128',
+            'email_sender_address_updates' => 'nullable|email:filter|max:128',
+            'email_reply_to_updates' => 'nullable|email:filter|max:128',
+            'email_updates_footer_text' => 'nullable|string|max:2000',
         ]);
 
         $settings = AdminSettings::first();
@@ -148,15 +168,43 @@ class AdminEmailTemplatesController extends Controller
             $settings->email_logo = 'public/img/' . $filename;
         }
 
-        $settings->email_primary_color = $request->filled('email_primary_color') ? trim($request->input('email_primary_color')) : '#4f46e5';
-        $settings->email_button_color = $request->filled('email_button_color') ? trim($request->input('email_button_color')) : '#0f172a';
-        $settings->email_sender_name_auth = $request->input('email_sender_name_auth', 'Imagine Buddy Security');
-        $settings->email_sender_address_auth = $request->input('email_sender_address_auth', 'noreply@auth.imaginebuddy.com');
+        // Auth Channel Defaults
+        if ($request->filled('email_primary_color')) {
+            $settings->email_primary_color = trim($request->input('email_primary_color'));
+        }
+        if ($request->filled('email_button_color')) {
+            $settings->email_button_color = trim($request->input('email_button_color'));
+        }
+        if ($request->filled('email_sender_name_auth')) {
+            $settings->email_sender_name_auth = trim($request->input('email_sender_name_auth'));
+        }
+        if ($request->filled('email_sender_address_auth')) {
+            $settings->email_sender_address_auth = trim($request->input('email_sender_address_auth'));
+        }
         $settings->email_footer_text = $request->input('email_footer_text');
+
+        // Updates Channel Defaults
+        if ($request->filled('email_updates_primary_color')) {
+            $settings->email_updates_primary_color = trim($request->input('email_updates_primary_color'));
+        }
+        if ($request->filled('email_updates_button_color')) {
+            $settings->email_updates_button_color = trim($request->input('email_updates_button_color'));
+        }
+        if ($request->filled('email_sender_name_updates')) {
+            $settings->email_sender_name_updates = trim($request->input('email_sender_name_updates'));
+        }
+        if ($request->filled('email_sender_address_updates')) {
+            $settings->email_sender_address_updates = trim($request->input('email_sender_address_updates'));
+        }
+        if ($request->filled('email_reply_to_updates')) {
+            $settings->email_reply_to_updates = trim($request->input('email_reply_to_updates'));
+        }
+        $settings->email_updates_footer_text = $request->input('email_updates_footer_text');
+
         $settings->save();
 
         return redirect()->route('admin.email_templates', ['tab' => 'branding'])
-            ->with('success_message', 'Email branding & sender defaults updated successfully!');
+            ->with('success_message', 'Email branding & sender defaults updated successfully for both channels!');
     }
 
     /**
@@ -171,7 +219,7 @@ class AdminEmailTemplatesController extends Controller
     }
 
     /**
-     * Send a real test email through Amazon SES (ses-transactional).
+     * Send a real test email through Amazon SES (ses-transactional or ses-marketing).
      */
     public function sendTest(Request $request, $id)
     {
@@ -186,8 +234,10 @@ class AdminEmailTemplatesController extends Controller
             '{name}' => 'Admin Tester',
         ]);
 
+        $mailer = $rendered['mailer'] ?? (($template->channel ?? 'auth') === 'updates' ? 'ses-marketing' : 'ses-transactional');
+
         try {
-            Mail::mailer('ses-transactional')->send('emails.raw', ['content' => $rendered['html']], function ($message) use ($rendered, $testEmail) {
+            Mail::mailer($mailer)->send('emails.raw', ['content' => $rendered['html']], function ($message) use ($rendered, $testEmail) {
                 $message->from($rendered['sender_email'], $rendered['sender_name'])
                     ->to($testEmail)
                     ->subject('[TEST PREVIEW] ' . $rendered['subject']);
@@ -195,10 +245,16 @@ class AdminEmailTemplatesController extends Controller
                 if (!empty($rendered['reply_to'])) {
                     $message->replyTo($rendered['reply_to']);
                 }
+
+                if (!empty($rendered['unsubscribe_url'])) {
+                    $message->getHeaders()
+                        ->addTextHeader('List-Unsubscribe', '<' . $rendered['unsubscribe_url'] . '>')
+                        ->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+                }
             });
 
             return redirect()->back()
-                ->with('success_message', "Real test preview for '{$template->name}' dispatched to {$testEmail} via Amazon SES (auth.imaginebuddy.com)!");
+                ->with('success_message', "Real test preview for '{$template->name}' dispatched to {$testEmail} via Amazon SES ({$rendered['sender_email']})!");
         } catch (\Throwable $e) {
             return redirect()->back()
                 ->with('error_message', "Failed to send test email: " . $e->getMessage());

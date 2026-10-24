@@ -1,22 +1,11 @@
 @extends('admin.layout')
 
 @section('content')
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-    <h5 class="mb-0 fw-light">
-        <a class="text-reset" href="{{ url('panel/admin') }}">{{ __('admin.dashboard') }}</a>
-        <i class="bi-chevron-right me-1 fs-6"></i>
-        <span class="text-muted">Email Templates &amp; Configuration</span>
-    </h5>
-
-    <div class="d-flex flex-wrap align-items-center gap-2">
-        <a href="{{ url('panel/admin/email-deliverability') }}" class="btn btn-sm btn-outline-dark">
-            <i class="bi-shield-check me-1"></i> Deliverability Center &rarr;
-        </a>
-        <a href="{{ url('panel/admin/email-marketing/campaigns') }}" class="btn btn-sm btn-outline-primary">
-            <i class="bi-megaphone me-1"></i> Marketing Campaigns &rarr;
-        </a>
-    </div>
-</div>
+<h5 class="mb-4 fw-bold">
+    <a href="{{ url('panel/admin') }}">{{ __('admin.dashboard') }}</a> 
+    <i class="bi-chevron-right fs-6 mx-2"></i> 
+    <span class="text-muted">Email Templates &amp; Master Branding</span>
+</h5>
 
 <div class="content">
     @if (session('success_message'))
@@ -43,15 +32,18 @@
                     <i class="bi-envelope-check fs-5"></i>
                 </span>
                 <div>
-                    <h6 class="mb-0 fw-bold text-body">Transactional &amp; Authentication Email Center (auth.imaginebuddy.com)</h6>
+                    <h6 class="mb-0 fw-bold text-body">Centralized Email Templates &amp; Branding Management</h6>
                     <small class="text-muted">
-                        Customize email layouts, subject lines, buttons, and sender identities for critical security, verification, and billing messages. All changes automatically update outgoing emails while preserving hardcoded fail-safes.
+                        Manage all outgoing emails across both <code>auth.imaginebuddy.com</code> (critical authentication &amp; billing) and <code>updates.imaginebuddy.com</code> (marketing, prompt drops &amp; lifecycle automations) in a unified, production-ready Light-Mode design system.
                     </small>
                 </div>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill align-self-center px-3 py-2">
+                    <i class="bi-shield-lock-fill me-1"></i> auth.imaginebuddy.com
+                </span>
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill align-self-center px-3 py-2">
-                    <i class="bi-shield-lock-fill me-1"></i> Amazon SES v2 Protected
+                    <i class="bi-megaphone-fill me-1"></i> updates.imaginebuddy.com
                 </span>
             </div>
         </div>
@@ -60,8 +52,18 @@
     <!-- Navigation Tabs -->
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link @if($tab === 'templates') active fw-bold @endif" href="{{ url('panel/admin/email-templates?tab=templates') }}">
-                <i class="bi-card-text me-1"></i> Templates Library ({{ $counts['all'] }})
+            <a class="nav-link @if($tab === 'templates' && $channel === 'all') active fw-bold @endif" href="{{ url('panel/admin/email-templates?tab=templates&channel=all') }}">
+                <i class="bi-card-text me-1"></i> All Templates ({{ $counts['all'] }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @if($tab === 'templates' && $channel === 'auth') active fw-bold @endif" href="{{ url('panel/admin/email-templates?tab=templates&channel=auth') }}">
+                <i class="bi-shield-check text-primary me-1"></i> Auth Channel ({{ $counts['auth'] }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @if($tab === 'templates' && $channel === 'updates') active fw-bold @endif" href="{{ url('panel/admin/email-templates?tab=templates&channel=updates') }}">
+                <i class="bi-megaphone text-success me-1"></i> Updates Channel ({{ $counts['updates'] }})
             </a>
         </li>
         <li class="nav-item">
@@ -79,30 +81,41 @@
             <div class="row align-items-center mb-4 g-3">
                 <div class="col-md-7">
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ url('panel/admin/email-templates?category=all') }}" class="btn btn-sm @if($category === 'all') btn-dark @else btn-light border @endif">
-                            All Templates ({{ $counts['all'] }})
+                        <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=all') }}" class="btn btn-sm @if($category === 'all') btn-dark @else btn-light border @endif">
+                            All Categories ({{ $counts['all'] }})
                         </a>
-                        <a href="{{ url('panel/admin/email-templates?category=security') }}" class="btn btn-sm @if($category === 'security') btn-dark @else btn-light border @endif">
-                            <i class="bi-shield-lock text-danger me-1"></i> Security ({{ $counts['security'] }})
-                        </a>
-                        <a href="{{ url('panel/admin/email-templates?category=authentication') }}" class="btn btn-sm @if($category === 'authentication') btn-dark @else btn-light border @endif">
-                            <i class="bi-person-check text-primary me-1"></i> Auth ({{ $counts['authentication'] }})
-                        </a>
-                        <a href="{{ url('panel/admin/email-templates?category=billing') }}" class="btn btn-sm @if($category === 'billing') btn-dark @else btn-light border @endif">
-                            <i class="bi-credit-card text-success me-1"></i> Billing ({{ $counts['billing'] }})
-                        </a>
-                        <a href="{{ url('panel/admin/email-templates?category=notifications') }}" class="btn btn-sm @if($category === 'notifications') btn-dark @else btn-light border @endif">
-                            <i class="bi-bell text-warning me-1"></i> System ({{ $counts['notifications'] }})
-                        </a>
+                        @if($channel === 'all' || $channel === 'auth')
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=security') }}" class="btn btn-sm @if($category === 'security') btn-dark @else btn-light border @endif">
+                                <i class="bi-shield-lock text-danger me-1"></i> Security ({{ $counts['security'] }})
+                            </a>
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=authentication') }}" class="btn btn-sm @if($category === 'authentication') btn-dark @else btn-light border @endif">
+                                <i class="bi-person-check text-primary me-1"></i> Auth ({{ $counts['authentication'] }})
+                            </a>
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=billing') }}" class="btn btn-sm @if($category === 'billing') btn-dark @else btn-light border @endif">
+                                <i class="bi-credit-card text-success me-1"></i> Billing ({{ $counts['billing'] }})
+                            </a>
+                        @endif
+                        @if($channel === 'all' || $channel === 'updates')
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=newsletters') }}" class="btn btn-sm @if($category === 'newsletters') btn-dark @else btn-light border @endif">
+                                <i class="bi-envelope-paper text-info me-1"></i> Newsletters ({{ $counts['newsletters'] }})
+                            </a>
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=marketing') }}" class="btn btn-sm @if($category === 'marketing') btn-dark @else btn-light border @endif">
+                                <i class="bi-broadcast text-warning me-1"></i> Marketing ({{ $counts['marketing'] }})
+                            </a>
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=lifecycle') }}" class="btn btn-sm @if($category === 'lifecycle') btn-dark @else btn-light border @endif">
+                                <i class="bi-arrow-repeat text-success me-1"></i> Lifecycle ({{ $counts['lifecycle'] }})
+                            </a>
+                        @endif
                     </div>
                 </div>
                 <div class="col-md-5">
                     <form method="GET" action="{{ url('panel/admin/email-templates') }}" class="d-flex gap-2">
+                        <input type="hidden" name="channel" value="{{ $channel }}">
                         <input type="hidden" name="category" value="{{ $category }}">
                         <input type="text" name="q" value="{{ $q }}" class="form-control form-control-sm" placeholder="Search template name, subject...">
                         <button type="submit" class="btn btn-sm btn-dark">Search</button>
                         @if(!empty($q))
-                            <a href="{{ url('panel/admin/email-templates?category=' . $category) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                            <a href="{{ url('panel/admin/email-templates?channel=' . $channel . '&category=' . $category) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
                         @endif
                     </form>
                 </div>
@@ -114,9 +127,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>Template Name</th>
+                            <th class="text-nowrap">Channel</th>
                             <th class="text-nowrap">Category</th>
                             <th>Subject Line</th>
-                            <th class="text-nowrap">Sender Stream</th>
                             <th class="text-nowrap">Status</th>
                             <th class="text-end text-nowrap" style="min-width: 175px;">Actions</th>
                         </tr>
@@ -129,23 +142,37 @@
                                 <code class="small text-muted">{{ $tmpl->slug }}</code>
                             </td>
                             <td class="text-nowrap">
+                                @if($tmpl->channel === 'updates')
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                        <i class="bi-megaphone me-1"></i> updates
+                                    </span>
+                                @else
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+                                        <i class="bi-shield-lock me-1"></i> auth
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="text-nowrap">
                                 @if($tmpl->category === 'security')
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Security OTP</span>
                                 @elseif($tmpl->category === 'authentication')
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Authentication</span>
                                 @elseif($tmpl->category === 'billing')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Billing &amp; Plans</span>
+                                @elseif($tmpl->category === 'newsletters')
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill">Newsletter</span>
+                                @elseif($tmpl->category === 'marketing')
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">Marketing Broadcast</span>
+                                @elseif($tmpl->category === 'lifecycle')
+                                    <span class="badge bg-purple-subtle text-primary border rounded-pill" style="background-color: #f3e8ff;">Lifecycle Automation</span>
                                 @else
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">System Alert</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill">Notification</span>
                                 @endif
                             </td>
                             <td>
-                                <div class="small text-body fw-medium text-truncate" style="max-width: 250px;" title="{{ $tmpl->subject }}">
+                                <div class="small text-body fw-medium text-truncate" style="max-width: 280px;" title="{{ $tmpl->subject }}">
                                     {{ $tmpl->subject }}
                                 </div>
-                            </td>
-                            <td class="text-nowrap">
-                                <code class="small text-muted">{{ $tmpl->sender_email ?: ($settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com') }}</code>
                             </td>
                             <td class="text-nowrap">
                                 <div class="d-inline-flex align-items-center gap-1">
@@ -155,7 +182,7 @@
                                         <span class="badge bg-secondary">Disabled</span>
                                     @endif
                                     @if($tmpl->is_system)
-                                        <span class="badge bg-light text-secondary border" title="Core System Security Template (Protected)">
+                                        <span class="badge bg-light text-secondary border" title="Core System Workflow (Protected)">
                                             <i class="bi-lock-fill"></i>
                                         </span>
                                     @endif
@@ -188,104 +215,175 @@
     </div>
     @endif
 
-    <!-- TAB 2: MASTER BRANDING & SENDER CONFIG -->
+    <!-- TAB 2: MASTER BRANDING & SENDER CONFIG (DECOUPLED FOR AUTH & UPDATES) -->
     @if($tab === 'branding')
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow-custom border-0 p-4 mb-4">
-                <h6 class="fw-bold mb-3"><i class="bi-palette me-1 text-primary"></i> Master Email Branding &amp; Visual Settings</h6>
-                <p class="text-muted small mb-4">
-                    These settings apply globally to all authentication and transactional email layouts sent through <code>auth.imaginebuddy.com</code>.
-                </p>
+            <form method="POST" action="{{ url('panel/admin/email-templates/branding') }}" enctype="multipart/form-data">
+                @csrf
 
-                <form method="POST" action="{{ url('panel/admin/email-templates/branding') }}" enctype="multipart/form-data">
-                    @csrf
-
-                    <!-- Logo Upload -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Email Header Logo</label>
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="p-2 border rounded bg-light text-center" style="min-width: 120px; max-width: 200px;">
-                                @if(!empty($settings->email_logo))
-                                    <img src="{{ url($settings->email_logo) }}" alt="Current Logo" style="max-height: 45px; max-width: 100%;">
-                                @elseif(!empty($settings->logo))
-                                    <img src="{{ url('public/img', $settings->logo) }}" alt="Default Logo" style="max-height: 45px; max-width: 100%;">
-                                @else
-                                    <span class="fw-bold">{{ $settings->title }}</span>
-                                @endif
-                            </div>
-                            <div class="flex-grow-1">
-                                <input type="file" name="email_logo" class="form-control form-control-sm" accept="image/*">
-                                <small class="text-muted">Recommended: Transparent PNG or SVG, max width 220px, height ~45px.</small>
-                            </div>
+                <!-- Header Logo Upload -->
+                <div class="card shadow-custom border-0 p-4 mb-4">
+                    <h6 class="fw-bold mb-3"><i class="bi-image me-1 text-primary"></i> Shared Header Brand Logo</h6>
+                    <p class="text-muted small mb-3">
+                        Displayed at the top of all email layouts across both <code>auth.imaginebuddy.com</code> and <code>updates.imaginebuddy.com</code>.
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-2 border rounded bg-light text-center" style="min-width: 140px; max-width: 220px;">
+                            @if(!empty($settings->email_logo))
+                                <img src="{{ url($settings->email_logo) }}" alt="Current Logo" style="max-height: 45px; max-width: 100%;">
+                            @elseif(!empty($settings->logo))
+                                <img src="{{ url('public/img', $settings->logo) }}" alt="Default Logo" style="max-height: 45px; max-width: 100%;">
+                            @else
+                                <span class="fw-bold">{{ $settings->title }}</span>
+                            @endif
+                        </div>
+                        <div class="flex-grow-1">
+                            <input type="file" name="email_logo" class="form-control form-control-sm" accept="image/*">
+                            <small class="text-muted">Recommended: Transparent PNG or SVG, max width 220px, height ~45px.</small>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Colors -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Primary Accent Color (Links &amp; Accents)</label>
-                            <div class="input-group">
-                                <input type="color" class="form-control form-control-color" value="{{ $settings->email_primary_color ?: '#4f46e5' }}" id="primaryColorPicker" style="max-width: 50px;">
-                                <input type="text" name="email_primary_color" id="primaryColorText" class="form-control" value="{{ $settings->email_primary_color ?: '#4f46e5' }}" required>
-                            </div>
-                            <small class="text-muted">Applied to hyperlink text and callout borders.</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Primary Button Background Color</label>
-                            <div class="input-group">
-                                <input type="color" class="form-control form-control-color" value="{{ $settings->email_button_color ?: '#0f172a' }}" id="buttonColorPicker" style="max-width: 50px;">
-                                <input type="text" name="email_button_color" id="buttonColorText" class="form-control" value="{{ $settings->email_button_color ?: '#0f172a' }}" required>
-                            </div>
-                            <small class="text-muted">Applied to main action CTA buttons (Verify, Reset, Renew).</small>
-                        </div>
+                <!-- SECTION 1: AUTHENTICATION CHANNEL SETTINGS -->
+                <div class="card shadow-custom border-0 p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="fw-bold mb-0 text-primary">
+                            <i class="bi-shield-lock-fill me-1"></i> Authentication Channel Settings (auth.imaginebuddy.com)
+                        </h6>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                            ses-transactional
+                        </span>
                     </div>
-
-                    <hr class="my-4">
-
-                    <!-- Default Sender Identities -->
-                    <h6 class="fw-bold mb-3"><i class="bi-shield-check me-1 text-success"></i> Default Authentication Sender (auth.imaginebuddy.com)</h6>
+                    <p class="text-muted small mb-4">
+                        Handles 2FA OTP codes, account verification, password resets, and critical billing invoices.
+                    </p>
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Default Sender Name <span class="text-danger">*</span></label>
                             <input type="text" name="email_sender_name_auth" class="form-control" value="{{ $settings->email_sender_name_auth ?: 'Imagine Buddy Security' }}" required>
-                            <small class="text-muted">e.g. <em>Imagine Buddy Security</em> or <em>Imagine Buddy Support</em></small>
+                            <small class="text-muted">e.g. <em>Imagine Buddy Security</em></small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Default Sender Email Address <span class="text-danger">*</span></label>
                             <input type="email" name="email_sender_address_auth" class="form-control" value="{{ $settings->email_sender_address_auth ?: 'noreply@auth.imaginebuddy.com' }}" required>
-                            <small class="text-muted">Must belong to verified identity <code>auth.imaginebuddy.com</code></small>
+                            <small class="text-muted">Verified domain: <code>auth.imaginebuddy.com</code></small>
                         </div>
                     </div>
 
-                    <!-- Footer Legal Disclaimer -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Custom Email Footer Disclaimer</label>
-                        <textarea name="email_footer_text" class="form-control" rows="3" placeholder="&copy; 2026 Imagine Buddy Inc. All rights reserved. 123 Tech Lane, Suite 400.">{{ $settings->email_footer_text }}</textarea>
-                        <small class="text-muted">Displayed at the very bottom of all transactional and authentication emails.</small>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Primary Accent Color (Links &amp; Accents)</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" value="{{ $settings->email_primary_color ?: '#4f46e5' }}" id="authPrimaryColorPicker" style="max-width: 50px;">
+                                <input type="text" name="email_primary_color" id="authPrimaryColorText" class="form-control" value="{{ $settings->email_primary_color ?: '#4f46e5' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Primary Button Background Color</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" value="{{ $settings->email_button_color ?: '#0f172a' }}" id="authButtonColorPicker" style="max-width: 50px;">
+                                <input type="text" name="email_button_color" id="authButtonColorText" class="form-control" value="{{ $settings->email_button_color ?: '#0f172a' }}">
+                            </div>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-dark px-4">
-                        <i class="bi-check-lg me-1"></i> Save Branding Settings
-                    </button>
-                </form>
-            </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Security Footer Disclaimer</label>
+                        <textarea name="email_footer_text" class="form-control" rows="2" placeholder="This security email was sent automatically from a verified, notification-only address.">{{ $settings->email_footer_text }}</textarea>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: UPDATES & MARKETING CHANNEL SETTINGS -->
+                <div class="card shadow-custom border-0 p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="fw-bold mb-0 text-success">
+                            <i class="bi-megaphone-fill me-1"></i> Updates &amp; Marketing Channel Settings (updates.imaginebuddy.com)
+                        </h6>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            ses-marketing
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-4">
+                        Handles newsletter broadcasts, weekly prompt drops, onboarding drips, and promotional announcements.
+                    </p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Default Marketing Sender Name <span class="text-danger">*</span></label>
+                            <input type="text" name="email_sender_name_updates" class="form-control" value="{{ $settings->email_sender_name_updates ?: 'Imagine Buddy Updates' }}" required>
+                            <small class="text-muted">e.g. <em>Imagine Buddy Updates</em> or <em>Imagine Buddy Team</em></small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Default Marketing Sender Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email_sender_address_updates" class="form-control" value="{{ $settings->email_sender_address_updates ?: 'hello@updates.imaginebuddy.com' }}" required>
+                            <small class="text-muted">Verified domain: <code>updates.imaginebuddy.com</code></small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Marketing Reply-To Address</label>
+                            <input type="email" name="email_reply_to_updates" class="form-control" value="{{ $settings->email_reply_to_updates ?: 'support@imaginebuddy.com' }}">
+                            <small class="text-muted">Where creator replies are routed (e.g. support helpdesk).</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Marketing Button Background Color</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" value="{{ $settings->email_updates_button_color ?: '#0f172a' }}" id="updatesButtonColorPicker" style="max-width: 50px;">
+                                <input type="text" name="email_updates_button_color" id="updatesButtonColorText" class="form-control" value="{{ $settings->email_updates_button_color ?: '#0f172a' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Marketing Accent / Link Color</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" value="{{ $settings->email_updates_primary_color ?: '#4f46e5' }}" id="updatesPrimaryColorPicker" style="max-width: 50px;">
+                                <input type="text" name="email_updates_primary_color" id="updatesPrimaryColorText" class="form-control" value="{{ $settings->email_updates_primary_color ?: '#4f46e5' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Marketing Footer Disclaimer &amp; Notice</label>
+                        <textarea name="email_updates_footer_text" class="form-control" rows="2" placeholder="You are receiving this email because you opted in to updates and marketing on Imagine Buddy.">{{ $settings->email_updates_footer_text }}</textarea>
+                        <small class="text-muted">One-click unsubscribe links and terms are automatically appended.</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-dark px-4 py-2">
+                    <i class="bi-check-lg me-1"></i> Save All Master Settings
+                </button>
+            </form>
         </div>
 
-        <!-- Right Side: Live Visual Preview Info -->
+        <!-- Right Side: Guidelines & Architecture Info -->
         <div class="col-lg-4">
             <div class="card shadow-custom border-0 p-4 mb-4">
-                <h6 class="fw-bold mb-2"><i class="bi-info-circle me-1 text-primary"></i> Light-Mode Theme Details</h6>
+                <h6 class="fw-bold mb-2 text-body"><i class="bi-shield-check me-1 text-success"></i> Channel Isolation Guarantee</h6>
                 <p class="small text-muted mb-3">
-                    In compliance with your specifications, all authentication emails render in an ultra-clean **light-mode responsive theme**:
+                    Your two sending identities are strictly isolated to guarantee maximum domain reputation and deliverability:
                 </p>
-                <ul class="small text-muted ps-3 mb-0">
-                    <li>Pure white card background (<code>#ffffff</code>) with soft border styling.</li>
-                    <li>Slate dark heading typography (<code>#0f172a</code>) for maximum readability.</li>
-                    <li>High-inboxing layout tested across Gmail, Apple Mail, and Outlook.</li>
-                    <li>Automatic responsive adaptation on iPhone and Android screens.</li>
-                </ul>
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="fw-bold small text-primary mb-1">🔒 auth.imaginebuddy.com</div>
+                    <p class="small text-muted mb-0">
+                        Dedicated solely to instant security OTP codes, account verification, and billing receipts. Never affected by marketing volume.
+                    </p>
+                </div>
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="fw-bold small text-success mb-1">📢 updates.imaginebuddy.com</div>
+                    <p class="small text-muted mb-0">
+                        Handles weekly prompt drops, onboarding drips, and marketing blasts with RFC-compliant <code>List-Unsubscribe=One-Click</code> headers.
+                    </p>
+                </div>
+
+                <h6 class="fw-bold mb-2 text-body"><i class="bi-sun me-1 text-warning"></i> Mandatory Light-Mode Theme</h6>
+                <p class="small text-muted mb-0">
+                    All templates render in a crisp, light-mode design with high-contrast slate typography (<code>#0f172a</code>) tested across Gmail, Apple Mail, and Outlook.
+                </p>
             </div>
         </div>
     </div>
@@ -296,18 +394,34 @@
 @section('javascript')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const primaryPicker = document.getElementById('primaryColorPicker');
-    const primaryText = document.getElementById('primaryColorText');
-    if (primaryPicker && primaryText) {
-        primaryPicker.addEventListener('input', function() { primaryText.value = primaryPicker.value; });
-        primaryText.addEventListener('input', function() { primaryPicker.value = primaryText.value; });
+    // Auth color pickers
+    const authPrimaryPicker = document.getElementById('authPrimaryColorPicker');
+    const authPrimaryText = document.getElementById('authPrimaryColorText');
+    if (authPrimaryPicker && authPrimaryText) {
+        authPrimaryPicker.addEventListener('input', function() { authPrimaryText.value = authPrimaryPicker.value; });
+        authPrimaryText.addEventListener('input', function() { authPrimaryPicker.value = authPrimaryText.value; });
     }
 
-    const buttonPicker = document.getElementById('buttonColorPicker');
-    const buttonText = document.getElementById('buttonColorText');
-    if (buttonPicker && buttonText) {
-        buttonPicker.addEventListener('input', function() { buttonText.value = buttonPicker.value; });
-        buttonText.addEventListener('input', function() { buttonPicker.value = buttonText.value; });
+    const authButtonPicker = document.getElementById('authButtonColorPicker');
+    const authButtonText = document.getElementById('authButtonColorText');
+    if (authButtonPicker && authButtonText) {
+        authButtonPicker.addEventListener('input', function() { authButtonText.value = authButtonPicker.value; });
+        authButtonText.addEventListener('input', function() { authButtonPicker.value = authButtonText.value; });
+    }
+
+    // Updates color pickers
+    const updatesPrimaryPicker = document.getElementById('updatesPrimaryColorPicker');
+    const updatesPrimaryText = document.getElementById('updatesPrimaryColorText');
+    if (updatesPrimaryPicker && updatesPrimaryText) {
+        updatesPrimaryPicker.addEventListener('input', function() { updatesPrimaryText.value = updatesPrimaryPicker.value; });
+        updatesPrimaryText.addEventListener('input', function() { updatesPrimaryPicker.value = updatesPrimaryText.value; });
+    }
+
+    const updatesButtonPicker = document.getElementById('updatesButtonColorPicker');
+    const updatesButtonText = document.getElementById('updatesButtonColorText');
+    if (updatesButtonPicker && updatesButtonText) {
+        updatesButtonPicker.addEventListener('input', function() { updatesButtonText.value = updatesButtonPicker.value; });
+        updatesButtonText.addEventListener('input', function() { updatesButtonPicker.value = updatesButtonText.value; });
     }
 });
 </script>

@@ -22,8 +22,19 @@ class EmailTemplateService
             $template = EmailTemplate::where('slug', $slug)->first();
 
             if ($template && $template->is_enabled) {
-                $primaryColor = $settings->email_primary_color ?? '#4f46e5';
-                $buttonColor = $settings->email_button_color ?? '#0f172a';
+                $isUpdates = ($template->channel ?? 'auth') === 'updates';
+
+                $primaryColor = $isUpdates
+                    ? ($settings->email_updates_primary_color ?: ($settings->email_primary_color ?: '#4f46e5'))
+                    : ($settings->email_primary_color ?: '#4f46e5');
+
+                $buttonColor = $isUpdates
+                    ? ($settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a'))
+                    : ($settings->email_button_color ?: '#0f172a');
+
+                $footerText = $isUpdates
+                    ? $settings->email_updates_footer_text
+                    : $settings->email_footer_text;
 
                 // 1. Prepare dynamic variable map
                 $sampleData = $template->getSampleVariables();
@@ -43,33 +54,48 @@ class EmailTemplateService
                 $parsedBody = self::applyBrandingToHtml($parsedBody, $buttonColor, $primaryColor);
                 $parsedPlain = $template->content_plain ? strtr($template->content_plain, $finalData) : strip_tags($parsedBody);
 
-                // 3. Sender configuration (Per-template override > Global Auth Setting > Default)
-                $defaultAuthSender = $settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com';
-                $defaultAuthName = $settings->email_sender_name_auth ?? ($settings->title . ' Security');
+                // 3. Sender configuration
+                if ($isUpdates) {
+                    $defaultSender = $settings->email_sender_address_updates ?? 'hello@updates.imaginebuddy.com';
+                    $defaultName = $settings->email_sender_name_updates ?? (($settings->title ?? 'Imagine Buddy') . ' Updates');
+                    $defaultReplyTo = $settings->email_reply_to_updates ?? 'support@imaginebuddy.com';
+                    $mailer = 'ses-marketing';
+                    $layoutView = 'emails.layouts.master-updates';
+                } else {
+                    $defaultSender = $settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com';
+                    $defaultName = $settings->email_sender_name_auth ?? (($settings->title ?? 'Imagine Buddy') . ' Security');
+                    $defaultReplyTo = null;
+                    $mailer = 'ses-transactional';
+                    $layoutView = 'emails.layouts.master';
+                }
 
-                $senderEmail = !empty($template->sender_email) ? $template->sender_email : $defaultAuthSender;
-                $senderName = !empty($template->sender_name) ? $template->sender_name : $defaultAuthName;
-                $replyTo = $template->reply_to ?: null;
+                $senderEmail = !empty($template->sender_email) ? $template->sender_email : $defaultSender;
+                $senderName = !empty($template->sender_name) ? $template->sender_name : $defaultName;
+                $replyTo = !empty($template->reply_to) ? $template->reply_to : $defaultReplyTo;
 
-                // 4. Wrap within master light layout
-                $html = View::make('emails.layouts.master', [
+                // 4. Wrap within master light layout (master-updates or master auth)
+                $html = View::make($layoutView, [
                     'settings' => $settings,
                     'subject' => $parsedSubject,
                     'bodyContent' => $parsedBody,
                     'logoUrl' => $settings->email_logo ? url($settings->email_logo) : null,
                     'primaryColor' => $primaryColor,
                     'buttonColor' => $buttonColor,
-                    'footerText' => $settings->email_footer_text,
+                    'footerText' => $footerText,
+                    'unsubscribeUrl' => $finalData['{unsubscribe_url}'] ?? null,
                 ])->render();
 
                 return [
                     'used_custom' => true,
+                    'channel' => $template->channel ?? 'auth',
+                    'mailer' => $mailer,
                     'subject' => $parsedSubject,
                     'html' => $html,
                     'plain' => $parsedPlain,
                     'sender_name' => $senderName,
                     'sender_email' => $senderEmail,
                     'reply_to' => $replyTo,
+                    'unsubscribe_url' => $finalData['{unsubscribe_url}'] ?? null,
                 ];
             }
         } catch (\Throwable $e) {
@@ -86,12 +112,15 @@ class EmailTemplateService
 
         return [
             'used_custom' => false,
+            'channel' => 'auth',
+            'mailer' => 'ses-transactional',
             'subject' => ($settings->title ?? 'Imagine Buddy') . ' Notification',
             'html' => '',
             'plain' => '',
             'sender_name' => $settings->email_sender_name_auth ?? 'Imagine Buddy Security',
             'sender_email' => $settings->email_sender_address_auth ?? 'noreply@auth.imaginebuddy.com',
             'reply_to' => null,
+            'unsubscribe_url' => null,
         ];
     }
 
@@ -101,8 +130,21 @@ class EmailTemplateService
     public static function preview(EmailTemplate $template, array $overrides = []): string
     {
         $settings = AdminSettings::first();
-        $primaryColor = $settings->email_primary_color ?? '#4f46e5';
-        $buttonColor = $settings->email_button_color ?? '#0f172a';
+        $isUpdates = ($template->channel ?? 'auth') === 'updates';
+
+        $primaryColor = $isUpdates
+            ? ($settings->email_updates_primary_color ?: ($settings->email_primary_color ?: '#4f46e5'))
+            : ($settings->email_primary_color ?: '#4f46e5');
+
+        $buttonColor = $isUpdates
+            ? ($settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a'))
+            : ($settings->email_button_color ?: '#0f172a');
+
+        $footerText = $isUpdates
+            ? $settings->email_updates_footer_text
+            : $settings->email_footer_text;
+
+        $layoutView = $isUpdates ? 'emails.layouts.master-updates' : 'emails.layouts.master';
 
         $sampleData = array_merge($template->getSampleVariables(), $overrides);
         $sampleData['{primary_color}'] = $primaryColor;
@@ -112,14 +154,15 @@ class EmailTemplateService
         $parsedBody = strtr($template->content_html, $sampleData);
         $parsedBody = self::applyBrandingToHtml($parsedBody, $buttonColor, $primaryColor);
 
-        return View::make('emails.layouts.master', [
+        return View::make($layoutView, [
             'settings' => $settings,
             'subject' => $parsedSubject,
             'bodyContent' => $parsedBody,
             'logoUrl' => $settings->email_logo ? url($settings->email_logo) : null,
             'primaryColor' => $primaryColor,
             'buttonColor' => $buttonColor,
-            'footerText' => $settings->email_footer_text,
+            'footerText' => $footerText,
+            'unsubscribeUrl' => $sampleData['{unsubscribe_url}'] ?? null,
         ])->render();
     }
 
