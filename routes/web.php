@@ -445,9 +445,9 @@ Route::group(['middleware' => 'downloads'], function() {
  */
 
 Route::get('{slug}', [UserController::class, 'profile'])->where('slug','[A-Za-z0-9\_-]+')->name('profile');
-Route::get('{slug}/followers', [UserController::class, 'followers'])->where('slug','[A-Za-z0-9\_-]+')->name('profile');
-Route::get('{slug}/following', [UserController::class, 'following'])->where('slug','[A-Za-z0-9\_-]+')->name('profile');
-Route::get('{slug}/collections', [UserController::class, 'collections'])->where('slug','[A-Za-z0-9\_-]+')->name('profile');
+Route::get('{slug}/followers', [UserController::class, 'followers'])->where('slug','[A-Za-z0-9\_-]+')->name('profile.followers');
+Route::get('{slug}/following', [UserController::class, 'following'])->where('slug','[A-Za-z0-9\_-]+')->name('profile.following');
+Route::get('{slug}/collections', [UserController::class, 'collections'])->where('slug','[A-Za-z0-9\_-]+')->name('profile.collections');
 
 /*
  |
