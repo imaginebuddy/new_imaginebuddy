@@ -263,34 +263,34 @@
                 <input type="text" name="q" class="form-control form-control-sm" placeholder="Search recipient email..." value="{{ $search }}" style="width: 220px;">
                 <button type="submit" class="btn btn-sm btn-outline-dark"><i class="bi-search"></i></button>
                 @if(!empty($search))
-                <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => $statusFilter]) }}" class="btn btn-sm btn-light border"><i class="bi-x-lg"></i></a>
+                <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/' . $statusFilter) }}" class="btn btn-sm btn-light border"><i class="bi-x-lg"></i></a>
                 @endif
             </form>
         </div>
 
         <!-- Filter Pills Bar -->
         <div class="d-flex flex-wrap gap-1 mb-3">
-            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => 'all', 'q' => $search]) }}" 
+            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/all' . ($search ? '?q=' . urlencode($search) : '')) }}" 
                class="btn btn-xs @if($statusFilter === 'all') btn-dark @else btn-outline-secondary @endif">
                 All ({{ number_format($campaign->recipients()->count()) }})
             </a>
-            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => 'delivered', 'q' => $search]) }}" 
+            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/delivered' . ($search ? '?q=' . urlencode($search) : '')) }}" 
                class="btn btn-xs @if($statusFilter === 'delivered') btn-success @else btn-outline-success @endif">
                 Delivered ({{ number_format($campaign->delivered_count) }})
             </a>
-            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => 'opened', 'q' => $search]) }}" 
+            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/opened' . ($search ? '?q=' . urlencode($search) : '')) }}" 
                class="btn btn-xs @if($statusFilter === 'opened') btn-info text-white @else btn-outline-info @endif">
                 Opened ({{ number_format($campaign->unique_opens_count) }})
             </a>
-            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => 'clicked', 'q' => $search]) }}" 
+            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/clicked' . ($search ? '?q=' . urlencode($search) : '')) }}" 
                class="btn btn-xs @if($statusFilter === 'clicked') btn-warning @else btn-outline-warning @endif">
                 Clicked ({{ number_format($campaign->unique_clicks_count) }})
             </a>
-            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => 'hard_bounced', 'q' => $search]) }}" 
-               class="btn btn-xs @if($statusFilter === 'hard_bounced') btn-danger @else btn-outline-danger @endif">
+            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/bounced' . ($search ? '?q=' . urlencode($search) : '')) }}" 
+               class="btn btn-xs @if(in_array($statusFilter, ['bounced', 'hard_bounced'])) btn-danger @else btn-outline-danger @endif">
                 Bounced ({{ number_format($campaign->bounced_count) }})
             </a>
-            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics', ['status' => 'failed', 'q' => $search]) }}" 
+            <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/analytics/failed' . ($search ? '?q=' . urlencode($search) : '')) }}" 
                class="btn btn-xs @if($statusFilter === 'failed') btn-secondary @else btn-outline-secondary @endif">
                 Failed ({{ number_format($campaign->failed_count) }})
             </a>

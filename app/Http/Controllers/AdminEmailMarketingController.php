@@ -520,11 +520,11 @@ class AdminEmailMarketingController extends Controller
     /**
      * Show detailed Campaign Analytics & Recipient Delivery Log.
      */
-    public function analytics(Request $request, $id)
+    public function analytics(Request $request, $id, $status = null)
     {
         $campaign = EmailCampaign::with('author')->findOrFail($id);
 
-        $statusFilter = $request->input('status', 'all');
+        $statusFilter = $status ?: $request->input('status', 'all');
         $search = trim($request->input('q', ''));
 
         $recipientsQuery = $campaign->recipients()->latest();
@@ -534,6 +534,8 @@ class AdminEmailMarketingController extends Controller
                 $recipientsQuery->where('open_count', '>', 0);
             } elseif ($statusFilter === 'clicked') {
                 $recipientsQuery->where('click_count', '>', 0);
+            } elseif ($statusFilter === 'bounced' || $statusFilter === 'hard_bounced') {
+                $recipientsQuery->whereIn('status', ['hard_bounced', 'soft_bounced']);
             } else {
                 $recipientsQuery->where('status', $statusFilter);
             }
