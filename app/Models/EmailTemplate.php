@@ -50,14 +50,15 @@ class EmailTemplate extends Model
             'admin-deposit-pending' => ['{admin_url}'],
 
             // Updates channel templates (updates.imaginebuddy.com)
-            'broadcast-campaign' => ['{unsubscribe_url}'],
-            'newsletter-double-opt-in' => ['{confirm_url}', '{unsubscribe_url}'],
-            'newsletter-welcome' => ['{vault_url}', '{unsubscribe_url}'],
-            'weekly-prompt-drop' => ['{unsubscribe_url}'],
-            'welcome-drip-day3' => ['{action_url}', '{unsubscribe_url}'],
-            'abandoned-checkout' => ['{checkout_url}', '{unsubscribe_url}'],
-            'user-reengagement' => ['{vault_url}', '{unsubscribe_url}'],
-            'quota-refilled' => ['{quota_amount}', '{unsubscribe_url}'],
+            // Note: {unsubscribe_url} is automatically supplied in the master layout footer, so it is not required in body
+            'broadcast-campaign' => [],
+            'newsletter-double-opt-in' => ['{confirm_url}'],
+            'newsletter-welcome' => ['{vault_url}'],
+            'weekly-prompt-drop' => [],
+            'welcome-drip-day3' => ['{action_url}'],
+            'abandoned-checkout' => ['{checkout_url}'],
+            'user-reengagement' => ['{vault_url}'],
+            'quota-refilled' => ['{quota_amount}'],
         ];
     }
 
