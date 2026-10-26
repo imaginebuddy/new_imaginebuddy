@@ -198,9 +198,9 @@ class EmailTrackingService
                 $recipient->campaign?->increment('bounced_count');
             }
 
-            // Suppress permanently if hard bounce
+            // Suppress permanently if hard bounce, or record soft bounce threshold
             if ($bounceType === 'Permanent') {
-                EmailSuppression::suppress($email, 'hard_bounce', $stream, $message);
+                EmailSuppression::suppress($email, 'hard_bounce', $stream, $message, 'all');
                 User::where('email', $email)->update([
                     'marketing_opt_in' => 0,
                     'marketing_unsubscribed_at' => now(),
@@ -209,6 +209,9 @@ class EmailTrackingService
                     'status' => 'unsubscribed',
                     'unsubscribed_at' => now(),
                 ]);
+            } else {
+                // Soft bounce: track threshold (promote to suppression if repeated 3 times)
+                EmailSuppression::recordSoftBounce($email, $stream, $message, 3);
             }
         }
     }

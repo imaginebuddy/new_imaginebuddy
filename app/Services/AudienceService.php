@@ -30,6 +30,7 @@ class AudienceService
         $googleUsers = User::where('status', 'active')
             ->where('marketing_opt_in', 1)
             ->where('oauth_provider', 'google')
+            ->where('is_disposable_email', 0)
             ->whereNull('marketing_unsubscribed_at')
             ->select('id', 'name', 'username', 'email', 'token')
             ->get();
@@ -88,6 +89,7 @@ class AudienceService
             $googleUsers = User::where('status', 'active')
                 ->where('marketing_opt_in', 1)
                 ->where('oauth_provider', 'google')
+                ->where('is_disposable_email', 0)
                 ->whereNull('marketing_unsubscribed_at')
                 ->select('id', 'name', 'username', 'email', 'token', 'date')
                 ->get();
@@ -137,6 +139,7 @@ class AudienceService
             $payingUsers = User::where('status', 'active')
                 ->where('marketing_opt_in', 1)
                 ->where('oauth_provider', 'google')
+                ->where('is_disposable_email', 0)
                 ->whereNull('marketing_unsubscribed_at')
                 ->whereHas('mySubscription', function ($q) {
                     $q->where('status', 'active');

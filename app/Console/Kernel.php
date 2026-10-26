@@ -55,6 +55,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('email:send-abandoned-checkout')
             ->hourly()
             ->withoutOverlapping();
+
+        // Unified Deliverability Synchronization (Bounces, SES & Disposable Domains)
+        $schedule->command('email:sync-suppressions')
+            ->dailyAt('03:00')
+            ->withoutOverlapping();
     }
 
     /**

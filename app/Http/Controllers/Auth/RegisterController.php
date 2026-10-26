@@ -77,7 +77,7 @@ class RegisterController extends Controller
 
         return Validator::make($data, [
             'username'  => 'required|min:3|max:15|ascii_only|alpha_dash|letters|unique:users|unique:pages,slug|unique:reserved,name',
-            'email' => 'required|email|max:255|unique:users',
+            'email' => ['required', 'email', 'max:255', 'unique:users', new \App\Rules\DisposableEmailRule],
             'password' => 'required|min:8|confirmed',
             'agree_gdpr' => 'required',
             'g-recaptcha-response' => 'required_if:_captcha,==,on|captcha'

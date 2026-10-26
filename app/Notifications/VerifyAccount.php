@@ -40,7 +40,7 @@ class VerifyAccount extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        if (EmailSuppression::isSuppressed($notifiable->email ?? null)) {
+        if (EmailSuppression::isSuppressed($notifiable->email ?? null, 'auth')) {
             return [];
         }
 

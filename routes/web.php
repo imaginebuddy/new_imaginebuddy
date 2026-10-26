@@ -690,6 +690,7 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/email-deliverability/suppressions', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'addSuppression']);
 	Route::post('panel/admin/email-deliverability/suppressions/{id}/delete', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'removeSuppression']);
 	Route::post('panel/admin/email-deliverability/test-send', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'sendTestWeeklyDrop']);
+	Route::post('panel/admin/email-deliverability/sync', [\App\Http\Controllers\AdminEmailDeliverabilityController::class, 'sync'])->name('email_deliverability.sync');
 
 	// EMAIL MARKETING & BROADCAST CAMPAIGNS
 	Route::get('panel/admin/email-marketing/campaigns', [\App\Http\Controllers\AdminEmailMarketingController::class, 'index'])->name('email_campaigns');

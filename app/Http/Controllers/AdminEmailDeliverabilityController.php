@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmailSuppression;
+use App\Models\EmailSyncLog;
 use App\Models\Images;
 use App\Models\NewsletterSubscribers;
 use App\Models\User;
 use App\Notifications\WeeklyPromptDropNotification;
 use App\Services\AudienceService;
+use App\Services\EmailSuppressionSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 
@@ -33,12 +35,17 @@ class AdminEmailDeliverabilityController extends Controller
 
         // 2. Suppression Metrics
         $suppressionsTotal = EmailSuppression::count();
-        $suppressionsBounces = EmailSuppression::where('reason', 'hard_bounce')->count();
+        $suppressionsBounces = EmailSuppression::whereIn('reason', ['hard_bounce', 'soft_bounce'])->count();
         $suppressionsComplaints = EmailSuppression::where('reason', 'complaint')->count();
         $suppressionsUnsubscribes = EmailSuppression::where('reason', 'manual_unsubscribe')->count();
+        $suppressionsDisposable = EmailSuppression::where('reason', 'disposable')->count();
         $suppressionsAdmin = EmailSuppression::where('reason', 'admin_suppressed')->count();
 
-        // 3. Tab Data
+        // 3. Sync & Reconciliation Status
+        $lastSync = EmailSyncLog::with('admin')->latest()->first();
+        $syncLogs = EmailSyncLog::with('admin')->latest()->take(10)->get();
+
+        // 4. Tab Data
         if ($tab === 'subscribers') {
             $subscribersQuery = NewsletterSubscribers::latest();
             if (!empty($q)) {
@@ -47,6 +54,9 @@ class AdminEmailDeliverabilityController extends Controller
             $data = $subscribersQuery->paginate(20)->withQueryString();
             $suppressions = null;
         } elseif ($tab === 'guide') {
+            $data = null;
+            $suppressions = null;
+        } elseif ($tab === 'sync-logs') {
             $data = null;
             $suppressions = null;
         } else {
@@ -72,10 +82,31 @@ class AdminEmailDeliverabilityController extends Controller
             'suppressionsBounces' => $suppressionsBounces,
             'suppressionsComplaints' => $suppressionsComplaints,
             'suppressionsUnsubscribes' => $suppressionsUnsubscribes,
+            'suppressionsDisposable' => $suppressionsDisposable,
             'suppressionsAdmin' => $suppressionsAdmin,
             'suppressions' => $suppressions,
             'subscribers' => $data,
+            'lastSync' => $lastSync,
+            'syncLogs' => $syncLogs,
         ]);
+    }
+
+    /**
+     * Trigger manual unified deliverability & suppression synchronization.
+     */
+    public function sync(Request $request)
+    {
+        $result = EmailSuppressionSyncService::run('admin', auth()->id());
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($result);
+        }
+
+        if ($result['success']) {
+            return redirect()->back()->with('success_message', "Deliverability synchronization completed in {$result['duration_seconds']}s! Reconciled {$result['bounces_synced']} bounces, detected {$result['disposables_detected']} disposable emails, and updated {$result['newly_suppressed']} suppression records.");
+        }
+
+        return redirect()->back()->with('error_message', 'Synchronization error: ' . ($result['error'] ?? 'Unknown error'));
     }
 
     /**
@@ -85,7 +116,7 @@ class AdminEmailDeliverabilityController extends Controller
     {
         $request->validate([
             'email' => 'required|email:filter|max:255',
-            'reason' => 'required|in:hard_bounce,complaint,manual_unsubscribe,admin_suppressed',
+            'reason' => 'required|in:hard_bounce,complaint,manual_unsubscribe,admin_suppressed,disposable',
         ]);
 
         $email = strtolower(trim($request->input('email')));

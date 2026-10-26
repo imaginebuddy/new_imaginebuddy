@@ -27,7 +27,7 @@ class NewsletterController extends Controller
 
         // 2. Validation
         $request->validate([
-            'email' => 'required|email:filter|max:255',
+            'email' => ['required', 'email:filter', 'max:255', new \App\Rules\DisposableEmailRule],
         ]);
 
         $email = strtolower(trim($request->input('email')));

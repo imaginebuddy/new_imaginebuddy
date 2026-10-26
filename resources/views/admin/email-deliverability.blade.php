@@ -25,7 +25,7 @@
     @include('errors.errors-forms')
 
     <!-- Cross-Section Contextual Link Card -->
-    <div class="card border-0 mb-4 shadow-custom bg-body-tertiary">
+    <div class="card border-0 mb-3 shadow-custom bg-body-tertiary">
         <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3">
                 <span class="d-inline-flex p-2 rounded-circle bg-primary-subtle text-primary border border-primary-subtle">
@@ -44,6 +44,47 @@
                 </a>
             </div>
         </div>
+    </div>
+
+    <!-- Unified Deliverability Synchronization & Protection Banner -->
+    <div class="card border-0 mb-4 shadow-sm border-start border-4 border-primary bg-light">
+        <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="d-inline-flex p-2 rounded-circle bg-white text-primary shadow-sm">
+                    <i class="bi-arrow-repeat fs-5" id="syncBannerIcon"></i>
+                </span>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h6 class="mb-0 fw-bold text-dark">Unified Email Suppression &amp; Deliverability Sync</h6>
+                        @if($lastSync && $lastSync->status === 'completed')
+                            <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi-check-circle me-1"></i> Synchronized</span>
+                        @elseif($lastSync && $lastSync->status === 'running')
+                            <span class="badge bg-warning-subtle text-warning border"><span class="spinner-border spinner-border-sm me-1"></span> In Progress...</span>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary border">Ready</span>
+                        @endif
+                    </div>
+                    <small class="text-muted">
+                        <strong>Last Sync:</strong> {{ $lastSync ? $lastSync->created_at->format('M d, Y H:i') : 'Never' }} 
+                        &bull; <strong>Next Run:</strong> Daily at 03:00 AM (Automated Cron)
+                        &bull; <strong>Protected Channels:</strong> <code>auth.imaginebuddy.com</code> (Transactional) &amp; <code>updates.imaginebuddy.com</code> (Marketing)
+                        &bull; <strong>Disposables Blocked:</strong> {{ number_format($suppressionsDisposable) }}
+                    </small>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary fw-bold btn-sm shadow-sm px-3" id="syncNowBtn">
+                    <span class="spinner-border spinner-border-sm me-1 d-none" id="syncBtnSpinner" role="status" aria-hidden="true"></span>
+                    <i class="bi-arrow-clockwise me-1" id="syncBtnIcon"></i>
+                    <span id="syncBtnText">Sync Suppressions &amp; Audit Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="syncFeedbackAlert" class="alert d-none mb-4 alert-dismissible fade show" role="alert">
+        <span id="syncFeedbackText"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
     <!-- Deliverability KPI Cards -->
@@ -89,7 +130,7 @@
                 </div>
                 <h3 class="fw-bold mb-1 text-danger">{{ number_format($suppressionsTotal) }}</h3>
                 <small class="text-muted">
-                    {{ $suppressionsBounces }} bounces &bull; {{ $suppressionsComplaints }} complaints &bull; {{ $suppressionsUnsubscribes }} unsub
+                    {{ $suppressionsBounces }} bounces &bull; {{ $suppressionsComplaints }} complaints &bull; {{ $suppressionsDisposable }} disposable &bull; {{ $suppressionsUnsubscribes }} unsub
                 </small>
             </div>
         </div>
@@ -142,6 +183,7 @@
                             <option value="hard_bounce">Hard Bounce</option>
                             <option value="complaint">Spam Complaint</option>
                             <option value="manual_unsubscribe">Manual Unsubscribe</option>
+                            <option value="disposable">Disposable Domain</option>
                         </select>
                     </div>
                     <div class="col-sm-5">
@@ -164,6 +206,11 @@
         <li class="nav-item">
             <a class="nav-link @if($tab === 'subscribers') active fw-bold @endif" href="{{ url('panel/admin/email-deliverability?tab=subscribers') }}">
                 <i class="bi-people me-1"></i> Newsletter Subscribers ({{ $newsletterActiveCount }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @if($tab === 'sync-logs') active fw-bold @endif" href="{{ url('panel/admin/email-deliverability?tab=sync-logs') }}">
+                <i class="bi-clock-history me-1"></i> Sync &amp; Audit Logs ({{ $syncLogs->count() }})
             </a>
         </li>
         <li class="nav-item">
@@ -200,6 +247,7 @@
                             <option value="hard_bounce" @if($reason === 'hard_bounce') selected @endif>Hard Bounce</option>
                             <option value="complaint" @if($reason === 'complaint') selected @endif>Complaint</option>
                             <option value="manual_unsubscribe" @if($reason === 'manual_unsubscribe') selected @endif>Unsubscribe</option>
+                            <option value="disposable" @if($reason === 'disposable') selected @endif>Disposable Domain</option>
                             <option value="admin_suppressed" @if($reason === 'admin_suppressed') selected @endif>Admin Suppressed</option>
                         </select>
                         <button type="submit" class="btn btn-sm btn-dark">Filter</button>
@@ -216,6 +264,7 @@
                         <tr>
                             <th>Email</th>
                             <th>Reason</th>
+                            <th>Channel Scope</th>
                             <th>Stream</th>
                             <th>Suppressed On</th>
                             <th class="text-end">Actions</th>
@@ -228,12 +277,27 @@
                             <td>
                                 @if($item->reason === 'hard_bounce')
                                     <span class="badge bg-danger">Hard Bounce</span>
+                                @elseif($item->reason === 'soft_bounce')
+                                    <span class="badge bg-warning text-dark">Soft Bounce ({{ $item->soft_bounce_count }}/3)</span>
                                 @elseif($item->reason === 'complaint')
                                     <span class="badge bg-warning text-dark">Complaint</span>
+                                @elseif($item->reason === 'disposable')
+                                    <span class="badge bg-danger">Disposable Domain</span>
                                 @elseif($item->reason === 'manual_unsubscribe')
                                     <span class="badge bg-secondary">Unsubscribed</span>
                                 @else
                                     <span class="badge bg-dark">Admin Suppressed</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->channel_scope === 'all')
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle" title="Blocked on all channels (Auth + Updates)">
+                                        <i class="bi-slash-circle me-1"></i> All Channels
+                                    </span>
+                                @else
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle" title="Blocked on marketing updates only; transactional security emails permitted">
+                                        <i class="bi-shield-check me-1"></i> Marketing Only
+                                    </span>
                                 @endif
                             </td>
                             <td><span class="badge bg-light text-dark border">{{ $item->source_stream }}</span></td>
@@ -249,7 +313,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">
+                            <td colspan="6" class="text-center py-4 text-muted">
                                 <i class="bi-check2-circle text-success fs-3 d-block mb-1"></i>
                                 No suppressed emails found. Your deliverability health is pristine!
                             </td>
@@ -344,6 +408,73 @@
                 {{ $subscribers->links() }}
             </div>
             @endif
+        </div>
+    </div>
+    @endif
+
+    <!-- Tab 3: Sync & Reconciliation Logs -->
+    @if($tab === 'sync-logs')
+    <div class="card shadow-custom border-0">
+        <div class="card-body p-lg-4">
+            <div class="alert alert-secondary border-0 bg-body-tertiary d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi-shield-check text-primary fs-5"></i>
+                    <span class="small text-muted">
+                        <strong>Reconciliation Engine:</strong> Synchronizes bounce events from Amazon SES v2, checks threshold on soft bounces, and audits user accounts for disposable email addresses.
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-responsive p-0">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Execution Time</th>
+                            <th>Trigger</th>
+                            <th>Status</th>
+                            <th>Bounces Reconciled</th>
+                            <th>Disposables Detected</th>
+                            <th>Newly Suppressed</th>
+                            <th>Duration</th>
+                            <th>Notes / Warnings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($syncLogs as $log)
+                        <tr>
+                            <td class="fw-semibold text-body">{{ $log->created_at->format('M d, Y H:i:s') }}</td>
+                            <td>
+                                @if($log->triggered_by === 'admin')
+                                    <span class="badge bg-primary-subtle text-primary border"><i class="bi-person me-1"></i> Admin ({{ $log->admin ? $log->admin->name : 'Manual' }})</span>
+                                @else
+                                    <span class="badge bg-secondary-subtle text-dark border"><i class="bi-cpu me-1"></i> Automated Cron</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($log->status === 'completed')
+                                    <span class="badge bg-success"><i class="bi-check-circle me-1"></i> Completed</span>
+                                @elseif($log->status === 'running')
+                                    <span class="badge bg-warning text-dark"><span class="spinner-border spinner-border-sm me-1"></span> Running</span>
+                                @else
+                                    <span class="badge bg-danger"><i class="bi-x-circle me-1"></i> Failed</span>
+                                @endif
+                            </td>
+                            <td class="text-center">{{ number_format($log->bounces_synced) }}</td>
+                            <td class="text-center">{{ number_format($log->disposables_detected) }}</td>
+                            <td class="text-center fw-bold text-danger">{{ number_format($log->newly_suppressed) }}</td>
+                            <td class="small text-muted">{{ $log->duration_seconds }}s</td>
+                            <td class="small text-muted" style="max-width: 250px;">{{ $log->error_details ?: 'Clean execution' }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                No synchronization logs recorded yet. Click <strong>Sync Suppressions &amp; Audit Now</strong> above to run your first synchronization.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     @endif
@@ -751,4 +882,60 @@
     </div>
     @endif
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const syncBtn = document.getElementById('syncNowBtn');
+    const syncSpinner = document.getElementById('syncBtnSpinner');
+    const syncIcon = document.getElementById('syncBtnIcon');
+    const syncText = document.getElementById('syncBtnText');
+    const feedbackAlert = document.getElementById('syncFeedbackAlert');
+    const feedbackText = document.getElementById('syncFeedbackText');
+
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function () {
+            syncBtn.disabled = true;
+            syncSpinner.classList.remove('d-none');
+            syncIcon.classList.add('d-none');
+            syncText.textContent = 'Syncing Deliverability & Suppressions...';
+
+            fetch("{{ route('email_deliverability.sync') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    feedbackAlert.className = 'alert alert-success mb-4 alert-dismissible fade show';
+                    feedbackText.innerHTML = `<strong>✅ Deliverability Synchronization Completed (${data.duration_seconds}s):</strong> ` +
+                        `Reconciled ${data.bounces_synced} bounces, flagged ${data.disposables_detected} disposable addresses, and updated ${data.newly_suppressed} suppression records.`;
+                    feedbackAlert.classList.remove('d-none');
+                    setTimeout(() => { window.location.reload(); }, 1800);
+                } else {
+                    feedbackAlert.className = 'alert alert-danger mb-4 alert-dismissible fade show';
+                    feedbackText.innerHTML = `<strong>❌ Synchronization Error:</strong> ${data.error || 'Unknown error'}`;
+                    feedbackAlert.classList.remove('d-none');
+                    syncBtn.disabled = false;
+                    syncSpinner.classList.add('d-none');
+                    syncIcon.classList.remove('d-none');
+                    syncText.textContent = 'Sync Suppressions & Audit Now';
+                }
+            })
+            .catch(err => {
+                feedbackAlert.className = 'alert alert-danger mb-4 alert-dismissible fade show';
+                feedbackText.innerHTML = `<strong>❌ Network Error:</strong> Unable to connect to server.`;
+                feedbackAlert.classList.remove('d-none');
+                syncBtn.disabled = false;
+                syncSpinner.classList.add('d-none');
+                syncIcon.classList.remove('d-none');
+                syncText.textContent = 'Sync Suppressions & Audit Now';
+            });
+        });
+    }
+});
+</script>
 @endsection
