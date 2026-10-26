@@ -198,18 +198,47 @@
                         </div>
                     </div>
 
-                    <!-- Preview Frame Wrapper -->
-                    <div class="bg-dark rounded p-2 text-center" style="min-height: 440px; overflow-y: auto;">
-                        <div id="previewFrameContainer" style="width: 100%; max-width: 600px; margin: 0 auto; background: #0b0f19; border-radius: 8px; border: 1px solid #1e293b; text-align: left; transition: all 0.25s ease;">
-                            <div class="p-3 border-bottom border-secondary text-muted small" style="background:#111827;">
-                                <div class="text-white fw-bold mb-1" id="previewSubjectText">🔥 3 New AI Product Photoshoot Prompts Ready to Copy</div>
-                                <div class="text-secondary small" style="font-size:11px;">From: Imagine Buddy &lt;hello@updates.imaginebuddy.com&gt;</div>
+                    <!-- Preview Frame Wrapper (Master Light-Mode Layout) -->
+                    <div class="p-2 text-center rounded border" style="min-height: 460px; overflow-y: auto; background-color: #f1f5f9;">
+                        <div id="previewFrameContainer" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); text-align: left; transition: all 0.25s ease; overflow: hidden;">
+                            
+                            <!-- Header / Logo -->
+                            <div class="p-3 text-center border-bottom" style="background-color: #ffffff; border-bottom: 1px solid #f1f5f9;">
+                                <a href="{{ url('/') }}" target="_blank" style="text-decoration: none; display: inline-block;">
+                                    @if(!empty($settings->email_logo))
+                                        <img src="{{ url($settings->email_logo) }}" alt="{{ $settings->title ?? 'Imagine Buddy' }}" style="max-height: 38px; width: auto; max-width: 200px; display: block; margin: 0 auto;">
+                                    @elseif(!empty($settings->logo))
+                                        <img src="{{ url('public/img', $settings->logo) }}" alt="{{ $settings->title ?? 'Imagine Buddy' }}" style="max-height: 38px; width: auto; max-width: 200px; display: block; margin: 0 auto;">
+                                    @else
+                                        <span style="font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+                                            {{ $settings->title ?? 'Imagine Buddy' }}
+                                        </span>
+                                    @endif
+                                </a>
                             </div>
-                            <div class="p-3 text-light" id="previewBodyContent" style="font-size: 14px; line-height: 1.5; color: #cbd5e1;">
+
+                            <!-- Subject & Sender Meta Bar -->
+                            <div class="px-3 py-2 border-bottom" style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                <div class="fw-bold text-truncate mb-0" id="previewSubjectText" style="color: #0f172a; font-size: 13.5px;">🔥 3 New AI Product Photoshoot Prompts Ready to Copy</div>
+                                <div class="text-muted" style="font-size: 11px;">
+                                    From: <strong>{{ $settings->email_sender_name_updates ?: (($settings->title ?? 'Imagine Buddy') . ' Updates') }}</strong> &lt;{{ $settings->email_sender_address_updates ?: 'hello@updates.imaginebuddy.com' }}&gt;
+                                </div>
+                            </div>
+
+                            <!-- Body Content Area -->
+                            <div class="p-4" id="previewBodyContent" style="font-size: 14.5px; line-height: 1.6; color: #334155; background-color: #ffffff; min-height: 220px;">
                                 {!! $presets['prompts_showcase']['html'] !!}
                             </div>
-                            <div class="p-3 text-center border-top border-secondary text-secondary small" style="font-size: 11px;">
-                                &copy; {{ date('Y') }} Imagine Buddy. <a href="#" class="text-muted">Unsubscribe with 1 click</a>
+
+                            <!-- Footer Area with Unsubscribe Notice -->
+                            <div class="p-3 text-center border-top" style="font-size: 11.5px; line-height: 1.5; color: #64748b; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+                                <p style="margin: 0 0 4px 0;">&copy; {{ date('Y') }} {{ $settings->title ?? 'Imagine Buddy' }}. All rights reserved.</p>
+                                <p style="margin: 0 0 4px 0; font-size: 11px;">
+                                    <a href="#" class="text-decoration-underline" style="color: #64748b;">Unsubscribe instantly</a> &bull;
+                                    <a href="{{ url('page/terms-and-conditions') }}" target="_blank" style="color: #94a3b8;">Terms</a> &bull;
+                                    <a href="{{ url('page/privacy') }}" target="_blank" style="color: #94a3b8;">Privacy</a>
+                                </p>
+                                <p style="margin: 0; font-size: 10px; color: #94a3b8;">Protected by Amazon SES Enterprise Cloud &bull; updates.imaginebuddy.com</p>
                             </div>
                         </div>
                     </div>
@@ -291,6 +320,10 @@ document.addEventListener('DOMContentLoaded', function () {
             contentsCss: ['{{ asset("public/css/bootstrap.min.css") }}'],
         });
 
+        editorInstance.on('instanceReady', function () {
+            updateLivePreview();
+        });
+
         editorInstance.on('change', function () {
             updateLivePreview();
         });
@@ -334,11 +367,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateLivePreview() {
-        const html = editorInstance ? editorInstance.getData() : document.getElementById('campaignContent').value;
-        previewBodyContent.innerHTML = html.replace(/\{name\}/g, 'Creator')
-                                           .replace(/\{email\}/g, 'creator@example.com')
-                                           .replace(/\{vaultUrl\}/g, '{{ url("prompts/free") }}')
-                                           .replace(/\{unsubscribe_url\}/g, '#');
+        let html = editorInstance ? editorInstance.getData() : document.getElementById('campaignContent').value;
+        html = html.replace(/\{name\}/g, 'Creator')
+                   .replace(/\{email\}/g, 'creator@example.com')
+                   .replace(/\{vaultUrl\}/g, '{{ url("prompts/free") }}')
+                   .replace(/\{vault_url\}/g, '{{ url("prompts/free") }}')
+                   .replace(/\{app_name\}/g, '{{ $settings->title ?? "Imagine Buddy" }}')
+                   .replace(/\{button_color\}/g, '{{ $buttonColor }}')
+                   .replace(/\{primary_color\}/g, '{{ $primaryColor }}')
+                   .replace(/\{unsubscribe_url\}/g, '#');
+
+        previewBodyContent.innerHTML = html;
     }
 
     // Dynamic Tag Inserter
@@ -455,12 +494,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 content: content
             })
         })
-        .then(res => res.json())
-        .then(data => {
-            showTestAlert('✅ ' + data.message, 'alert-success');
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.status === 'success') {
+                showTestAlert('✅ ' + data.message, 'alert-success');
+            } else {
+                showTestAlert('❌ ' + (data.message || 'SES delivery failed. Please check your AWS credentials.'), 'alert-danger');
+            }
         })
-        .catch(() => {
-            showTestAlert('Failed to send test. Check SES configuration.', 'alert-danger');
+        .catch(err => {
+            showTestAlert('❌ Failed to reach server. Check network or server logs.', 'alert-danger');
         })
         .finally(() => {
             sendTestBtn.disabled = false;

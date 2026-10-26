@@ -7,6 +7,11 @@
     <meta name="color-scheme" content="light">
     <meta name="supported-color-schemes" content="light">
     <title>{{ $subject ?? ($settings->title ?? 'Imagine Buddy') }}</title>
+    @if(!empty($previewText))
+    <div style="display:none; font-size:1px; color:#f1f5f9; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
+        {{ $previewText }}
+    </div>
+    @endif
     <style type="text/css">
         :root { color-scheme: light; }
         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }

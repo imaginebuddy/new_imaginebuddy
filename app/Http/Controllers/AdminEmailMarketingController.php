@@ -9,6 +9,7 @@ use App\Services\AudienceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 
 class AdminEmailMarketingController extends Controller
@@ -39,10 +40,15 @@ class AdminEmailMarketingController extends Controller
      */
     public function create()
     {
+        $settings = AdminSettings::first();
         $killSwitchActive = AdminSettings::isBulkEmailKillSwitchActive();
         $totalAudience = AudienceService::getDeliverableMarketingAudience()->count();
 
-        // Template Presets (Crisp Light-Mode Theme)
+        $primaryColor = $settings->email_updates_primary_color ?: ($settings->email_primary_color ?: '#4f46e5');
+        $buttonColor = $settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a');
+        $appName = $settings->title ?? 'Imagine Buddy';
+
+        // Template Presets (Aligned with Master Branding Light-Mode Theme)
         $presets = [
             'prompts_showcase' => [
                 'name' => 'AI Prompts Showcase',
@@ -50,47 +56,86 @@ class AdminEmailMarketingController extends Controller
                 'subject' => '🔥 3 New AI Product Photoshoot Prompts Ready to Copy',
                 'preview' => 'Copy studio-tested prompts for Midjourney, ChatGPT & Gemini.',
                 'html' => '<h2>This Week’s Top Curated Prompts 📸</h2>
-<p>Hi {name}, here are the highest-converting AI photography prompts our team tested this week. Copy and paste them directly into your generator:</p>
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:18px; margin:20px 0;">
-    <h3 style="margin-top:0; color:#0f172a; font-size:16px;">1. Luxury Perfume Obsidian Reflection</h3>
-    <p style="font-family:\'Courier New\', Courier, monospace; background:#ffffff; border:1px solid #cbd5e1; padding:12px; border-radius:6px; color:#0f172a; font-size:13px; line-height:1.5;">Luxury fragrance bottle on polished black marble with subtle water droplets, dramatic rim lighting, soft volumetric haze, 85mm lens, f/1.8 --ar 16:9 --style raw</p>
-    <p style="margin-bottom:0;"><a href="{vaultUrl}" class="btn-custom" style="padding:10px 24px;">Explore In Prompt Vault &rarr;</a></p>
+<p>Hi {name},</p>
+<p>Here are the highest-converting AI photography prompts our team tested this week. Copy and paste them directly into Midjourney, ChatGPT, or Gemini:</p>
+<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <h3 style="margin-top: 0; font-size: 16px; color: #0f172a;">1. Luxury Perfume Obsidian Reflection</h3>
+    <div style="font-family: \'Courier New\', Courier, monospace; background-color: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; color: #0f172a; font-size: 13px; line-height: 1.5; margin: 12px 0;">
+        Luxury fragrance bottle on polished black marble with subtle water droplets, dramatic rim lighting, soft volumetric haze, 85mm lens, f/1.8 --ar 16:9 --style raw
+    </div>
+    <a href="{vaultUrl}" style="color: ' . $primaryColor . '; font-size: 13px; font-weight: 600; text-decoration: underline;">Explore Full Recipe In Vault &rarr;</a>
 </div>
-<p>Want more commercial styles? Access our full library of 1,000+ free prompts on Imagine Buddy.</p>',
+<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <h3 style="margin-top: 0; font-size: 16px; color: #0f172a;">2. Minimalist Ceramic Skincare Flatlay</h3>
+    <div style="font-family: \'Courier New\', Courier, monospace; background-color: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; color: #0f172a; font-size: 13px; line-height: 1.5; margin: 12px 0;">
+        Organic serum bottle on matte beige sandstone, pastel morning sunlight with delicate palm shadows, clean minimalist geometric aesthetic, Hasselblad 8k --ar 4:5 --style raw
+    </div>
+    <a href="{vaultUrl}" style="color: ' . $primaryColor . '; font-size: 13px; font-weight: 600; text-decoration: underline;">Explore Full Recipe In Vault &rarr;</a>
+</div>
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{vaultUrl}" class="btn-action" style="background-color: ' . $buttonColor . '; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Browse All 1,000+ Free Prompts &rarr;</a>
+</div>
+<p style="color: #64748b; font-size: 13px;">Want more commercial styles? Access our full library of prompt recipes on Imagine Buddy.</p>',
             ],
             'announcement' => [
                 'name' => 'Product / Feature Announcement',
                 'description' => 'Clean hero header, feature bullet points, and CTA button.',
-                'subject' => '✨ Big Update: New AI Photoshoot Adaptability Engine',
+                'subject' => '✨ Big Update: New AI Photoshoot Suite is Live',
                 'preview' => 'Transform any product into a high-end commercial photoshoot.',
-                'html' => '<h2>Introducing Our New AI Photoshoot Engine ✨</h2>
+                'html' => '<h2>Introducing Our New AI Photoshoot Suite ✨</h2>
 <p>Hi {name},</p>
-<p>We are thrilled to announce a major update to Imagine Buddy! We have just released the Product Photoshoot Suite designed to help creators and brands generate commercial catalog photos in seconds.</p>
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:18px; margin:20px 0;">
-    <ul style="padding-left:20px; color:#334155; line-height:1.8; margin-bottom:0;">
-        <li><strong>1-Click Prompt Copying:</strong> Formatted for Midjourney v6, ChatGPT, and Gemini.</li>
-        <li><strong>Lighting Presets:</strong> Studio softbox, sunset golden hour, and cyberpunk neon.</li>
+<p>We are thrilled to announce a major upgrade to Imagine Buddy! We have just released the Product Photoshoot Suite designed to help creators and brands generate commercial catalog photos in seconds.</p>
+<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0;">
+    <ul style="margin: 0; padding-left: 20px; color: #334155; line-height: 1.8;">
+        <li><strong>1-Click Prompt Copying:</strong> Pre-calibrated for Midjourney v6, ChatGPT, and Gemini.</li>
+        <li><strong>Studio Lighting Presets:</strong> Softbox, golden hour, and cyberpunk neon recipes.</li>
         <li><strong>Commercial License:</strong> 100% royalty-free for client and e-commerce use.</li>
     </ul>
 </div>
-<p style="text-align:center; margin:30px 0;">
-    <a href="{vaultUrl}" class="btn-custom">Try the New Photoshoot Tools &rarr;</a>
-</p>',
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{vaultUrl}" class="btn-action" style="background-color: ' . $buttonColor . '; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Try the New Photoshoot Tools &rarr;</a>
+</div>
+<p style="color: #64748b; font-size: 13px;">Have feedback or ideas for new prompt categories? Reply directly to this email—our team reads every response!</p>',
             ],
             'promo_discount' => [
                 'name' => 'Promotional Discount / Sale',
                 'description' => 'Offer banner, coupon code callout box, and countdown urgency.',
                 'subject' => '⚡ Limited Flash Sale: 40% Off Imagine Buddy Pro Plans',
                 'preview' => 'Unlock unlimited commercial prompts and high-res downloads.',
-                'html' => '<div style="text-align:center;">
-    <span style="background:#0f172a; color:#ffffff; font-weight:700; padding:6px 16px; border-radius:50px; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Limited Time Flash Sale</span>
-    <h2 style="font-size:26px; margin:18px 0; color:#0f172a;">Upgrade to Pro with 40% Off</h2>
-    <p style="color:#475569; max-width:480px; margin:0 auto 20px auto;">Unlock unlimited commercial downloads, priority photoshoot generation, and exclusive VIP prompt vaults.</p>
-    <div style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:8px; padding:18px; margin:24px auto; max-width:320px;">
-        <span style="font-size:12px; color:#64748b; display:block; text-transform:uppercase; font-weight:600;">Use Coupon Code:</span>
-        <strong style="font-size:24px; color:#0f172a; letter-spacing:2px;">PROMPT40</strong>
+                'html' => '<div style="text-align: center;">
+    <span style="background-color: #0f172a; color: #ffffff; font-weight: 700; padding: 6px 16px; border-radius: 50px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; display: inline-block;">Limited Time Flash Sale</span>
+    <h2 style="font-size: 26px; margin: 18px 0; color: #0f172a;">Upgrade to Pro with 40% Off</h2>
+    <p style="color: #475569; max-width: 500px; margin: 0 auto 20px auto; line-height: 1.6;">Unlock unlimited commercial downloads, priority photoshoot generation, and exclusive VIP prompt vaults.</p>
+    <div style="background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 18px; margin: 24px auto; max-width: 320px;">
+        <span style="font-size: 12px; color: #64748b; display: block; text-transform: uppercase; font-weight: 600;">Use Coupon Code:</span>
+        <strong style="font-size: 24px; color: #0f172a; letter-spacing: 2px;">PROMPT40</strong>
     </div>
-    <a href="' . url('plans') . '" class="btn-custom" style="font-size:15px; padding:14px 36px;">Claim 40% Discount Now &rarr;</a>
+    <div style="margin: 28px 0;">
+        <a href="' . url('plans') . '" class="btn-action" style="background-color: ' . $buttonColor . '; color: #ffffff; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block;">Claim 40% Discount Now &rarr;</a>
+    </div>
+    <p style="color: #94a3b8; font-size: 12px;">Offer valid for the next 48 hours for new and renewing creators.</p>
+</div>',
+            ],
+            'weekly_digest' => [
+                'name' => 'Weekly Creator Digest',
+                'description' => 'Weekly newsletter layout with date dispatch header and curated tips.',
+                'subject' => 'This Week\'s Top Curated AI Prompts & Photoshoot Recipes 📸',
+                'preview' => 'Fresh photoshoot prompts tested by the studio team.',
+                'html' => '<div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: ' . $primaryColor . '; letter-spacing: 1px; margin-bottom: 8px;">
+    Weekly Creator Dispatch &bull; ' . now()->format('M d, Y') . '
+</div>
+<h2>Fresh AI Photoshoot Prompts Ready to Copy 📸</h2>
+<p>Hi {name},</p>
+<p>Here are this week’s highest-converting, staff-tested commercial photography prompts. Copy and paste them directly into your generator of choice:</p>
+<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <h3 style="margin-top: 0; font-size: 16px; color: #0f172a;">1. High-Fashion Streetwear Studio Portrait</h3>
+    <div style="font-family: \'Courier New\', Courier, monospace; background-color: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; color: #0f172a; font-size: 13px; line-height: 1.5; margin: 12px 0;">
+        High-fashion model in oversized matte black trench coat, clean minimalist studio background, soft key light from 45 degrees, subtle rim light, 85mm prime lens, f/2.0 --ar 4:5 --style raw
+    </div>
+    <a href="{vaultUrl}" style="color: ' . $primaryColor . '; font-size: 13px; font-weight: 600; text-decoration: underline;">Copy Full Recipe In Vault &rarr;</a>
+</div>
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{vaultUrl}" class="btn-action" style="background-color: ' . $buttonColor . '; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Browse All Trending Prompts &rarr;</a>
 </div>',
             ],
             'plain_text' => [
@@ -99,12 +144,18 @@ class AdminEmailMarketingController extends Controller
                 'subject' => 'Quick tip for realistic AI product photography',
                 'preview' => 'The one prompt keyword that changes everything.',
                 'html' => '<p>Hi {name},</p>
-<p>A quick tip from the studio team at Imagine Buddy:</p>
+<p>A quick tip from the studio team at ' . $appName . ':</p>
 <p>When generating product mockups in Midjourney or ChatGPT, always specify your camera focal length and aperture rather than using words like "photorealistic" or "hyper-detailed".</p>
-<p>For example, appending <code>85mm portrait lens, f/2.0 aperture, soft studio strobe</code> produces clean cinematic depth-of-field that immediately looks commercial and professional.</p>
+<div style="background-color: #f8fafc; border-left: 4px solid ' . $primaryColor . '; padding: 16px; border-radius: 6px; margin: 20px 0;">
+    <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6;">
+        For example, appending <code>85mm portrait lens, f/2.0 aperture, soft studio strobe</code> produces clean cinematic depth-of-field that immediately looks commercial and professional.
+    </p>
+</div>
 <p>We’ve added 50+ new examples with these exact camera settings on the platform today.</p>
-<p><a href="{vaultUrl}">You can view them free on Imagine Buddy right here &rarr;</a></p>
-<p>Best regards,<br>The Imagine Buddy Team</p>',
+<div style="margin: 24px 0;">
+    <a href="{vaultUrl}" class="btn-action" style="background-color: ' . $buttonColor . '; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Free Prompts on ' . $appName . ' &rarr;</a>
+</div>
+<p>Best regards,<br>The ' . $appName . ' Team</p>',
             ],
         ];
 
@@ -112,6 +163,9 @@ class AdminEmailMarketingController extends Controller
             'killSwitchActive' => $killSwitchActive,
             'totalAudience' => $totalAudience,
             'presets' => $presets,
+            'settings' => $settings,
+            'primaryColor' => $primaryColor,
+            'buttonColor' => $buttonColor,
         ]);
     }
 
@@ -141,7 +195,7 @@ class AdminEmailMarketingController extends Controller
     }
 
     /**
-     * Send live test preview email to admin.
+     * Send live test preview email synchronously to admin via Amazon SES.
      */
     public function sendTest(Request $request)
     {
@@ -152,27 +206,71 @@ class AdminEmailMarketingController extends Controller
         ]);
 
         $testEmail = strtolower(trim($request->input('test_email')));
+        $subject = trim($request->input('subject'));
+        $content = $request->input('content');
+        $previewText = $request->input('preview_text');
 
-        $fakeCampaign = new EmailCampaign([
-            'name' => 'Admin Live Test Preview',
-            'subject' => '[TEST PREVIEW] ' . $request->input('subject'),
-            'preview_text' => $request->input('preview_text'),
-            'content' => $request->input('content'),
-        ]);
+        $settings = AdminSettings::first();
+        $primaryColor = $settings->email_updates_primary_color ?: ($settings->email_primary_color ?: '#4f46e5');
+        $buttonColor = $settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a');
+        $senderEmail = $settings->email_sender_address_updates ?? 'hello@updates.imaginebuddy.com';
+        $senderName = $settings->email_sender_name_updates ?? (($settings->title ?? 'Imagine Buddy') . ' Updates');
+        $replyTo = $settings->email_reply_to_updates ?? 'support@imaginebuddy.com';
+        $footerText = $settings->email_updates_footer_text;
 
-        $fakeRecipient = (object) [
-            'email' => $testEmail,
-            'name' => auth()->user()->name ?? 'Admin',
-            'unsubscribe_token' => base64_encode($testEmail),
-        ];
+        $recipientName = auth()->user()->name ?? 'Admin';
+        $token = base64_encode($testEmail);
+        $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $token]);
+        $vaultUrl = url('prompts/free');
 
-        Notification::route('mail', $testEmail)
-            ->notify(new BroadcastCampaignNotification($fakeRecipient, $fakeCampaign));
+        // Personalize tags inside the campaign content body
+        $bodyMessage = str_replace(
+            ['{name}', '{email}', '{unsubscribe_url}', '{vault_url}', '{vaultUrl}'],
+            [htmlspecialchars($recipientName), htmlspecialchars($testEmail), $unsubscribeUrl, $vaultUrl, $vaultUrl],
+            $content
+        );
 
-        return response()->json([
-            'status' => 'success',
-            'message' => "Live test preview dispatched to {$testEmail} through Amazon SES!",
-        ]);
+        $html = view('emails.layouts.master-updates', [
+            'settings' => $settings,
+            'subject' => '[TEST PREVIEW] ' . $subject,
+            'bodyContent' => $bodyMessage,
+            'previewText' => $previewText,
+            'logoUrl' => $settings->email_logo ? url($settings->email_logo) : null,
+            'primaryColor' => $primaryColor,
+            'buttonColor' => $buttonColor,
+            'footerText' => $footerText,
+            'unsubscribeUrl' => $unsubscribeUrl,
+        ])->render();
+
+        try {
+            Mail::mailer('ses-marketing')->send('emails.raw', ['content' => $html], function ($message) use ($subject, $senderEmail, $senderName, $replyTo, $testEmail, $unsubscribeUrl) {
+                $message->from($senderEmail, $senderName)
+                    ->to($testEmail)
+                    ->subject('[TEST PREVIEW] ' . $subject);
+
+                if (!empty($replyTo)) {
+                    $message->replyTo($replyTo);
+                }
+
+                $message->getHeaders()
+                    ->addTextHeader('List-Unsubscribe', '<' . $unsubscribeUrl . '>')
+                    ->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Live test preview dispatched instantly to {$testEmail} through Amazon SES ({$senderEmail})!",
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Failed to send campaign live test preview to {$testEmail}: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => "SES delivery error: " . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
