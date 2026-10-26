@@ -111,6 +111,40 @@ class Photoshoot extends Model
     }
 
     /**
+     * Helper to get public URL to the photoshoot page
+     */
+    public function getUrlAttribute(): string
+    {
+        return url('photoshoots/' . $this->slug);
+    }
+
+    /**
+     * Helper to get best available cover/thumbnail URL for emails and previews
+     */
+    public function getThumbnailUrlAttribute(): string
+    {
+        if (!empty($this->transformed_image_url)) {
+            return $this->transformed_image_url;
+        }
+
+        if (!empty($this->raw_image_url)) {
+            return $this->raw_image_url;
+        }
+
+        $firstImg = $this->images ? $this->images->first() : null;
+        if ($firstImg) {
+            if (!empty($firstImg->preview)) {
+                return \Illuminate\Support\Facades\Storage::url(config('path.preview') . $firstImg->preview);
+            }
+            if (!empty($firstImg->thumbnail)) {
+                return \Illuminate\Support\Facades\Storage::url(config('path.thumbnail') . $firstImg->thumbnail);
+            }
+        }
+
+        return asset('public/img/thumbnail-default.jpg');
+    }
+
+    /**
      * Default system product adaptability & category compatibility data
      */
     public function getDefaultProductAdaptability(): array

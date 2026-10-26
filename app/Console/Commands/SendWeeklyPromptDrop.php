@@ -2,12 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Images;
-use App\Notifications\WeeklyPromptDropNotification;
-use App\Services\AudienceService;
+use App\Services\WeeklyPhotoshootDigestService;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 
 class SendWeeklyPromptDrop extends Command
 {
@@ -16,14 +13,19 @@ class SendWeeklyPromptDrop extends Command
      *
      * @var string
      */
-    protected $signature = 'email:send-weekly-drop {--dry-run : Simulate sending without dispatching jobs}';
+    protected $signature = 'email:send-weekly-drop 
+                            {--dry-run : Simulate sending without dispatching jobs}
+                            {--force : Force execution even if already sent for this period}
+                            {--batch-size=50 : Number of recipients per batch}
+                            {--batch-delay=15 : Delay between batches in seconds}
+                            {--date= : Reference date (YYYY-MM-DD) for backtesting}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Send the weekly curated AI prompt drop to verified, opted-in subscribers';
+    protected $description = 'Send the Weekly Photoshoot Drop Digest featuring newly published sets in controlled batches';
 
     /**
      * Execute the console command.
@@ -31,61 +33,58 @@ class SendWeeklyPromptDrop extends Command
     public function handle()
     {
         $dryRun = (bool) $this->option('dry-run');
+        $force = (bool) $this->option('force');
+        $batchSize = max(5, (int) $this->option('batch-size') ?: 50);
+        $batchDelay = max(0, (int) $this->option('batch-delay') ?: 15);
+        $dateStr = $this->option('date');
+        $referenceDate = $dateStr ? Carbon::parse($dateStr) : null;
 
-        $this->info('Starting Weekly Prompt Drop dispatch...');
+        $this->info('Starting Weekly Photoshoot Drop Digest workflow...');
         if ($dryRun) {
-            $this->warn('DRY RUN MODE ENABLED: No emails will actually be queued or sent.');
+            $this->warn('DRY RUN MODE ENABLED: No campaigns or batches will be dispatched.');
         }
 
-        // 1. Fetch deliverable recipients
-        $audience = AudienceService::getDeliverableMarketingAudience();
-        $total = $audience->count();
+        $result = WeeklyPhotoshootDigestService::run(
+            dryRun: $dryRun,
+            force: $force,
+            batchSize: $batchSize,
+            batchDelaySeconds: $batchDelay,
+            referenceDate: $referenceDate
+        );
 
-        $this->info("Found {$total} verified, deliverable recipients.");
+        if (!$result['success']) {
+            $this->warn($result['message'] ?? 'Workflow aborted.');
+            return 1;
+        }
 
-        if ($total === 0) {
-            $this->comment('No eligible recipients found. Exiting.');
+        if ($dryRun) {
+            $this->newLine();
+            $this->info('--- DRY RUN SUMMARY ---');
+            $this->line("Period: {$result['period_label']} ({$result['period_key']})");
+            $this->line("Eligible Photoshoots: {$result['photoshoots_count']}");
+            if (!empty($result['photoshoot_titles'])) {
+                foreach ($result['photoshoot_titles'] as $idx => $title) {
+                    $this->line("  " . ($idx + 1) . ". {$title}");
+                }
+            }
+            $this->line("Audience Size: {$result['recipients_count']} subscribers");
+            $this->line("Batches: {$result['total_batches']} (Batch size: {$result['batch_size']})");
+            $this->line("Staggered Delay: {$result['batch_delay_seconds']}s between batches");
+            $this->line("Estimated Dispatch Window: {$result['estimated_duration_seconds']}s");
+            $this->newLine();
             return 0;
         }
 
-        // 2. Fetch latest curated prompts
-        $prompts = Images::where('status', 'active')
-            ->whereNotNull('prompt')
-            ->orderBy('date', 'desc')
-            ->take(3)
-            ->get(['id', 'title', 'prompt', 'description', 'thumbnail']);
-
-        $this->info("Fetched {$prompts->count()} featured prompts for inclusion.");
-
-        // 3. Queue emails with rate-limiting chunking
-        $bar = $this->output->createProgressBar($total);
-        $bar->start();
-
-        $dispatched = 0;
-        foreach ($audience->chunk(50) as $chunk) {
-            foreach ($chunk as $recipient) {
-                if (!$dryRun) {
-                    Notification::route('mail', $recipient->email)
-                        ->notify(new WeeklyPromptDropNotification($recipient, $prompts));
-                }
-                $dispatched++;
-                $bar->advance();
-            }
-
-            // Small 100ms throttle between chunks to protect system load
-            usleep(100000);
+        if (($result['status'] ?? '') === 'skipped_no_photoshoots') {
+            $this->comment($result['message']);
+            return 0;
         }
 
-        $bar->finish();
         $this->newLine();
-
-        $modeText = $dryRun ? 'simulated' : 'queued for delivery';
-        $this->info("Successfully {$modeText} {$dispatched} weekly prompt drops.");
-
-        Log::info("Weekly prompt drop campaign {$modeText}.", [
-            'recipients_count' => $dispatched,
-            'dry_run' => $dryRun,
-        ]);
+        $this->info("SUCCESS: {$result['message']}");
+        $this->line("Campaign ID: #{$result['campaign_id']}");
+        $this->line("Monitor progress in Admin Panel at: " . url('panel/admin/email-marketing/campaigns'));
+        $this->newLine();
 
         return 0;
     }
