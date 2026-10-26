@@ -33,7 +33,7 @@
     <i class="bi-chevron-right me-1 fs-6"></i>
     <a class="text-reset" href="{{ url('panel/admin/email-marketing/campaigns') }}">Campaigns</a>
     <i class="bi-chevron-right me-1 fs-6"></i>
-    <span class="text-muted">Create Broadcast Campaign</span>
+    <span class="text-muted">{{ isset($campaign) ? 'Edit & Resume Broadcast' : 'Create Broadcast Campaign' }}</span>
 
     <a href="{{ url('panel/admin/email-marketing/campaigns') }}" class="btn btn-sm btn-outline-dark float-lg-end mt-1 mt-lg-0 ms-2">
         <i class="bi-arrow-left me-1"></i> Back to Campaigns
@@ -110,9 +110,9 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns') }}" id="campaignForm">
+    <form method="POST" action="{{ isset($campaign) ? url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/update') : url('panel/admin/email-marketing/campaigns') }}" id="campaignForm">
         @csrf
-        <input type="hidden" name="template_preset" id="templatePresetInput" value="prompts_showcase">
+        <input type="hidden" name="template_preset" id="templatePresetInput" value="{{ old('template_preset', $campaign->template_preset ?? 'prompts_showcase') }}">
 
         <div class="row g-4">
             <!-- Left Column: Settings, Content & CKEditor -->
@@ -122,17 +122,17 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Internal Campaign Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="campaignName" class="form-control" placeholder="e.g. October 2026 Commercial Photoshoot Drop" value="{{ old('name') }}" required>
+                        <input type="text" name="name" id="campaignName" class="form-control" placeholder="e.g. October 2026 Commercial Photoshoot Drop" value="{{ old('name', $campaign->name ?? '') }}" required>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-7">
                             <label class="form-label fw-semibold">Email Subject Line <span class="text-danger">*</span></label>
-                            <input type="text" name="subject" id="campaignSubject" class="form-control" placeholder="Subject shown in recipient's inbox" value="{{ old('subject') }}" required>
+                            <input type="text" name="subject" id="campaignSubject" class="form-control" placeholder="Subject shown in recipient's inbox" value="{{ old('subject', $campaign->subject ?? '') }}" required>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label fw-semibold">Preview / Pre-Header Snippet</label>
-                            <input type="text" name="preview_text" id="campaignPreview" class="form-control" placeholder="Secondary snippet text in inbox" value="{{ old('preview_text') }}">
+                            <input type="text" name="preview_text" id="campaignPreview" class="form-control" placeholder="Secondary snippet text in inbox" value="{{ old('preview_text', $campaign->preview_text ?? '') }}">
                         </div>
                     </div>
 
@@ -141,11 +141,12 @@
                         <label class="form-label fw-semibold">Target Audience Segment <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <select name="target_segment" id="targetSegmentSelect" class="form-select">
-                                <option value="all_verified" selected>All Deliverable Audience (Google OAuth + Double Opt-In)</option>
-                                <option value="google_users">Google OAuth Opted-In Users Only</option>
-                                <option value="newsletter_subscribers">Double Opt-In Newsletter Subscribers Only</option>
-                                <option value="paying_subscribers">Active Paid Subscribers Only</option>
-                                <option value="test_list">Admin Test Email Only</option>
+                                @php $currentSegment = old('target_segment', $campaign->target_segment ?? 'all_verified'); @endphp
+                                <option value="all_verified" {{ $currentSegment === 'all_verified' ? 'selected' : '' }}>All Deliverable Audience (Google OAuth + Double Opt-In)</option>
+                                <option value="google_users" {{ $currentSegment === 'google_users' ? 'selected' : '' }}>Google OAuth Opted-In Users Only</option>
+                                <option value="newsletter_subscribers" {{ $currentSegment === 'newsletter_subscribers' ? 'selected' : '' }}>Double Opt-In Newsletter Subscribers Only</option>
+                                <option value="paying_subscribers" {{ $currentSegment === 'paying_subscribers' ? 'selected' : '' }}>Active Paid Subscribers Only</option>
+                                <option value="test_list" {{ $currentSegment === 'test_list' ? 'selected' : '' }}>Admin Test Email Only</option>
                             </select>
                             <button class="btn btn-outline-secondary" type="button" id="previewSegmentBtn" title="Inspect Segment Recipients">
                                 <i class="bi-people me-1"></i> Preview Segment (<span id="segmentCountBadge">{{ number_format($totalAudience) }}</span>)
@@ -167,13 +168,33 @@
                             <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 tag-btn" data-tag="{unsubscribe_url}">{unsubscribe_url}</button>
                         </div>
                         <!-- CKEditor Textarea -->
-                        <textarea name="content" id="campaignContent" class="form-control" rows="14">{{ old('content', $presets['prompts_showcase']['html']) }}</textarea>
+                        <textarea name="content" id="campaignContent" class="form-control" rows="14">{{ old('content', $campaign->content ?? $presets['prompts_showcase']['html']) }}</textarea>
+                    </div>
+
+                    <!-- Tracking Options -->
+                    <div class="row g-2 p-2 bg-light rounded border mb-3">
+                        <div class="col-6">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" name="track_opens" id="trackOpensCheck" value="1" {{ old('track_opens', $campaign->track_opens ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label small fw-semibold" for="trackOpensCheck">
+                                    <i class="bi-envelope-open me-1 text-primary"></i> Track Email Opens
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" name="track_clicks" id="trackClicksCheck" value="1" {{ old('track_clicks', $campaign->track_clicks ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label small fw-semibold" for="trackClicksCheck">
+                                    <i class="bi-cursor me-1 text-primary"></i> Track Link Clicks
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
                         <button type="submit" name="action" value="save_draft" class="btn btn-outline-secondary">
-                            <i class="bi-save me-1"></i> Save Draft
+                            <i class="bi-save me-1"></i> {{ isset($campaign) ? 'Update Draft' : 'Save Draft' }}
                         </button>
                         <button type="submit" name="action" value="send_now" class="btn btn-success fw-bold px-4" id="sendNowBtn">
                             <i class="bi-send-fill me-1"></i> Send Campaign Now
@@ -219,7 +240,7 @@
 
                             <!-- Subject & Sender Meta Bar -->
                             <div class="px-3 py-2 border-bottom" style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                                <div class="fw-bold text-truncate mb-0" id="previewSubjectText" style="color: #0f172a; font-size: 13.5px;">🔥 3 New AI Product Photoshoot Prompts Ready to Copy</div>
+                                <div class="fw-bold text-truncate mb-0" id="previewSubjectText" style="color: #0f172a; font-size: 13.5px;">{{ old('subject', $campaign->subject ?? '🔥 3 New AI Product Photoshoot Prompts Ready to Copy') }}</div>
                                 <div class="text-muted" style="font-size: 11px;">
                                     From: <strong>{{ $settings->email_sender_name_updates ?: (($settings->title ?? 'Imagine Buddy') . ' Updates') }}</strong> &lt;{{ $settings->email_sender_address_updates ?: 'hello@updates.imaginebuddy.com' }}&gt;
                                 </div>
@@ -227,7 +248,7 @@
 
                             <!-- Body Content Area -->
                             <div class="p-4" id="previewBodyContent" style="font-size: 14.5px; line-height: 1.6; color: #334155; background-color: #ffffff; min-height: 220px;">
-                                {!! $presets['prompts_showcase']['html'] !!}
+                                {!! old('content', $campaign->content ?? $presets['prompts_showcase']['html']) !!}
                             </div>
 
                             <!-- Footer Area with Unsubscribe Notice -->

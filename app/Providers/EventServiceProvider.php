@@ -27,6 +27,8 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Event::listen(\Illuminate\Mail\Events\MessageSent::class, function ($event) {
+            \App\Services\EmailTrackingService::handleMessageSent($event);
+        });
     }
 }

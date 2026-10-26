@@ -318,21 +318,60 @@
                                 @if($c->status === 'sent')
                                     <span class="badge bg-success">Sent</span>
                                 @elseif($c->status === 'sending')
-                                    <span class="badge bg-warning text-dark">Sending...</span>
+                                    <span class="badge bg-warning text-dark"><span class="spinner-border spinner-border-sm me-1"></span> Sending ({{ $c->progress_percentage }}%)</span>
                                 @elseif($c->status === 'draft')
                                     <span class="badge bg-secondary">Draft</span>
                                 @else
                                     <span class="badge bg-danger">{{ ucfirst($c->status) }}</span>
                                 @endif
                             </td>
-                            <td>{{ number_format($c->sent_count) }} / {{ number_format($c->recipients_count) }}</td>
+                            <td>
+                                @if($c->status === 'sending')
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="small fw-semibold">{{ number_format($c->processed_count) }} / {{ number_format($c->recipients_count) }}</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">{{ $c->progress_percentage }}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px; width: 120px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: {{ $c->progress_percentage }}%;"></div>
+                                    </div>
+                                @elseif($c->status === 'sent')
+                                    <div>{{ number_format($c->sent_count) }} / {{ number_format($c->recipients_count) }}</div>
+                                    <div class="small text-muted" style="font-size: 11px;">
+                                        <span class="text-success"><i class="bi-check2"></i> {{ $c->delivery_rate }}% delivered</span>
+                                        @if($c->unique_opens_count > 0)
+                                            &bull; <span class="text-info"><i class="bi-eye"></i> {{ $c->open_rate }}% opens</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div>0 / {{ number_format($c->recipients_count) }}</div>
+                                @endif
+                            </td>
                             <td class="text-muted small">
                                 {{ $c->sent_at ? $c->sent_at->format('M d, Y H:i') : $c->created_at->format('M d, Y') }}
                             </td>
-                            <td class="text-end">
+                            <td class="text-end text-nowrap">
+                                @if($c->status === 'draft')
+                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/edit') }}" class="btn btn-sm btn-primary me-1" title="Edit and resume draft">
+                                        <i class="bi-pencil-square me-1"></i> Edit &amp; Send
+                                    </a>
+                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/send') }}" onsubmit="return confirm('Are you sure you want to broadcast \'{{ addslashes($c->name) }}\' to all recipients now?');" style="display:inline-block;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success me-1" title="Send broadcast immediately">
+                                            <i class="bi-send-fill me-1"></i> Send Now
+                                        </button>
+                                    </form>
+                                @else
+                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
+                                        <i class="bi-graph-up me-1"></i> Analytics
+                                    </a>
+                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/edit') }}" class="btn btn-sm btn-outline-secondary me-1" title="View details">
+                                        <i class="bi-eye me-1"></i> View
+                                    </a>
+                                @endif
+
                                 <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/delete') }}" onsubmit="return confirm('Delete this campaign record?');" style="display:inline-block;">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete record">
                                         <i class="bi-trash"></i>
                                     </button>
                                 </form>
@@ -356,4 +395,20 @@
         </div>
     </div>
 </div>
+
+@if($campaigns->contains('status', 'sending'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const timer = setInterval(function () {
+        fetch("{{ url('panel/admin/email-marketing/campaigns') }}", {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(() => {
+            window.location.reload();
+        })
+        .catch(() => {});
+    }, 5000);
+});
+</script>
+@endif
 @endsection

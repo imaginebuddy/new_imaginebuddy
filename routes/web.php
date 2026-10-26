@@ -694,11 +694,21 @@ Route::group(['middleware' => 'role'], function() {
 	// EMAIL MARKETING & BROADCAST CAMPAIGNS
 	Route::get('panel/admin/email-marketing/campaigns', [\App\Http\Controllers\AdminEmailMarketingController::class, 'index'])->name('email_campaigns');
 	Route::get('panel/admin/email-marketing/campaigns/create', [\App\Http\Controllers\AdminEmailMarketingController::class, 'create'])->name('email_campaigns.create');
+	Route::get('panel/admin/email-marketing/campaigns/{id}/edit', [\App\Http\Controllers\AdminEmailMarketingController::class, 'edit'])->name('email_campaigns.edit');
 	Route::post('panel/admin/email-marketing/campaigns', [\App\Http\Controllers\AdminEmailMarketingController::class, 'store']);
+	Route::post('panel/admin/email-marketing/campaigns/{id}/update', [\App\Http\Controllers\AdminEmailMarketingController::class, 'update'])->name('email_campaigns.update');
+	Route::post('panel/admin/email-marketing/campaigns/{id}/send', [\App\Http\Controllers\AdminEmailMarketingController::class, 'sendNow'])->name('email_campaigns.send');
 	Route::post('panel/admin/email-marketing/campaigns/{id}/delete', [\App\Http\Controllers\AdminEmailMarketingController::class, 'destroy']);
 	Route::get('panel/admin/email-marketing/segment-preview', [\App\Http\Controllers\AdminEmailMarketingController::class, 'segmentPreview']);
 	Route::post('panel/admin/email-marketing/test-preview', [\App\Http\Controllers\AdminEmailMarketingController::class, 'sendTest']);
 	Route::post('panel/admin/email-marketing/kill-switch', [\App\Http\Controllers\AdminEmailMarketingController::class, 'toggleKillSwitch']);
+	Route::get('panel/admin/email-marketing/campaigns/{id}/progress', [\App\Http\Controllers\AdminEmailMarketingController::class, 'progress'])->name('email_campaigns.progress');
+	Route::get('panel/admin/email-marketing/campaigns/{id}/analytics', [\App\Http\Controllers\AdminEmailMarketingController::class, 'analytics'])->name('email_campaigns.analytics');
+	Route::post('panel/admin/email-marketing/campaigns/{id}/retry-failed', [\App\Http\Controllers\AdminEmailMarketingController::class, 'retryFailed'])->name('email_campaigns.retry_failed');
+
+	// PUBLIC EMAIL TRACKING (Open pixel & Click redirect)
+	Route::get('email/track/open/{token}', [\App\Http\Controllers\EmailTrackingController::class, 'trackOpen'])->name('email.track.open');
+	Route::get('email/track/click/{token}', [\App\Http\Controllers\EmailTrackingController::class, 'trackClick'])->name('email.track.click');
 
 	// STORAGE
 	Route::view('panel/admin/storage','admin.storage')->name('storage');

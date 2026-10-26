@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EmailSuppression;
 use App\Models\NewsletterSubscribers;
 use App\Models\User;
+use App\Services\EmailTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -66,49 +67,23 @@ class AwsSesWebhookController extends Controller
             $mailSource = $message['mail']['source'] ?? '';
             $stream = str_contains($mailSource, 'updates.imaginebuddy.com') ? 'marketing' : 'transactional';
 
-            // Handle Hard Bounces
-            if ($notificationType === 'Bounce') {
-                $bounceType = $message['bounce']['bounceType'] ?? 'Permanent';
-                $recipients = $message['bounce']['bouncedRecipients'] ?? [];
-
-                if ($bounceType === 'Permanent') {
-                    foreach ($recipients as $recipient) {
-                        $email = strtolower(trim($recipient['emailAddress'] ?? ''));
-                        if (!empty($email)) {
-                            EmailSuppression::suppress($email, 'hard_bounce', $stream, $message);
-                            User::where('email', $email)->update([
-                                'marketing_opt_in' => 0,
-                                'marketing_unsubscribed_at' => now(),
-                            ]);
-                            NewsletterSubscribers::where('email', $email)->update([
-                                'status' => 'unsubscribed',
-                                'unsubscribed_at' => now(),
-                            ]);
-                            Log::warning("Email hard bounce recorded and suppressed: {$email}");
-                        }
-                    }
-                }
+            // 1. Handle Successful Deliveries
+            if ($notificationType === 'Delivery') {
+                EmailTrackingService::handleDeliveryNotification($message);
+                Log::info('AWS SES delivery event recorded.', [
+                    'message_id' => $message['mail']['messageId'] ?? null,
+                    'recipients' => $message['delivery']['recipients'] ?? [],
+                ]);
             }
 
-            // Handle Spam Complaints
-            if ($notificationType === 'Complaint') {
-                $recipients = $message['complaint']['complainedRecipients'] ?? [];
+            // 2. Handle Bounces (Hard & Soft)
+            if ($notificationType === 'Bounce') {
+                EmailTrackingService::handleBounceNotification($message, $stream);
+            }
 
-                foreach ($recipients as $recipient) {
-                    $email = strtolower(trim($recipient['emailAddress'] ?? ''));
-                    if (!empty($email)) {
-                        EmailSuppression::suppress($email, 'complaint', $stream, $message);
-                        User::where('email', $email)->update([
-                            'marketing_opt_in' => 0,
-                            'marketing_unsubscribed_at' => now(),
-                        ]);
-                        NewsletterSubscribers::where('email', $email)->update([
-                            'status' => 'unsubscribed',
-                            'unsubscribed_at' => now(),
-                        ]);
-                        Log::warning("Email complaint recorded and suppressed: {$email}");
-                    }
-                }
+            // 3. Handle Spam Complaints
+            if ($notificationType === 'Complaint') {
+                EmailTrackingService::handleComplaintNotification($message, $stream);
             }
 
             return response()->json(['status' => 'processed'], 200);

@@ -3,8 +3,10 @@
 namespace App\Notifications;
 
 use App\Models\AdminSettings;
+use App\Models\CampaignRecipient;
 use App\Models\EmailCampaign;
 use App\Models\EmailSuppression;
+use App\Services\EmailTrackingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -16,15 +18,17 @@ class BroadcastCampaignNotification extends Notification implements ShouldQueue
 
     public $recipient;
     public $campaign;
+    public $recipientRecord;
     public $tries = 2;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(object $recipient, EmailCampaign $campaign)
+    public function __construct(object $recipient, EmailCampaign $campaign, $recipientRecord = null)
     {
         $this->recipient = $recipient;
         $this->campaign = $campaign;
+        $this->recipientRecord = $recipientRecord;
         $this->queue = 'emails-bulk';
     }
 
@@ -35,6 +39,7 @@ class BroadcastCampaignNotification extends Notification implements ShouldQueue
     {
         // 1. Emergency Kill-Switch Guard
         if (AdminSettings::isBulkEmailKillSwitchActive()) {
+            $this->markFailed('Bulk email emergency kill-switch is engaged');
             return [];
         }
 
@@ -44,10 +49,40 @@ class BroadcastCampaignNotification extends Notification implements ShouldQueue
             : ($this->recipient->email ?? null);
 
         if (EmailSuppression::isSuppressed($email)) {
+            $this->markFailed('Recipient is in the suppression list (previous bounce or complaint)');
             return [];
         }
 
         return ['mail'];
+    }
+
+    /**
+     * Helper to mark recipient as failed and advance progress.
+     */
+    protected function markFailed(string $reason): void
+    {
+        if ($this->recipientRecord) {
+            $record = is_object($this->recipientRecord)
+                ? $this->recipientRecord
+                : CampaignRecipient::find($this->recipientRecord);
+
+            if ($record && $record->status === 'queued') {
+                $record->update([
+                    'status' => 'failed',
+                    'error_message' => $reason,
+                ]);
+
+                $this->campaign->increment('processed_count');
+                $this->campaign->increment('failed_count');
+
+                if ($this->campaign->processed_count >= $this->campaign->recipients_count) {
+                    $this->campaign->update([
+                        'status' => 'sent',
+                        'completed_at' => now(),
+                    ]);
+                }
+            }
+        }
     }
 
     /**
@@ -87,6 +122,18 @@ class BroadcastCampaignNotification extends Notification implements ShouldQueue
             'unsubscribeUrl' => $unsubscribeUrl,
         ])->render();
 
+        $record = null;
+        if ($this->recipientRecord) {
+            $record = is_object($this->recipientRecord)
+                ? $this->recipientRecord
+                : CampaignRecipient::find($this->recipientRecord);
+
+            if ($record) {
+                $record->update(['status' => 'sending']);
+                $html = EmailTrackingService::instrumentHtml($html, $record, $this->campaign);
+            }
+        }
+
         $mailMessage = (new MailMessage)
             ->mailer('ses-marketing')
             ->from($senderEmail, $senderName)
@@ -97,12 +144,32 @@ class BroadcastCampaignNotification extends Notification implements ShouldQueue
             $mailMessage->replyTo($replyTo);
         }
 
-        $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl) {
+        $campaignId = $this->campaign->id;
+        $recipientRecordId = $record ? $record->id : null;
+
+        $mailMessage->withSymfonyMessage(function ($message) use ($unsubscribeUrl, $campaignId, $recipientRecordId) {
             $message->getHeaders()
                 ->addTextHeader('List-Unsubscribe', '<' . $unsubscribeUrl . '>')
                 ->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+
+            if ($campaignId) {
+                $message->getHeaders()->addTextHeader('X-Campaign-ID', (string) $campaignId);
+                $message->getHeaders()->addTextHeader('X-SES-MESSAGE-TAGS', 'CampaignId=' . $campaignId);
+            }
+
+            if ($recipientRecordId) {
+                $message->getHeaders()->addTextHeader('X-Recipient-ID', (string) $recipientRecordId);
+            }
         });
 
         return $mailMessage;
+    }
+
+    /**
+     * Handle queue execution failure.
+     */
+    public function failed(\Throwable $exception)
+    {
+        $this->markFailed('Queue exception: ' . substr($exception->getMessage(), 0, 500));
     }
 }

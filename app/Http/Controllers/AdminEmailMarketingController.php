@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminSettings;
+use App\Models\CampaignRecipient;
 use App\Models\EmailCampaign;
 use App\Notifications\BroadcastCampaignNotification;
 use App\Services\AudienceService;
+use App\Services\EmailTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -48,8 +50,51 @@ class AdminEmailMarketingController extends Controller
         $buttonColor = $settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a');
         $appName = $settings->title ?? 'Imagine Buddy';
 
-        // Template Presets (Aligned with Master Branding Light-Mode Theme)
-        $presets = [
+        $presets = $this->getPresets($primaryColor, $buttonColor, $appName);
+
+        return view('admin.marketing-campaign-create', [
+            'killSwitchActive' => $killSwitchActive,
+            'totalAudience' => $totalAudience,
+            'presets' => $presets,
+            'settings' => $settings,
+            'primaryColor' => $primaryColor,
+            'buttonColor' => $buttonColor,
+        ]);
+    }
+
+    /**
+     * Show composer to edit or resume a draft campaign.
+     */
+    public function edit($id)
+    {
+        $campaign = EmailCampaign::findOrFail($id);
+        $settings = AdminSettings::first();
+        $killSwitchActive = AdminSettings::isBulkEmailKillSwitchActive();
+        $totalAudience = AudienceService::getDeliverableMarketingAudience()->count();
+
+        $primaryColor = $settings->email_updates_primary_color ?: ($settings->email_primary_color ?: '#4f46e5');
+        $buttonColor = $settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a');
+        $appName = $settings->title ?? 'Imagine Buddy';
+
+        $presets = $this->getPresets($primaryColor, $buttonColor, $appName);
+
+        return view('admin.marketing-campaign-create', [
+            'campaign' => $campaign,
+            'killSwitchActive' => $killSwitchActive,
+            'totalAudience' => $totalAudience,
+            'presets' => $presets,
+            'settings' => $settings,
+            'primaryColor' => $primaryColor,
+            'buttonColor' => $buttonColor,
+        ]);
+    }
+
+    /**
+     * Get presets list helper.
+     */
+    private function getPresets($primaryColor, $buttonColor, $appName)
+    {
+        return [
             'prompts_showcase' => [
                 'name' => 'AI Prompts Showcase',
                 'description' => 'Featured prompt recipes, parameter copy-boxes, and explore buttons.',
@@ -158,15 +203,6 @@ class AdminEmailMarketingController extends Controller
 <p>Best regards,<br>The ' . $appName . ' Team</p>',
             ],
         ];
-
-        return view('admin.marketing-campaign-create', [
-            'killSwitchActive' => $killSwitchActive,
-            'totalAudience' => $totalAudience,
-            'presets' => $presets,
-            'settings' => $settings,
-            'primaryColor' => $primaryColor,
-            'buttonColor' => $buttonColor,
-        ]);
     }
 
     /**
@@ -300,50 +336,241 @@ class AdminEmailMarketingController extends Controller
             'target_segment' => $request->input('target_segment'),
             'template_preset' => $request->input('template_preset', 'prompts_showcase'),
             'content' => $request->input('content'),
+            'track_opens' => $request->has('track_opens'),
+            'track_clicks' => $request->has('track_clicks'),
             'status' => $action === 'send_now' ? 'sending' : 'draft',
             'created_by' => auth()->id(),
         ]);
 
         if ($action === 'send_now') {
-            $audience = AudienceService::getSegmentAudience($campaign->target_segment);
-            $total = $audience->count();
-
-            if ($total === 0) {
-                $campaign->update(['status' => 'draft']);
-                return redirect()->back()->with('error_message', 'No eligible recipients found in this segment to dispatch.');
-            }
-
-            $campaign->update([
-                'recipients_count' => $total,
-                'status' => 'sending',
-            ]);
-
-            // Dispatch in throttled chunks to emails-bulk queue
-            $dispatchedCount = 0;
-            foreach ($audience->chunk(50) as $chunk) {
-                foreach ($chunk as $recipient) {
-                    Notification::route('mail', $recipient->email)
-                        ->notify(new BroadcastCampaignNotification($recipient, $campaign));
-                    $dispatchedCount++;
-                }
-                usleep(100000); // 100ms throttle between batches
-            }
-
-            $campaign->update([
-                'status' => 'sent',
-                'sent_count' => $dispatchedCount,
-                'sent_at' => now(),
-            ]);
-
-            Log::info("Broadcast campaign '{$campaign->name}' queued for delivery.", [
-                'campaign_id' => $campaign->id,
-                'recipients' => $dispatchedCount,
-            ]);
-
-            return redirect('panel/admin/email-marketing/campaigns')->with('success_message', "Campaign '{$campaign->name}' successfully queued for {$dispatchedCount} recipients!");
+            return $this->dispatchCampaign($campaign);
         }
 
         return redirect('panel/admin/email-marketing/campaigns')->with('success_message', "Campaign draft '{$campaign->name}' saved successfully.");
+    }
+
+    /**
+     * Update draft or dispatch the edited broadcast campaign.
+     */
+    public function update(Request $request, $id)
+    {
+        $campaign = EmailCampaign::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|max:255',
+            'subject' => 'required|max:255',
+            'target_segment' => 'required|in:all_verified,google_users,newsletter_subscribers,paying_subscribers,test_list',
+            'content' => 'required',
+            'action' => 'required|in:save_draft,send_now',
+        ]);
+
+        $action = $request->input('action');
+
+        if ($action === 'send_now' && AdminSettings::isBulkEmailKillSwitchActive()) {
+            return redirect()->back()->withInput()->with('error_message', 'Cannot send campaign: The Bulk Email Emergency Kill-Switch is currently ENGAGED. Please release the kill-switch first.');
+        }
+
+        $campaign->update([
+            'name' => $request->input('name'),
+            'subject' => $request->input('subject'),
+            'preview_text' => $request->input('preview_text'),
+            'target_segment' => $request->input('target_segment'),
+            'template_preset' => $request->input('template_preset', $campaign->template_preset),
+            'content' => $request->input('content'),
+            'track_opens' => $request->has('track_opens'),
+            'track_clicks' => $request->has('track_clicks'),
+        ]);
+
+        if ($action === 'send_now') {
+            return $this->dispatchCampaign($campaign);
+        }
+
+        return redirect('panel/admin/email-marketing/campaigns')->with('success_message', "Campaign draft '{$campaign->name}' updated successfully.");
+    }
+
+    /**
+     * Direct 1-click dispatch for an existing draft campaign from the listing page.
+     */
+    public function sendNow($id)
+    {
+        $campaign = EmailCampaign::findOrFail($id);
+
+        if ($campaign->status === 'sent') {
+            return redirect()->back()->with('error_message', "Campaign '{$campaign->name}' has already been dispatched.");
+        }
+
+        if (AdminSettings::isBulkEmailKillSwitchActive()) {
+            return redirect()->back()->with('error_message', 'Cannot send campaign: The Bulk Email Emergency Kill-Switch is currently ENGAGED. Please release the kill-switch first.');
+        }
+
+        return $this->dispatchCampaign($campaign);
+    }
+
+    /**
+     * Helper to dispatch campaign across audience.
+     */
+    private function dispatchCampaign(EmailCampaign $campaign)
+    {
+        $audience = AudienceService::getSegmentAudience($campaign->target_segment);
+        $total = $audience->count();
+
+        if ($total === 0) {
+            $campaign->update(['status' => 'draft']);
+            return redirect()->back()->with('error_message', 'No eligible recipients found in this segment to dispatch.');
+        }
+
+        $campaign->update([
+            'recipients_count' => $total,
+            'processed_count' => 0,
+            'sent_count' => 0,
+            'failed_count' => 0,
+            'delivered_count' => 0,
+            'bounced_count' => 0,
+            'complained_count' => 0,
+            'status' => 'sending',
+            'sent_at' => now(),
+        ]);
+
+        $dispatchedCount = 0;
+        foreach ($audience->chunk(100) as $chunk) {
+            foreach ($chunk as $recipient) {
+                $recipientEmail = strtolower(trim($recipient->email));
+
+                // Create tracking recipient record
+                $recipientRecord = CampaignRecipient::create([
+                    'campaign_id' => $campaign->id,
+                    'recipient_email' => $recipientEmail,
+                    'recipient_name' => $recipient->name ?? null,
+                    'tracking_token' => EmailTrackingService::generateToken(),
+                    'status' => 'queued',
+                ]);
+
+                Notification::route('mail', $recipientEmail)
+                    ->notify(new BroadcastCampaignNotification($recipient, $campaign, $recipientRecord));
+
+                $dispatchedCount++;
+            }
+            usleep(50000); // 50ms throttle between batch insertions
+        }
+
+        Log::info("Broadcast campaign '{$campaign->name}' queued for delivery.", [
+            'campaign_id' => $campaign->id,
+            'recipients' => $dispatchedCount,
+        ]);
+
+        return redirect('panel/admin/email-marketing/campaigns')->with('success_message', "Campaign '{$campaign->name}' is now broadcasting to {$dispatchedCount} recipients! Real-time delivery progress is active below.");
+    }
+
+    /**
+     * AJAX endpoint to poll live sending progress.
+     */
+    public function progress($id)
+    {
+        $campaign = EmailCampaign::findOrFail($id);
+
+        return response()->json([
+            'id' => $campaign->id,
+            'status' => $campaign->status,
+            'recipients_count' => $campaign->recipients_count,
+            'processed_count' => $campaign->processed_count,
+            'sent_count' => $campaign->sent_count,
+            'delivered_count' => $campaign->delivered_count,
+            'bounced_count' => $campaign->bounced_count,
+            'failed_count' => $campaign->failed_count,
+            'unique_opens_count' => $campaign->unique_opens_count,
+            'unique_clicks_count' => $campaign->unique_clicks_count,
+            'progress_percentage' => $campaign->progress_percentage,
+            'is_completed' => in_array($campaign->status, ['sent', 'cancelled', 'draft']),
+        ]);
+    }
+
+    /**
+     * Show detailed Campaign Analytics & Recipient Delivery Log.
+     */
+    public function analytics(Request $request, $id)
+    {
+        $campaign = EmailCampaign::with('author')->findOrFail($id);
+
+        $statusFilter = $request->input('status', 'all');
+        $search = trim($request->input('q', ''));
+
+        $recipientsQuery = $campaign->recipients()->latest();
+
+        if ($statusFilter !== 'all') {
+            if ($statusFilter === 'opened') {
+                $recipientsQuery->where('open_count', '>', 0);
+            } elseif ($statusFilter === 'clicked') {
+                $recipientsQuery->where('click_count', '>', 0);
+            } else {
+                $recipientsQuery->where('status', $statusFilter);
+            }
+        }
+
+        if (!empty($search)) {
+            $recipientsQuery->where(function ($q) use ($search) {
+                $q->where('recipient_email', 'LIKE', "%{$search}%")
+                  ->orWhere('recipient_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $recipients = $recipientsQuery->paginate(25)->withQueryString();
+
+        // Top clicked links
+        $topClicks = $campaign->clicks()
+            ->selectRaw('target_url, count(*) as clicks_count, count(distinct recipient_id) as unique_clicks')
+            ->groupBy('target_url')
+            ->orderByDesc('clicks_count')
+            ->take(10)
+            ->get();
+
+        return view('admin.marketing-campaign-analytics', [
+            'campaign' => $campaign,
+            'recipients' => $recipients,
+            'topClicks' => $topClicks,
+            'statusFilter' => $statusFilter,
+            'search' => $search,
+        ]);
+    }
+
+    /**
+     * Re-dispatch failed recipients for a campaign.
+     */
+    public function retryFailed($id)
+    {
+        $campaign = EmailCampaign::findOrFail($id);
+
+        if (AdminSettings::isBulkEmailKillSwitchActive()) {
+            return redirect()->back()->with('error_message', 'Cannot retry sending: The Bulk Email Emergency Kill-Switch is currently active.');
+        }
+
+        $failedRecipients = $campaign->recipients()->where('status', 'failed')->get();
+
+        if ($failedRecipients->isEmpty()) {
+            return redirect()->back()->with('error_message', 'No failed recipients found to retry for this campaign.');
+        }
+
+        $retriedCount = 0;
+        foreach ($failedRecipients as $recipientRecord) {
+            $recipientRecord->update([
+                'status' => 'queued',
+                'error_message' => null,
+            ]);
+
+            $recipientObj = (object) [
+                'email' => $recipientRecord->recipient_email,
+                'name' => $recipientRecord->recipient_name ?? 'Creator',
+                'unsubscribe_token' => base64_encode($recipientRecord->recipient_email),
+            ];
+
+            Notification::route('mail', $recipientRecord->recipient_email)
+                ->notify(new BroadcastCampaignNotification($recipientObj, $campaign, $recipientRecord));
+
+            $retriedCount++;
+        }
+
+        $campaign->update(['status' => 'sending']);
+
+        return redirect()->back()->with('success_message', "Successfully re-queued {$retriedCount} previously failed recipients!");
     }
 
     /**
