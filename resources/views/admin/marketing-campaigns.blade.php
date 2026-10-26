@@ -25,6 +25,13 @@
         </div>
     @endif
 
+    @if (session('info_message'))
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle me-1"></i> {{ session('info_message') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     @if (session('error_message'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('error_message') }}
@@ -256,189 +263,440 @@
         </div>
     </div>
 
-    <!-- KPI Metric Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card shadow-custom border-0 p-3 h-100">
-                <span class="text-muted small text-uppercase fw-bold mb-1">Deliverable Audience</span>
-                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalAudience) }}</h3>
-                <small class="text-success"><i class="bi-check-circle-fill me-1"></i> Verified Google + Double Opt-In</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-custom border-0 p-3 h-100">
-                <span class="text-muted small text-uppercase fw-bold mb-1">Total Campaigns Sent</span>
-                <h3 class="fw-bold mb-0 text-primary">{{ number_format($totalCampaignsSent) }}</h3>
-                <small class="text-muted">Broadcast history</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-custom border-0 p-3 h-100">
-                <span class="text-muted small text-uppercase fw-bold mb-1">Total Dispatched Emails</span>
-                <h3 class="fw-bold mb-0 text-info">{{ number_format($totalEmailsDispatched) }}</h3>
-                <small class="text-muted">Sent through Amazon SES</small>
-            </div>
-        </div>
-    </div>
+    <!-- Section Navigation Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link {{ $tab === 'campaigns' ? 'active bg-dark text-white' : 'bg-white text-dark border' }} fw-semibold px-3 py-2 shadow-sm" href="{{ route('email_campaigns', ['tab' => 'campaigns']) }}">
+                <i class="bi bi-megaphone me-1"></i> Broadcast Campaigns
+                <span class="badge {{ $tab === 'campaigns' ? 'bg-light text-dark' : 'bg-secondary' }} ms-1">{{ number_format($campaigns->total()) }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ $tab === 'weekly-drops' ? 'active bg-dark text-white' : 'bg-white text-dark border' }} fw-semibold px-3 py-2 shadow-sm" href="{{ route('email_campaigns', ['tab' => 'weekly-drops']) }}">
+                <i class="bi bi-camera-reels me-1"></i> Weekly Photoshoot Drop History
+                <span class="badge {{ $tab === 'weekly-drops' ? 'bg-light text-dark' : 'bg-secondary' }} ms-1">{{ number_format($totalWeeklyDrops) }}</span>
+            </a>
+        </li>
+    </ul>
 
-    <!-- Campaigns List Table -->
-    <div class="card shadow-custom border-0">
-        <div class="card-body p-lg-4">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h6 class="fw-bold mb-0"><i class="bi-clock-history me-1"></i> Campaign History</h6>
-                <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" data-bs-toggle="collapse" data-bs-target="#marketingAdminGuide">
-                    <i class="bi-question-circle me-1"></i> Need help with campaigns or drips?
-                </button>
+    @if($tab === 'weekly-drops')
+        <!-- Weekly Photoshoot Drop KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Total Weekly Drops</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalWeeklyDrops) }}</h3>
+                    <small class="text-muted"><i class="bi bi-clock-history me-1"></i> Historical digests</small>
+                </div>
             </div>
+            <div class="col-md-3">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Photoshoots Featured</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ number_format($totalPhotoshootsFeatured) }}</h3>
+                    <small class="text-muted"><i class="bi bi-images me-1"></i> Curated creative looks</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Subscribers Reached</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ number_format($totalWeeklyRecipients) }}</h3>
+                    <small class="text-success"><i class="bi bi-send-check me-1"></i> Delivered in batches</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Avg Delivery &amp; Opens</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ $avgDeliveryRate }}%</h3>
+                    <small class="text-muted">Avg opens: <strong class="text-dark">{{ $avgOpenRate }}%</strong></small>
+                </div>
+            </div>
+        </div>
 
-            <div class="table-responsive p-0">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Campaign Name</th>
-                            <th>Subject</th>
-                            <th>Target Segment</th>
-                            <th>Status</th>
-                            <th>Recipients</th>
-                            <th>Date</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($campaigns as $c)
-                        <tr>
-                            <td class="fw-bold">{{ $c->name }}</td>
-                            <td>{{ Str::limit($c->subject, 40) }}</td>
-                            <td>
-                                <span class="badge bg-secondary-subtle text-dark border">
-                                    {{ str_replace('_', ' ', ucfirst($c->target_segment)) }}
-                                </span>
-                            </td>
-                            <td>
-                                @if($c->status === 'sent')
-                                    <span class="badge bg-success"><i class="bi-check-circle me-1"></i> Sent</span>
-                                @elseif($c->status === 'sending')
-                                    <span class="badge bg-warning text-dark" id="statusBadge-{{ $c->id }}">
-                                        <span class="spinner-border spinner-border-sm me-1"></span> Sending (<span class="progress-pct">{{ $c->progress_percentage }}%</span>)
+        <!-- Weekly Photoshoot Drop History Table -->
+        <div class="card shadow-custom border-0">
+            <div class="card-body p-lg-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-0"><i class="bi bi-camera-reels me-1"></i> Weekly Photoshoot Drop History</h6>
+                        <small class="text-muted">Automated weekly digests showcasing newly published photoshoots delivered to subscribers in batches.</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAllWeeklyHistoryModal" {{ $totalWeeklyDrops === 0 ? 'disabled' : '' }}>
+                            <i class="bi bi-trash3 me-1"></i> Delete All History
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive p-0">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Reporting Period</th>
+                                <th>Featured Photoshoots</th>
+                                <th>Campaign &amp; Subject</th>
+                                <th>Status</th>
+                                <th>Delivery &amp; Analytics</th>
+                                <th>Dispatched Date</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($weeklyDrops as $drop)
+                            <tr>
+                                <td>
+                                    <strong class="text-dark">{{ $drop->period_label }}</strong>
+                                    <div class="small text-muted font-monospace" style="font-size: 11px;">{{ $drop->period_key }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border mb-1">
+                                        <i class="bi bi-images me-1"></i> {{ $drop->photoshoots_count }} Photoshoot{{ $drop->photoshoots_count == 1 ? '' : 's' }}
                                     </span>
-                                @elseif($c->status === 'cancelled')
-                                    <span class="badge bg-danger">
-                                        <i class="bi-pause-circle me-1"></i> Paused / Halted
+                                    @if($drop->photoshoots->isNotEmpty())
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            @foreach($drop->photoshoots->take(3) as $ps)
+                                                <a href="{{ url('photoshoot', $ps->slug ?? $ps->id) }}" target="_blank" class="badge bg-light text-dark border text-decoration-none" title="{{ $ps->title }}">
+                                                    {{ Str::limit($ps->title, 18) }} &nearr;
+                                                </a>
+                                            @endforeach
+                                            @if($drop->photoshoots_count > 3)
+                                                <span class="small text-muted align-self-center">+{{ $drop->photoshoots_count - 3 }} more</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($drop->campaign)
+                                        <div class="fw-semibold text-dark">{{ $drop->campaign->name }}</div>
+                                        <div class="small text-muted">{{ Str::limit($drop->campaign->subject, 36) }}</div>
+                                    @else
+                                        <span class="text-muted fst-italic">No campaign created (0 photoshoots)</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($drop->status === 'dispatched')
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Dispatched</span>
+                                    @elseif($drop->status === 'no_photoshoots')
+                                        <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i> No Photoshoots</span>
+                                    @else
+                                        <span class="badge bg-info">{{ ucfirst($drop->status) }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($drop->campaign)
+                                        <div><strong>{{ number_format($drop->recipients_count) }}</strong> recipients</div>
+                                        <div class="small text-muted" style="font-size: 11px;">
+                                            <span class="text-success"><i class="bi bi-check2"></i> {{ $drop->campaign->delivery_rate }}% delivered</span>
+                                            @if($drop->campaign->unique_opens_count > 0)
+                                                &bull; <span class="text-info"><i class="bi bi-eye"></i> {{ $drop->campaign->open_rate }}% opens</span>
+                                            @endif
+                                            @if($drop->campaign->unique_clicks_count > 0)
+                                                &bull; <span class="text-primary"><i class="bi bi-cursor"></i> {{ $drop->campaign->click_rate }}% clicks</span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div>{{ number_format($drop->recipients_count) }} recipients</div>
+                                    @endif
+                                </td>
+                                <td class="text-muted small">
+                                    {{ $drop->created_at->format('M d, Y H:i') }}
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    @if($drop->campaign)
+                                        <a href="{{ url('panel/admin/email-marketing/campaigns/' . $drop->campaign->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Detailed Campaign Analytics &amp; Recipient Delivery Log">
+                                            <i class="bi bi-graph-up me-1"></i> Analytics
+                                        </a>
+                                    @endif
+                                    <form method="POST" action="{{ route('email_campaigns.weekly_drops.delete_single', $drop->id) }}" onsubmit="return confirm('Delete this weekly drop history record for {{ addslashes($drop->period_label) }}?');" style="display:inline-block;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete record">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-camera-reels text-muted fs-2 d-block mb-2"></i>
+                                    No weekly photoshoot drop history records yet.
+                                    <br>
+                                    <small class="text-muted">Weekly digests are automatically sent each week via the scheduler, or can be tested manually using <code>php artisan email:send-weekly-drop</code>.</small>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    {{ $weeklyDrops->links() }}
+                </div>
+            </div>
+        </div>
+
+    @else
+
+        <!-- KPI Metric Cards for Broadcast Campaigns -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Deliverable Audience</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalAudience) }}</h3>
+                    <small class="text-success"><i class="bi-check-circle-fill me-1"></i> Verified Google + Double Opt-In</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Total Campaigns Sent</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ number_format($totalCampaignsSent) }}</h3>
+                    <small class="text-muted">Broadcast history</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-custom border-0 p-3 h-100">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Total Dispatched Emails</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ number_format($totalEmailsDispatched) }}</h3>
+                    <small class="text-muted">Sent through Amazon SES</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Broadcast Campaigns List Table -->
+        <div class="card shadow-custom border-0">
+            <div class="card-body p-lg-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi-clock-history me-1"></i> Campaign History</h6>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" data-bs-toggle="collapse" data-bs-target="#marketingAdminGuide">
+                        <i class="bi-question-circle me-1"></i> Need help with campaigns or drips?
+                    </button>
+                </div>
+
+                <div class="table-responsive p-0">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Campaign Name</th>
+                                <th>Subject</th>
+                                <th>Target Segment</th>
+                                <th>Status</th>
+                                <th>Recipients</th>
+                                <th>Date</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($campaigns as $c)
+                            <tr>
+                                <td class="fw-bold">{{ $c->name }}</td>
+                                <td>{{ Str::limit($c->subject, 40) }}</td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-dark border">
+                                        {{ str_replace('_', ' ', ucfirst($c->target_segment)) }}
                                     </span>
-                                @elseif($c->status === 'draft')
-                                    <span class="badge bg-secondary">Draft</span>
-                                @else
-                                    <span class="badge bg-secondary">{{ ucfirst($c->status) }}</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($c->status === 'sending')
-                                    <div class="d-flex align-items-center gap-2 mb-1" id="progressInfo-{{ $c->id }}">
-                                        <span class="small fw-semibold"><span class="processed-val">{{ number_format($c->processed_count) }}</span> / {{ number_format($c->recipients_count) }}</span>
-                                        <span class="badge bg-warning-subtle text-warning-emphasis"><span class="progress-pct">{{ $c->progress_percentage }}%</span></span>
-                                    </div>
-                                    <div class="progress" style="height: 6px; width: 120px;">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="progressBar-{{ $c->id }}" style="width: {{ $c->progress_percentage }}%;"></div>
-                                    </div>
-                                @elseif($c->status === 'cancelled')
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <span class="small fw-semibold text-danger">{{ number_format($c->processed_count) }} / {{ number_format($c->recipients_count) }}</span>
-                                        <span class="badge bg-danger-subtle text-danger">{{ $c->progress_percentage }}% Halted</span>
-                                    </div>
-                                    <div class="progress" style="height: 6px; width: 120px;">
-                                        <div class="progress-bar bg-danger" style="width: {{ $c->progress_percentage }}%;"></div>
-                                    </div>
-                                @elseif($c->status === 'sent')
-                                    <div>{{ number_format($c->sent_count) }} / {{ number_format($c->recipients_count) }}</div>
-                                    <div class="small text-muted" style="font-size: 11px;">
-                                        <span class="text-success"><i class="bi-check2"></i> {{ $c->delivery_rate }}% delivered</span>
-                                        @if($c->unique_opens_count > 0)
-                                            &bull; <span class="text-info"><i class="bi-eye"></i> {{ $c->open_rate }}% opens</span>
+                                </td>
+                                <td>
+                                    @if($c->status === 'sent')
+                                        <span class="badge bg-success"><i class="bi-check-circle me-1"></i> Sent</span>
+                                    @elseif($c->status === 'sending')
+                                        <span class="badge bg-warning text-dark" id="statusBadge-{{ $c->id }}">
+                                            <span class="spinner-border spinner-border-sm me-1"></span> Sending (<span class="progress-pct">{{ $c->progress_percentage }}%</span>)
+                                        </span>
+                                    @elseif($c->status === 'cancelled')
+                                        <span class="badge bg-danger">
+                                            <i class="bi-pause-circle me-1"></i> Paused / Halted
+                                        </span>
+                                    @elseif($c->status === 'draft')
+                                        <span class="badge bg-secondary">Draft</span>
+                                    @else
+                                        <span class="badge bg-secondary">{{ ucfirst($c->status) }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($c->status === 'sending')
+                                        <div class="d-flex align-items-center gap-2 mb-1" id="progressInfo-{{ $c->id }}">
+                                            <span class="small fw-semibold"><span class="processed-val">{{ number_format($c->processed_count) }}</span> / {{ number_format($c->recipients_count) }}</span>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis"><span class="progress-pct">{{ $c->progress_percentage }}%</span></span>
+                                        </div>
+                                        <div class="progress" style="height: 6px; width: 120px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="progressBar-{{ $c->id }}" style="width: {{ $c->progress_percentage }}%;"></div>
+                                        </div>
+                                    @elseif($c->status === 'cancelled')
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="small fw-semibold text-danger">{{ number_format($c->processed_count) }} / {{ number_format($c->recipients_count) }}</span>
+                                            <span class="badge bg-danger-subtle text-danger">{{ $c->progress_percentage }}% Halted</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px; width: 120px;">
+                                            <div class="progress-bar bg-danger" style="width: {{ $c->progress_percentage }}%;"></div>
+                                        </div>
+                                    @elseif($c->status === 'sent')
+                                        <div>{{ number_format($c->sent_count) }} / {{ number_format($c->recipients_count) }}</div>
+                                        <div class="small text-muted" style="font-size: 11px;">
+                                            <span class="text-success"><i class="bi-check2"></i> {{ $c->delivery_rate }}% delivered</span>
+                                            @if($c->unique_opens_count > 0)
+                                                &bull; <span class="text-info"><i class="bi-eye"></i> {{ $c->open_rate }}% opens</span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div>0 / {{ number_format($c->recipients_count) }}</div>
+                                    @endif
+                                </td>
+                                <td class="text-muted small">
+                                    {{ $c->sent_at ? $c->sent_at->format('M d, Y H:i') : $c->created_at->format('M d, Y') }}
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    @if($c->status === 'draft')
+                                        <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/edit') }}" class="btn btn-sm btn-primary me-1" title="Edit and resume draft">
+                                            <i class="bi-pencil-square me-1"></i> Edit &amp; Send
+                                        </a>
+                                        <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/send') }}" onsubmit="return confirm('Are you sure you want to broadcast \'{{ addslashes($c->name) }}\' to all recipients now?');" style="display:inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success me-1" title="Send broadcast immediately">
+                                                <i class="bi-send-fill me-1"></i> Send Now
+                                            </button>
+                                        </form>
+                                    @elseif($c->status === 'sending')
+                                        <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
+                                            <i class="bi-graph-up me-1"></i> Analytics
+                                        </a>
+                                        <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/pause') }}" onsubmit="return confirm('Pause sending this campaign?');" style="display:inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-warning text-dark me-1" title="Pause broadcast">
+                                                <i class="bi-pause-fill me-1"></i> Pause
+                                            </button>
+                                        </form>
+                                    @elseif($c->status === 'cancelled')
+                                        <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
+                                            <i class="bi-graph-up me-1"></i> Analytics
+                                        </a>
+                                        @if(!$killSwitchActive && $c->processed_count < $c->recipients_count)
+                                        <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/resume') }}" onsubmit="return confirm('Resume sending remaining unsent recipients for \'{{ addslashes($c->name) }}\'?');" style="display:inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success me-1" title="Resume sending remaining recipients">
+                                                <i class="bi-play-fill me-1"></i> Resume Send
+                                            </button>
+                                        </form>
                                         @endif
-                                    </div>
-                                @else
-                                    <div>0 / {{ number_format($c->recipients_count) }}</div>
-                                @endif
-                            </td>
-                            <td class="text-muted small">
-                                {{ $c->sent_at ? $c->sent_at->format('M d, Y H:i') : $c->created_at->format('M d, Y') }}
-                            </td>
-                            <td class="text-end text-nowrap">
-                                @if($c->status === 'draft')
-                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/edit') }}" class="btn btn-sm btn-primary me-1" title="Edit and resume draft">
-                                        <i class="bi-pencil-square me-1"></i> Edit &amp; Send
-                                    </a>
-                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/send') }}" onsubmit="return confirm('Are you sure you want to broadcast \'{{ addslashes($c->name) }}\' to all recipients now?');" style="display:inline-block;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-success me-1" title="Send broadcast immediately">
-                                            <i class="bi-send-fill me-1"></i> Send Now
-                                        </button>
-                                    </form>
-                                @elseif($c->status === 'sending')
-                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
-                                        <i class="bi-graph-up me-1"></i> Analytics
-                                    </a>
-                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/pause') }}" onsubmit="return confirm('Pause sending this campaign?');" style="display:inline-block;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-warning text-dark me-1" title="Pause broadcast">
-                                            <i class="bi-pause-fill me-1"></i> Pause
-                                        </button>
-                                    </form>
-                                @elseif($c->status === 'cancelled')
-                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
-                                        <i class="bi-graph-up me-1"></i> Analytics
-                                    </a>
-                                    @if(!$killSwitchActive && $c->processed_count < $c->recipients_count)
-                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/resume') }}" onsubmit="return confirm('Resume sending remaining unsent recipients for \'{{ addslashes($c->name) }}\'?');" style="display:inline-block;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-success me-1" title="Resume sending remaining recipients">
-                                            <i class="bi-play-fill me-1"></i> Resume Send
-                                        </button>
-                                    </form>
+                                        @if($c->processed_count > 0 && $c->processed_count < $c->recipients_count)
+                                        <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/mark-completed') }}" onsubmit="return confirm('Mark this broadcast as complete at {{ number_format($c->processed_count) }} recipients?');" style="display:inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary me-1" title="Mark as Completed">
+                                                <i class="bi-check-all me-1"></i> Mark Done
+                                            </button>
+                                        </form>
+                                        @endif
+                                    @else
+                                        <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
+                                            <i class="bi-graph-up me-1"></i> Analytics
+                                        </a>
+                                        <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/edit') }}" class="btn btn-sm btn-outline-secondary me-1" title="View details">
+                                            <i class="bi-eye me-1"></i> View
+                                        </a>
                                     @endif
-                                    @if($c->processed_count > 0 && $c->processed_count < $c->recipients_count)
-                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/mark-completed') }}" onsubmit="return confirm('Mark this broadcast as complete at {{ number_format($c->processed_count) }} recipients?');" style="display:inline-block;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary me-1" title="Mark as Completed">
-                                            <i class="bi-check-all me-1"></i> Mark Done
-                                        </button>
-                                    </form>
-                                    @endif
-                                @else
-                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
-                                        <i class="bi-graph-up me-1"></i> Analytics
-                                    </a>
-                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/edit') }}" class="btn btn-sm btn-outline-secondary me-1" title="View details">
-                                        <i class="bi-eye me-1"></i> View
-                                    </a>
-                                @endif
 
-                                <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/delete') }}" onsubmit="return confirm('Delete this campaign record?');" style="display:inline-block;">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete record">
-                                        <i class="bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="bi-megaphone text-muted fs-2 d-block mb-2"></i>
-                                No broadcast campaigns created yet. Click <strong>Create New Campaign</strong> above to compose your first broadcast!
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/delete') }}" onsubmit="return confirm('Delete this campaign record?');" style="display:inline-block;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete record">
+                                            <i class="bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi-megaphone text-muted fs-2 d-block mb-2"></i>
+                                    No broadcast campaigns created yet. Click <strong>Create New Campaign</strong> above to compose your first broadcast!
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    {{ $campaigns->links() }}
+                </div>
             </div>
+        </div>
 
-            <div class="mt-3">
-                {{ $campaigns->links() }}
+    @endif
+
+    <!-- Modal: Delete All Weekly Drop History -->
+    <div class="modal fade" id="deleteAllWeeklyHistoryModal" tabindex="-1" aria-labelledby="deleteAllWeeklyHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form method="POST" action="{{ route('email_campaigns.weekly_drops.delete_all') }}" id="deleteAllWeeklyDropsForm">
+                    @csrf
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title fw-bold" id="deleteAllWeeklyHistoryModalLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Delete All Weekly Drop History
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="alert alert-danger d-flex align-items-center mb-3">
+                            <i class="bi bi-shield-exclamation fs-3 me-3 flex-shrink-0"></i>
+                            <div>
+                                <strong>Warning: This action is permanent and irreversible!</strong>
+                                <div class="small mt-1">
+                                    All <strong>{{ number_format($totalWeeklyDrops) }}</strong> stored weekly photoshoot drop history records will be permanently removed.
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="small text-muted mb-2"><strong>Database Safety &amp; Scoping:</strong></p>
+                        <ul class="small text-muted mb-3 ps-3">
+                            <li><strong>Scoped exclusively:</strong> Only historical records in the <code>weekly_digest_history</code> table are cleared.</li>
+                            <li><strong>Safe &amp; preserved:</strong> Photoshoot posts, prompt data, email broadcast campaigns, subscriber accounts, and deliverability logs are <strong>not</strong> modified or deleted.</li>
+                        </ul>
+
+                        <div class="mb-3">
+                            <label for="confirmDeleteAllInput" class="form-label small fw-bold text-dark">
+                                Type <code class="text-danger fw-bold">DELETE</code> to confirm:
+                            </label>
+                            <input type="text" class="form-control" id="confirmDeleteAllInput" placeholder="Type DELETE to enable confirmation" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" id="submitDeleteAllBtn" disabled>
+                            <span class="spinner-border spinner-border-sm d-none me-1" id="deleteAllSpinner" role="status" aria-hidden="true"></span>
+                            <span id="deleteAllBtnText"><i class="bi bi-trash3 me-1"></i> Yes, Delete All History</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const confirmInput = document.getElementById('confirmDeleteAllInput');
+    const submitBtn = document.getElementById('submitDeleteAllBtn');
+    const deleteForm = document.getElementById('deleteAllWeeklyDropsForm');
+    const spinner = document.getElementById('deleteAllSpinner');
+    const btnText = document.getElementById('deleteAllBtnText');
+
+    if (confirmInput && submitBtn) {
+        confirmInput.addEventListener('input', function () {
+            if (this.value.trim().toUpperCase() === 'DELETE') {
+                submitBtn.removeAttribute('disabled');
+            } else {
+                submitBtn.setAttribute('disabled', 'disabled');
+            }
+        });
+    }
+
+    if (deleteForm && submitBtn) {
+        deleteForm.addEventListener('submit', function () {
+            submitBtn.setAttribute('disabled', 'disabled');
+            if (spinner) spinner.classList.remove('d-none');
+            if (btnText) btnText.innerHTML = 'Deleting history...';
+        });
+    }
+});
+</script>
 
 @if($campaigns->contains('status', 'sending') && !$killSwitchActive)
 <script>

@@ -711,6 +711,9 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/email-marketing/campaigns/{id}/pause', [\App\Http\Controllers\AdminEmailMarketingController::class, 'pauseCampaign'])->name('email_campaigns.pause');
 	Route::post('panel/admin/email-marketing/campaigns/{id}/resume', [\App\Http\Controllers\AdminEmailMarketingController::class, 'resumeCampaign'])->name('email_campaigns.resume');
 	Route::post('panel/admin/email-marketing/campaigns/{id}/mark-completed', [\App\Http\Controllers\AdminEmailMarketingController::class, 'markCompleted'])->name('email_campaigns.mark_completed');
+	Route::get('panel/admin/email-marketing/weekly-drops', [\App\Http\Controllers\AdminEmailMarketingController::class, 'weeklyDropsHistory'])->name('email_campaigns.weekly_drops');
+	Route::post('panel/admin/email-marketing/weekly-drops/delete-all', [\App\Http\Controllers\AdminEmailMarketingController::class, 'deleteAllWeeklyDropsHistory'])->name('email_campaigns.weekly_drops.delete_all');
+	Route::post('panel/admin/email-marketing/weekly-drops/{id}/delete', [\App\Http\Controllers\AdminEmailMarketingController::class, 'deleteWeeklyDropHistory'])->name('email_campaigns.weekly_drops.delete_single');
 
 	// PUBLIC EMAIL TRACKING (Open pixel & Click redirect)
 	Route::get('email/track/open/{token}', [\App\Http\Controllers\EmailTrackingController::class, 'trackOpen'])->name('email.track.open');

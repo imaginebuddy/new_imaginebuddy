@@ -31,4 +31,27 @@ class WeeklyDigestHistory extends Model
     {
         return $this->belongsTo(EmailCampaign::class, 'campaign_id');
     }
+
+    /**
+     * Resolve photoshoot models associated with this weekly drop.
+     */
+    public function getPhotoshootsAttribute()
+    {
+        if (empty($this->photoshoot_ids)) {
+            return collect();
+        }
+
+        return Photoshoot::whereIn('id', $this->photoshoot_ids)->get();
+    }
+
+    /**
+     * Human-friendly formatted period label (e.g. Oct 18 – Oct 26, 2026).
+     */
+    public function getPeriodLabelAttribute(): string
+    {
+        if ($this->period_start && $this->period_end) {
+            return $this->period_start->format('M d') . ' – ' . $this->period_end->format('M d, Y');
+        }
+        return (string) $this->period_key;
+    }
 }

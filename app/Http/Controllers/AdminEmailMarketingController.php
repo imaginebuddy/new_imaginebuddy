@@ -6,6 +6,7 @@ use App\Jobs\SendCampaignBatchJob;
 use App\Models\AdminSettings;
 use App\Models\CampaignRecipient;
 use App\Models\EmailCampaign;
+use App\Models\WeeklyDigestHistory;
 use App\Notifications\BroadcastCampaignNotification;
 use App\Services\AudienceService;
 use App\Services\EmailTrackingService;
@@ -20,21 +21,45 @@ class AdminEmailMarketingController extends Controller
     /**
      * List all marketing campaigns & kill-switch status.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $tab = $request->input('tab', 'campaigns');
         $killSwitchActive = AdminSettings::isBulkEmailKillSwitchActive();
-        $campaigns = EmailCampaign::with('author')->latest()->paginate(15);
+        $campaigns = EmailCampaign::with('author')->latest()->paginate(15)->appends(['tab' => 'campaigns']);
 
         $totalAudience = AudienceService::getDeliverableMarketingAudience()->count();
         $totalCampaignsSent = EmailCampaign::where('status', 'sent')->count();
         $totalEmailsDispatched = EmailCampaign::sum('sent_count');
 
+        // Weekly Photoshoot Drops History & Analytics
+        $weeklyDrops = WeeklyDigestHistory::with('campaign')->latest('period_start')->paginate(15, ['*'], 'weekly_page')->appends(['tab' => 'weekly-drops']);
+        $totalWeeklyDrops = WeeklyDigestHistory::count();
+        $totalPhotoshootsFeatured = WeeklyDigestHistory::sum('photoshoots_count');
+        $totalWeeklyRecipients = WeeklyDigestHistory::sum('recipients_count');
+
+        // Calculate average delivery and open rates for weekly drops
+        $dispatchedDrops = WeeklyDigestHistory::where('status', 'dispatched')->with('campaign')->get();
+        $avgDeliveryRate = 0.0;
+        $avgOpenRate = 0.0;
+        $dropsWithCampaign = $dispatchedDrops->filter(fn($d) => $d->campaign && $d->campaign->sent_count > 0);
+        if ($dropsWithCampaign->isNotEmpty()) {
+            $avgDeliveryRate = round($dropsWithCampaign->avg(fn($d) => $d->campaign->delivery_rate), 1);
+            $avgOpenRate = round($dropsWithCampaign->avg(fn($d) => $d->campaign->open_rate), 1);
+        }
+
         return view('admin.marketing-campaigns', [
+            'tab' => $tab,
             'killSwitchActive' => $killSwitchActive,
             'campaigns' => $campaigns,
             'totalAudience' => $totalAudience,
             'totalCampaignsSent' => $totalCampaignsSent,
             'totalEmailsDispatched' => $totalEmailsDispatched,
+            'weeklyDrops' => $weeklyDrops,
+            'totalWeeklyDrops' => $totalWeeklyDrops,
+            'totalPhotoshootsFeatured' => $totalPhotoshootsFeatured,
+            'totalWeeklyRecipients' => $totalWeeklyRecipients,
+            'avgDeliveryRate' => $avgDeliveryRate,
+            'avgOpenRate' => $avgOpenRate,
         ]);
     }
 
@@ -707,5 +732,48 @@ class AdminEmailMarketingController extends Controller
         $campaign->delete();
 
         return redirect()->back()->with('success_message', 'Campaign record deleted successfully.');
+    }
+
+    /**
+     * Redirect or render dedicated weekly drops history tab.
+     */
+    public function weeklyDropsHistory(Request $request)
+    {
+        return redirect()->route('email_campaigns', ['tab' => 'weekly-drops']);
+    }
+
+    /**
+     * Delete all Weekly Photoshoot Drop history records safely.
+     * Only affects WeeklyDigestHistory table. Campaign records, photoshoots, and recipient logs are preserved.
+     */
+    public function deleteAllWeeklyDropsHistory(Request $request)
+    {
+        $count = WeeklyDigestHistory::count();
+
+        if ($count === 0) {
+            return redirect()->route('email_campaigns', ['tab' => 'weekly-drops'])
+                ->with('info_message', 'Weekly photoshoot drop history is already empty.');
+        }
+
+        // Truncate or delete all records from weekly_digest_history safely
+        WeeklyDigestHistory::truncate();
+
+        \Log::info("Admin cleared all Weekly Photoshoot Drop history ({$count} records removed).");
+
+        return redirect()->route('email_campaigns', ['tab' => 'weekly-drops'])
+            ->with('success_message', "Successfully deleted all {$count} weekly photoshoot drop history records.");
+    }
+
+    /**
+     * Delete a single Weekly Photoshoot Drop history record.
+     */
+    public function deleteWeeklyDropHistory($id)
+    {
+        $history = WeeklyDigestHistory::findOrFail($id);
+        $period = $history->period_label;
+        $history->delete();
+
+        return redirect()->route('email_campaigns', ['tab' => 'weekly-drops'])
+            ->with('success_message', "Weekly drop history for {$period} deleted successfully.");
     }
 }
