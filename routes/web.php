@@ -112,6 +112,8 @@ Route::post('hire/inquiry', [HireController::class, 'storeInquiry'])->name('hire
  // Registration Routes.
  Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
  Route::post('register', [RegisterController::class, 'register']);
+ Route::get('register/verify', [RegisterController::class, 'showVerificationNotice'])->name('register.verify');
+ Route::post('register/verify/resend', [RegisterController::class, 'resendVerification'])->name('register.verify.resend');
 
  // Password Reset Routes.
  Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');

@@ -122,12 +122,12 @@ class LoginController extends Controller
 				]);
         } else if( $this->auth->user()->status == 'pending' ) {
 
+			$pendingEmail = $this->auth->user()->email;
 			$this->auth->logout();
+			session()->put('registered_email_for_verification', $pendingEmail);
 
-			return redirect()->back()
-				->withErrors([
-					'status' => trans('validation.account_not_confirmed'),
-				]);
+			return redirect()->route('register.verify')
+				->with('warning', trans('validation.account_not_confirmed'));
         }
 
 	}

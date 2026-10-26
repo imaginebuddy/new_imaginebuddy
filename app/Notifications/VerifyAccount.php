@@ -55,12 +55,13 @@ class VerifyAccount extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $name = $notifiable->name ?? 'User';
+        $name = !empty($notifiable->name) ? $notifiable->name : (!empty($notifiable->username) ? $notifiable->username : 'Creator');
         $verifyUrl = url('verify/account', $this->confirmation_code);
 
         $rendered = \App\Services\EmailTemplateService::render('verify-account', [
             '{name}' => $name,
             '{action_url}' => $verifyUrl,
+            '{app_name}' => config('app.name', 'Imagine Buddy'),
             '{support_email}' => config('mail.from.address', 'support@imaginebuddy.com'),
         ], function () {
             $fromEmail = config('mail.mailers.ses-transactional.from.address', 'noreply@auth.imaginebuddy.com');

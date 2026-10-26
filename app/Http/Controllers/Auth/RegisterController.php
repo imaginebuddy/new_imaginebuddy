@@ -190,10 +190,11 @@ class RegisterController extends Controller
         }
 
         // Verify Settings Admin
-    		if ($settings->email_verification) {
+    	if ($settings->email_verification == '1') {
+          session()->put('registered_email_for_verification', $user->email);
 
-          return redirect('register')
-                ->withStatus(trans('auth.check_account'));
+          return redirect()->route('register.verify')
+                ->with('status', trans('auth.check_account'));
 
         } else {
             $this->guard()->login($user);
@@ -206,4 +207,77 @@ class RegisterController extends Controller
         }
 
     }// register
+
+    /**
+     * Show page informing the user that confirmation email has been sent.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
+    public function showVerificationNotice(Request $request)
+    {
+        if (auth()->check() && auth()->user()->status == 'active') {
+            return redirect('/');
+        }
+
+        $settings = AdminSettings::first();
+        $email = session('registered_email_for_verification') ?: $request->query('email');
+
+        return view('auth.verify', [
+            'email' => $email,
+            'settings' => $settings,
+        ]);
+    }
+
+    /**
+     * Resend the confirmation verification email.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function resendVerification(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:255',
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+
+        // Rate limit: max 1 request every 60 seconds per email
+        $throttleKey = 'resend_verification_' . md5($email);
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 1)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return redirect()->route('register.verify', ['email' => $email])
+                ->with('warning', "Please wait {$seconds} seconds before requesting another confirmation email.");
+        }
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return redirect()->route('register.verify', ['email' => $email])
+                ->with('error', 'We could not find an account registered with that email address.');
+        }
+
+        if ($user->status === 'active') {
+            return redirect('login')
+                ->with('status', 'Your account is already verified! You can log in.');
+        }
+
+        if ($user->status === 'pending') {
+            if (empty($user->activation_code)) {
+                $user->activation_code = \Illuminate\Support\Str::random(100);
+                $user->save();
+            }
+
+            $user->notify(new VerifyAccount($user->activation_code));
+            session()->put('registered_email_for_verification', $user->email);
+
+            return redirect()->route('register.verify', ['email' => $user->email])
+                ->with('status', 'A fresh confirmation email has been sent to ' . $user->email . '! Please check your inbox and spam folder.');
+        }
+
+        return redirect()->route('register.verify', ['email' => $user->email])
+            ->with('warning', 'Unable to resend confirmation email for this account status.');
+    }
 }
