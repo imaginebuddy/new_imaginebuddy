@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminSettings;
 use App\Models\EmailSuppression;
 use App\Models\EmailSyncLog;
 use App\Models\Images;
