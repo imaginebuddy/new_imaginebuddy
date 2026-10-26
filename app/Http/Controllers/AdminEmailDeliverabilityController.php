@@ -8,7 +8,6 @@ use App\Models\EmailSyncLog;
 use App\Models\Images;
 use App\Models\NewsletterSubscribers;
 use App\Models\User;
-use App\Notifications\WeeklyPromptDropNotification;
 use App\Services\AudienceService;
 use App\Services\EmailSuppressionSyncService;
 use Illuminate\Http\Request;

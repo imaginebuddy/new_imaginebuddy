@@ -54,7 +54,6 @@ class EmailTemplate extends Model
             'broadcast-campaign' => [],
             'newsletter-double-opt-in' => ['{confirm_url}'],
             'newsletter-welcome' => [],
-            'weekly-prompt-drop' => [],
             'welcome-drip-day3' => [],
             'abandoned-checkout' => [],
             'user-reengagement' => [],
