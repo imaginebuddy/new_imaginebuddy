@@ -141,13 +141,13 @@
         <div class="col-lg-7">
             <div class="card shadow-custom border-0 p-4 h-100">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h6 class="fw-bold mb-0 text-body"><i class="bi-send me-1 text-primary"></i> Send Live Test Weekly Prompt Drop</h6>
+                    <h6 class="fw-bold mb-0 text-body"><i class="bi-send me-1 text-primary"></i> Send Live Test Weekly Photoshoot Drop</h6>
                     <a href="{{ url('panel/admin/email-deliverability?tab=guide#guide-feature-3') }}" class="badge bg-light text-secondary border text-decoration-none">
                         <i class="bi-question-circle me-1"></i> Test SPF/DKIM Guide
                     </a>
                 </div>
                 <p class="text-muted small mb-3">
-                    Dispatches a real live preview of the weekly prompt email to your inbox through Amazon SES (<code>hello@updates.imaginebuddy.com</code>) to verify template rendering, SPF/DKIM authentication, and spam score.
+                    Dispatches a real live preview of the weekly photoshoot digest email to your inbox through Amazon SES (<code>hello@updates.imaginebuddy.com</code>) to verify photoshoot cards, links, SPF/DKIM authentication, and spam score.
                 </p>
                 <form method="POST" action="{{ url('panel/admin/email-deliverability/test-send') }}" class="row g-2">
                     @csrf
@@ -156,7 +156,7 @@
                     </div>
                     <div class="col-sm-4">
                         <button type="submit" class="btn btn-dark w-100">
-                            <i class="bi-lightning-charge me-1"></i> Send Test Drop
+                            <i class="bi-lightning-charge me-1"></i> Send Test Photoshoot Drop
                         </button>
                     </div>
                 </form>

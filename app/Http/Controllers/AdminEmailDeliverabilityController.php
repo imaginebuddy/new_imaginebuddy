@@ -164,21 +164,80 @@ class AdminEmailDeliverabilityController extends Controller
 
         $testEmail = strtolower(trim($request->input('test_email')));
 
-        $prompts = Images::where('status', 'active')
-            ->whereNotNull('prompt')
-            ->orderBy('date', 'desc')
-            ->take(3)
-            ->get(['id', 'title', 'prompt', 'description', 'thumbnail']);
+        $range = \App\Services\WeeklyPhotoshootDigestService::getWeeklyDateRange();
+        $photoshoots = \App\Services\WeeklyPhotoshootDigestService::getEligiblePhotoshoots($range['start'], $range['end'], false);
 
-        $fakeRecipient = (object) [
-            'email' => $testEmail,
-            'name' => 'Admin Test',
-            'unsubscribe_token' => base64_encode($testEmail),
-        ];
+        // If no new photoshoots this specific week, fallback to latest 3 active photoshoots for the test preview
+        if ($photoshoots->isEmpty()) {
+            $photoshoots = \App\Models\Photoshoot::where('prompts_count', '>', 0)
+                ->whereNotNull('slug')
+                ->where('slug', '!=', '')
+                ->with([
+                    'category',
+                    'images' => function ($q) {
+                        $q->where('status', 'active')->orderBy('id', 'asc');
+                    }
+                ])
+                ->orderBy('created_at', 'desc')
+                ->take(3)
+                ->get()
+                ->unique('id');
+        }
 
-        Notification::route('mail', $testEmail)
-            ->notify(new WeeklyPromptDropNotification($fakeRecipient, $prompts));
+        $bodyContent = \App\Services\WeeklyPhotoshootDigestService::renderDigestBody($photoshoots, $range);
 
-        return redirect()->back()->with('success_message', "Test weekly prompt drop email dispatched to {$testEmail} via Amazon SES!");
+        $settings = AdminSettings::first();
+        $primaryColor = $settings->email_updates_primary_color ?: ($settings->email_primary_color ?: '#4f46e5');
+        $buttonColor = $settings->email_updates_button_color ?: ($settings->email_button_color ?: '#0f172a');
+        $senderEmail = $settings->email_sender_address_updates ?? 'hello@updates.imaginebuddy.com';
+        $senderName = $settings->email_sender_name_updates ?? (($settings->title ?? 'Imagine Buddy') . ' Updates');
+        $replyTo = $settings->email_reply_to_updates ?? 'support@imaginebuddy.com';
+        $footerText = $settings->email_updates_footer_text;
+
+        $recipientName = 'Admin Test';
+        $token = base64_encode($testEmail);
+        $unsubscribeUrl = route('newsletter.unsubscribe', ['token' => $token]);
+
+        $firstTitle = $photoshoots->isNotEmpty() ? $photoshoots->first()->title : 'New Photoshoots';
+        $count = $photoshoots->count();
+        $subject = $count <= 1
+            ? "📸 New Studio Photoshoot: {$firstTitle}"
+            : "📸 New Photoshoots: {$firstTitle} + " . ($count - 1) . " More Sets";
+
+        $personalizedBody = str_replace(
+            ['{name}', '{email}', '{unsubscribe_url}', '{vault_url}', '{vaultUrl}'],
+            [htmlspecialchars($recipientName), htmlspecialchars($testEmail), $unsubscribeUrl, url('photoshoots'), url('photoshoots')],
+            $bodyContent
+        );
+
+        $html = view('emails.layouts.master-updates', [
+            'settings' => $settings,
+            'subject' => $subject,
+            'bodyContent' => $personalizedBody,
+            'previewText' => "Explore this week's newly published commercial studio photoshoots and multi-angle prompts.",
+            'logoUrl' => $settings->email_logo ? url($settings->email_logo) : null,
+            'primaryColor' => $primaryColor,
+            'buttonColor' => $buttonColor,
+            'footerText' => $footerText,
+            'unsubscribeUrl' => $unsubscribeUrl,
+        ])->render();
+
+        \Illuminate\Support\Facades\Mail::mailer('ses-marketing')->send([], [], function ($message) use ($testEmail, $senderEmail, $senderName, $replyTo, $subject, $html, $unsubscribeUrl) {
+            $message->to($testEmail)
+                ->from($senderEmail, $senderName)
+                ->subject('[TEST PREVIEW] ' . $subject)
+                ->html($html);
+
+            if (!empty($replyTo)) {
+                $message->replyTo($replyTo);
+            }
+
+            $message->getHeaders()
+                ->addTextHeader('List-Unsubscribe', '<' . $unsubscribeUrl . '>')
+                ->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click')
+                ->addTextHeader('X-SES-MESSAGE-TAGS', 'CampaignType=WeeklyDigestTest');
+        });
+
+        return redirect()->back()->with('success_message', "Live test photoshoot digest ({$count} photoshoot sets) dispatched to {$testEmail} via Amazon SES!");
     }
 }
