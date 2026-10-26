@@ -539,13 +539,37 @@ document.addEventListener('DOMContentLoaded', function () {
         testAlertBox.classList.remove('d-none');
     }
 
-    // Send Now Confirmation
-    document.getElementById('sendNowBtn').addEventListener('click', function (e) {
-        const count = segmentCountBadge.textContent;
-        if (!confirm('Are you sure you want to broadcast this campaign to ' + count + ' recipients now?')) {
-            e.preventDefault();
-        }
-    });
+    // Form submit listener to ensure CKEditor updates textarea
+    const campaignForm = document.getElementById('campaignForm');
+    if (campaignForm) {
+        campaignForm.addEventListener('submit', function () {
+            if (editorInstance) {
+                editorInstance.updateElement();
+            }
+        });
+    }
+
+    // Send Now Confirmation & Progress Indicator
+    const sendNowBtn = document.getElementById('sendNowBtn');
+    if (sendNowBtn) {
+        sendNowBtn.addEventListener('click', function (e) {
+            const count = segmentCountBadge ? segmentCountBadge.textContent : 'audience';
+            if (!confirm('Are you sure you want to broadcast this campaign to ' + count + ' recipients now?')) {
+                e.preventDefault();
+                return;
+            }
+
+            if (editorInstance) {
+                editorInstance.updateElement();
+            }
+
+            // Provide immediate feedback to admin
+            setTimeout(() => {
+                sendNowBtn.disabled = true;
+                sendNowBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Dispatching...';
+            }, 50);
+        });
+    }
 });
 </script>
 @endsection

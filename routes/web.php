@@ -705,6 +705,9 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/email-marketing/campaigns/{id}/progress', [\App\Http\Controllers\AdminEmailMarketingController::class, 'progress'])->name('email_campaigns.progress');
 	Route::get('panel/admin/email-marketing/campaigns/{id}/analytics', [\App\Http\Controllers\AdminEmailMarketingController::class, 'analytics'])->name('email_campaigns.analytics');
 	Route::post('panel/admin/email-marketing/campaigns/{id}/retry-failed', [\App\Http\Controllers\AdminEmailMarketingController::class, 'retryFailed'])->name('email_campaigns.retry_failed');
+	Route::post('panel/admin/email-marketing/campaigns/{id}/pause', [\App\Http\Controllers\AdminEmailMarketingController::class, 'pauseCampaign'])->name('email_campaigns.pause');
+	Route::post('panel/admin/email-marketing/campaigns/{id}/resume', [\App\Http\Controllers\AdminEmailMarketingController::class, 'resumeCampaign'])->name('email_campaigns.resume');
+	Route::post('panel/admin/email-marketing/campaigns/{id}/mark-completed', [\App\Http\Controllers\AdminEmailMarketingController::class, 'markCompleted'])->name('email_campaigns.mark_completed');
 
 	// PUBLIC EMAIL TRACKING (Open pixel & Click redirect)
 	Route::get('email/track/open/{token}', [\App\Http\Controllers\EmailTrackingController::class, 'trackOpen'])->name('email.track.open');

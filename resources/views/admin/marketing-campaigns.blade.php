@@ -316,23 +316,37 @@
                             </td>
                             <td>
                                 @if($c->status === 'sent')
-                                    <span class="badge bg-success">Sent</span>
+                                    <span class="badge bg-success"><i class="bi-check-circle me-1"></i> Sent</span>
                                 @elseif($c->status === 'sending')
-                                    <span class="badge bg-warning text-dark"><span class="spinner-border spinner-border-sm me-1"></span> Sending ({{ $c->progress_percentage }}%)</span>
+                                    <span class="badge bg-warning text-dark" id="statusBadge-{{ $c->id }}">
+                                        <span class="spinner-border spinner-border-sm me-1"></span> Sending (<span class="progress-pct">{{ $c->progress_percentage }}%</span>)
+                                    </span>
+                                @elseif($c->status === 'cancelled')
+                                    <span class="badge bg-danger">
+                                        <i class="bi-pause-circle me-1"></i> Paused / Halted
+                                    </span>
                                 @elseif($c->status === 'draft')
                                     <span class="badge bg-secondary">Draft</span>
                                 @else
-                                    <span class="badge bg-danger">{{ ucfirst($c->status) }}</span>
+                                    <span class="badge bg-secondary">{{ ucfirst($c->status) }}</span>
                                 @endif
                             </td>
                             <td>
                                 @if($c->status === 'sending')
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <span class="small fw-semibold">{{ number_format($c->processed_count) }} / {{ number_format($c->recipients_count) }}</span>
-                                        <span class="badge bg-warning-subtle text-warning-emphasis">{{ $c->progress_percentage }}%</span>
+                                    <div class="d-flex align-items-center gap-2 mb-1" id="progressInfo-{{ $c->id }}">
+                                        <span class="small fw-semibold"><span class="processed-val">{{ number_format($c->processed_count) }}</span> / {{ number_format($c->recipients_count) }}</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis"><span class="progress-pct">{{ $c->progress_percentage }}%</span></span>
                                     </div>
                                     <div class="progress" style="height: 6px; width: 120px;">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: {{ $c->progress_percentage }}%;"></div>
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="progressBar-{{ $c->id }}" style="width: {{ $c->progress_percentage }}%;"></div>
+                                    </div>
+                                @elseif($c->status === 'cancelled')
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="small fw-semibold text-danger">{{ number_format($c->processed_count) }} / {{ number_format($c->recipients_count) }}</span>
+                                        <span class="badge bg-danger-subtle text-danger">{{ $c->progress_percentage }}% Halted</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px; width: 120px;">
+                                        <div class="progress-bar bg-danger" style="width: {{ $c->progress_percentage }}%;"></div>
                                     </div>
                                 @elseif($c->status === 'sent')
                                     <div>{{ number_format($c->sent_count) }} / {{ number_format($c->recipients_count) }}</div>
@@ -360,6 +374,36 @@
                                             <i class="bi-send-fill me-1"></i> Send Now
                                         </button>
                                     </form>
+                                @elseif($c->status === 'sending')
+                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
+                                        <i class="bi-graph-up me-1"></i> Analytics
+                                    </a>
+                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/pause') }}" onsubmit="return confirm('Pause sending this campaign?');" style="display:inline-block;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark me-1" title="Pause broadcast">
+                                            <i class="bi-pause-fill me-1"></i> Pause
+                                        </button>
+                                    </form>
+                                @elseif($c->status === 'cancelled')
+                                    <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
+                                        <i class="bi-graph-up me-1"></i> Analytics
+                                    </a>
+                                    @if(!$killSwitchActive && $c->processed_count < $c->recipients_count)
+                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/resume') }}" onsubmit="return confirm('Resume sending remaining unsent recipients for \'{{ addslashes($c->name) }}\'?');" style="display:inline-block;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success me-1" title="Resume sending remaining recipients">
+                                            <i class="bi-play-fill me-1"></i> Resume Send
+                                        </button>
+                                    </form>
+                                    @endif
+                                    @if($c->processed_count > 0 && $c->processed_count < $c->recipients_count)
+                                    <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/mark-completed') }}" onsubmit="return confirm('Mark this broadcast as complete at {{ number_format($c->processed_count) }} recipients?');" style="display:inline-block;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary me-1" title="Mark as Completed">
+                                            <i class="bi-check-all me-1"></i> Mark Done
+                                        </button>
+                                    </form>
+                                    @endif
                                 @else
                                     <a href="{{ url('panel/admin/email-marketing/campaigns/' . $c->id . '/analytics') }}" class="btn btn-sm btn-info text-white me-1" title="View Full Analytics &amp; Delivery Log">
                                         <i class="bi-graph-up me-1"></i> Analytics
@@ -396,18 +440,40 @@
     </div>
 </div>
 
-@if($campaigns->contains('status', 'sending'))
+@if($campaigns->contains('status', 'sending') && !$killSwitchActive)
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const timer = setInterval(function () {
-        fetch("{{ url('panel/admin/email-marketing/campaigns') }}", {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(() => {
-            window.location.reload();
-        })
-        .catch(() => {});
-    }, 5000);
+    @php
+        $sendingIds = $campaigns->where('status', 'sending')->pluck('id')->values();
+    @endphp
+    const sendingCampaignIds = {!! json_encode($sendingIds) !!};
+
+    if (sendingCampaignIds.length > 0) {
+        const pollTimer = setInterval(function () {
+            sendingCampaignIds.forEach(id => {
+                fetch("{{ url('panel/admin/email-marketing/campaigns') }}/" + id + "/progress")
+                    .then(res => res.json())
+                    .then(data => {
+                        const progressBar = document.getElementById('progressBar-' + id);
+                        const progressInfo = document.getElementById('progressInfo-' + id);
+                        if (progressBar) {
+                            progressBar.style.width = data.progress_percentage + '%';
+                        }
+                        if (progressInfo) {
+                            const pctEls = progressInfo.querySelectorAll('.progress-pct');
+                            pctEls.forEach(el => el.textContent = data.progress_percentage + '%');
+                            const procEl = progressInfo.querySelector('.processed-val');
+                            if (procEl) procEl.textContent = new Intl.NumberFormat().format(data.processed_count);
+                        }
+                        if (data.is_completed || data.status !== 'sending') {
+                            clearInterval(pollTimer);
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => {});
+            });
+        }, 4000);
+    }
 });
 </script>
 @endif

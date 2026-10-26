@@ -49,6 +49,10 @@
                             <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1">
                                 <span class="spinner-border spinner-border-sm me-1"></span> Sending... (<span id="liveProgressText">{{ $campaign->progress_percentage }}%</span>)
                             </span>
+                        @elseif($campaign->status === 'cancelled')
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1">
+                                <i class="bi-pause-circle me-1"></i> Paused / Halted (Kill-Switch)
+                            </span>
                         @elseif($campaign->status === 'draft')
                             <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">Draft</span>
                         @else
@@ -63,7 +67,31 @@
                 </p>
             </div>
 
-            <div class="text-end">
+            <div class="text-end d-flex align-items-center gap-2">
+                @if($campaign->status === 'cancelled' && !App\Models\AdminSettings::isBulkEmailKillSwitchActive() && $campaign->processed_count < $campaign->recipients_count)
+                <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/resume') }}" onsubmit="return confirm('Resume sending remaining unsent recipients for this campaign?');">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi-play-fill me-1"></i> Resume Send
+                    </button>
+                </form>
+                @endif
+                @if($campaign->status === 'sending')
+                <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/pause') }}" onsubmit="return confirm('Pause sending this campaign?');">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning text-dark">
+                        <i class="bi-pause-fill me-1"></i> Pause
+                    </button>
+                </form>
+                @endif
+                @if(in_array($campaign->status, ['cancelled', 'sending']) && $campaign->processed_count > 0 && $campaign->processed_count < $campaign->recipients_count)
+                <form method="POST" action="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/mark-completed') }}" onsubmit="return confirm('Mark this broadcast as complete at {{ number_format($campaign->processed_count) }} recipients?');">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi-check-all me-1"></i> Mark Done
+                    </button>
+                </form>
+                @endif
                 <a href="{{ url('panel/admin/email-marketing/campaigns/' . $campaign->id . '/edit') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bi-pencil-square me-1"></i> Edit / View Content
                 </a>
@@ -355,7 +383,7 @@
     </div>
 </div>
 
-@if($campaign->status === 'sending')
+@if($campaign->status === 'sending' && !App\Models\AdminSettings::isBulkEmailKillSwitchActive())
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const pollInterval = setInterval(function () {
@@ -374,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('liveProgressText').textContent = data.progress_percentage + '%';
                 }
 
-                if (data.is_completed) {
+                if (data.is_completed || data.status !== 'sending') {
                     clearInterval(pollInterval);
                     window.location.reload();
                 }
