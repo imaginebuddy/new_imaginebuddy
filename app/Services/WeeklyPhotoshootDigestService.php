@@ -9,6 +9,7 @@ use App\Models\EmailCampaign;
 use App\Models\EmailSuppression;
 use App\Models\Photoshoot;
 use App\Models\WeeklyDigestHistory;
+use App\Services\EmailTrackingService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -228,7 +229,13 @@ class WeeklyPhotoshootDigestService
         // 7. Render Inner Content
         $contentHtml = self::renderDigestBody($photoshoots, $range);
 
-        // 8. Create EmailCampaign Record
+        // 8. Clean up any incomplete orphaned campaign for this weekly drop if retrying after a crash
+        EmailCampaign::where('name', "Weekly Photoshoot Drop: {$range['label']}")
+            ->where('status', 'sending')
+            ->whereDoesntHave('recipients')
+            ->delete();
+
+        // Create EmailCampaign Record
         $campaign = EmailCampaign::create([
             'name' => "Weekly Photoshoot Drop: {$range['label']}",
             'subject' => $subject,
@@ -254,6 +261,7 @@ class WeeklyPhotoshootDigestService
                 'campaign_id' => $campaign->id,
                 'recipient_email' => strtolower(trim($user->email)),
                 'recipient_name' => $user->name ?: ($user->username ?: 'Creator'),
+                'tracking_token' => EmailTrackingService::generateToken(),
                 'status' => 'queued',
                 'created_at' => $nowTimestamp,
                 'updated_at' => $nowTimestamp,
