@@ -799,7 +799,7 @@ class AdminEmailMarketingController extends Controller
 
     /**
      * Delete all Weekly Photoshoot Drop history records safely.
-     * Only affects WeeklyDigestHistory table. Campaign records, photoshoots, and recipient logs are preserved.
+     * Only affects WeeklyDigestHistory and any stopped/incomplete weekly drop campaigns.
      */
     public function deleteAllWeeklyDropsHistory(Request $request)
     {
@@ -808,6 +808,22 @@ class AdminEmailMarketingController extends Controller
         if ($count === 0) {
             return redirect()->route('email_campaigns', ['tab' => 'weekly-drops'])
                 ->with('info_message', 'Weekly photoshoot drop history is already empty.');
+        }
+
+        // Clean up any stopped/cancelled/empty weekly drop campaigns so they do not resurrect
+        $weeklyDropCampaignIds = WeeklyDigestHistory::pluck('campaign_id')->filter()->toArray();
+        if (!empty($weeklyDropCampaignIds)) {
+            $campaignsToDelete = EmailCampaign::whereIn('id', $weeklyDropCampaignIds)
+                ->where(function ($q) {
+                    $q->whereIn('status', ['stopped', 'cancelled'])
+                      ->orWhere('sent_count', 0);
+                })
+                ->get();
+
+            foreach ($campaignsToDelete as $camp) {
+                $camp->recipients()->delete();
+                $camp->delete();
+            }
         }
 
         // Truncate or delete all records from weekly_digest_history safely
@@ -826,7 +842,18 @@ class AdminEmailMarketingController extends Controller
     {
         $history = WeeklyDigestHistory::findOrFail($id);
         $period = $history->period_label;
+        $campaignId = $history->campaign_id;
+
         $history->delete();
+
+        // If the associated campaign was stopped, cancelled, or has 0 delivered recipients, delete it too so it does not resurrect
+        if ($campaignId) {
+            $campaign = EmailCampaign::find($campaignId);
+            if ($campaign && (in_array($campaign->status, ['stopped', 'cancelled']) || $campaign->sent_count === 0)) {
+                $campaign->recipients()->delete();
+                $campaign->delete();
+            }
+        }
 
         return redirect()->route('email_campaigns', ['tab' => 'weekly-drops'])
             ->with('success_message', "Weekly drop history for {$period} deleted successfully.");

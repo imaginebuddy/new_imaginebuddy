@@ -321,7 +321,7 @@
                         <small class="text-muted">Automated weekly digests showcasing newly published photoshoots delivered to subscribers in batches.</small>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAllWeeklyHistoryModal" {{ $totalWeeklyDrops === 0 ? 'disabled' : '' }}>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="openDeleteAllWeeklyHistoryModal()" data-bs-toggle="modal" data-bs-target="#deleteAllWeeklyHistoryModal" data-toggle="modal" data-target="#deleteAllWeeklyHistoryModal" {{ $totalWeeklyDrops === 0 ? 'disabled' : '' }}>
                             <i class="bi bi-trash3 me-1"></i> Delete All History
                         </button>
                     </div>
@@ -410,9 +410,9 @@
                                             <i class="bi bi-graph-up me-1"></i> Analytics
                                         </a>
                                     @endif
-                                    <form method="POST" action="{{ route('email_campaigns.weekly_drops.delete_single', $drop->id) }}" onsubmit="return confirm('Delete this weekly drop history record for {{ addslashes($drop->period_label) }}?');" style="display:inline-block;">
+                                    <form method="POST" action="{{ url('panel/admin/email-marketing/weekly-drops/' . $drop->id . '/delete') }}" class="d-inline-block m-0">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete record">
+                                        <button type="button" class="btn btn-sm btn-outline-danger actionDelete" title="Delete record">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -629,13 +629,13 @@
     <div class="modal fade" id="deleteAllWeeklyHistoryModal" tabindex="-1" aria-labelledby="deleteAllWeeklyHistoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <form method="POST" action="{{ route('email_campaigns.weekly_drops.delete_all') }}" id="deleteAllWeeklyDropsForm">
+                <form method="POST" action="{{ url('panel/admin/email-marketing/weekly-drops/delete-all') }}" id="deleteAllWeeklyDropsForm">
                     @csrf
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title fw-bold" id="deleteAllWeeklyHistoryModalLabel">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i> Delete All Weekly Drop History
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close" onclick="closeDeleteAllWeeklyHistoryModal()"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="alert alert-danger d-flex align-items-center mb-3">
@@ -662,7 +662,7 @@
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal" onclick="closeDeleteAllWeeklyHistoryModal()">Cancel</button>
                         <button type="submit" class="btn btn-danger" id="submitDeleteAllBtn" disabled>
                             <span class="spinner-border spinner-border-sm d-none me-1" id="deleteAllSpinner" role="status" aria-hidden="true"></span>
                             <span id="deleteAllBtnText"><i class="bi bi-trash3 me-1"></i> Yes, Delete All History</span>
@@ -673,8 +673,40 @@
         </div>
     </div>
 </div>
+@endsection
 
+@section('javascript')
 <script>
+function openDeleteAllWeeklyHistoryModal() {
+    var modalEl = document.getElementById('deleteAllWeeklyHistoryModal');
+    if (!modalEl) return;
+
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+    } else if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+        $('#deleteAllWeeklyHistoryModal').modal('show');
+    } else {
+        modalEl.style.display = 'block';
+        modalEl.classList.add('show');
+    }
+}
+
+function closeDeleteAllWeeklyHistoryModal() {
+    var modalEl = document.getElementById('deleteAllWeeklyHistoryModal');
+    if (!modalEl) return;
+
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    } else if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+        $('#deleteAllWeeklyHistoryModal').modal('hide');
+    } else {
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const confirmInput = document.getElementById('confirmDeleteAllInput');
     const submitBtn = document.getElementById('submitDeleteAllBtn');
