@@ -10,6 +10,7 @@ use App\Models\WeeklyDigestHistory;
 use App\Notifications\BroadcastCampaignNotification;
 use App\Services\AudienceService;
 use App\Services\EmailTrackingService;
+use App\Services\WeeklyPhotoshootDigestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,11 +26,65 @@ class AdminEmailMarketingController extends Controller
     {
         $tab = $request->input('tab', 'campaigns');
         $killSwitchActive = AdminSettings::isBulkEmailKillSwitchActive();
-        $campaigns = EmailCampaign::with('author')->latest()->paginate(15)->appends(['tab' => 'campaigns']);
+
+        // 1. Self-heal and sync any Weekly Photoshoot Drop campaigns into WeeklyDigestHistory
+        $weeklyDropCampaigns = EmailCampaign::where('template_preset', 'weekly_photoshoot_drop')
+            ->orWhere('name', 'LIKE', 'Weekly Photoshoot Drop%')
+            ->get();
+
+        foreach ($weeklyDropCampaigns as $dropCampaign) {
+            // If it crashed/failed with 0 recipients processed, mark its status as 'cancelled' (which renders as Stopped)
+            if ($dropCampaign->status === 'sending' && $dropCampaign->recipients()->count() === 0) {
+                $dropCampaign->update(['status' => 'cancelled']);
+            }
+
+            // Ensure a matching history entry exists in WeeklyDigestHistory
+            $existingHistory = WeeklyDigestHistory::where('campaign_id', $dropCampaign->id)->first();
+            if (!$existingHistory) {
+                $range = WeeklyPhotoshootDigestService::getWeeklyDateRange();
+                $periodKey = $range['period_key'] ?? now()->format('Y-m-d');
+                WeeklyDigestHistory::updateOrCreate(
+                    ['period_key' => $periodKey],
+                    [
+                        'campaign_id' => $dropCampaign->id,
+                        'period_start' => $range['start'] ?? now()->subDays(7),
+                        'period_end' => $range['end'] ?? now(),
+                        'photoshoots_count' => 0,
+                        'photoshoot_ids' => [],
+                        'recipients_count' => $dropCampaign->recipients_count ?: 0,
+                        'status' => $dropCampaign->status === 'sent' ? 'dispatched' : 'stopped',
+                    ]
+                );
+            } elseif ($dropCampaign->status === 'cancelled' && $existingHistory->status !== 'stopped') {
+                $existingHistory->update(['status' => 'stopped']);
+            }
+        }
+
+        // 2. Broadcast Campaigns query: Exclude automated Weekly Photoshoot Drops so they stay in their dedicated tab
+        $broadcastQuery = EmailCampaign::with('author')
+            ->where(function ($q) {
+                $q->whereNull('template_preset')
+                  ->orWhere('template_preset', '!=', 'weekly_photoshoot_drop');
+            })
+            ->where('name', 'NOT LIKE', 'Weekly Photoshoot Drop%');
+
+        $campaigns = $broadcastQuery->latest()->paginate(15)->appends(['tab' => 'campaigns']);
 
         $totalAudience = AudienceService::getDeliverableMarketingAudience()->count();
-        $totalCampaignsSent = EmailCampaign::where('status', 'sent')->count();
-        $totalEmailsDispatched = EmailCampaign::sum('sent_count');
+        $totalCampaignsSent = EmailCampaign::where(function ($q) {
+                $q->whereNull('template_preset')
+                  ->orWhere('template_preset', '!=', 'weekly_photoshoot_drop');
+            })
+            ->where('name', 'NOT LIKE', 'Weekly Photoshoot Drop%')
+            ->where('status', 'sent')
+            ->count();
+
+        $totalEmailsDispatched = EmailCampaign::where(function ($q) {
+                $q->whereNull('template_preset')
+                  ->orWhere('template_preset', '!=', 'weekly_photoshoot_drop');
+            })
+            ->where('name', 'NOT LIKE', 'Weekly Photoshoot Drop%')
+            ->sum('sent_count');
 
         // Weekly Photoshoot Drops History & Analytics
         $weeklyDrops = WeeklyDigestHistory::with('campaign')->latest('period_start')->paginate(15, ['*'], 'weekly_page')->appends(['tab' => 'weekly-drops']);

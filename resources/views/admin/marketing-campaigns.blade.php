@@ -375,10 +375,14 @@
                                 <td>
                                     @if($drop->status === 'dispatched')
                                         <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Dispatched</span>
-                                    @elseif($drop->status === 'no_photoshoots')
+                                    @elseif($drop->status === 'no_photoshoots' || $drop->status === 'skipped_no_photoshoots')
                                         <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i> No Photoshoots</span>
+                                    @elseif($drop->status === 'stopped' || $drop->status === 'failed' || ($drop->campaign && in_array($drop->campaign->status, ['stopped', 'cancelled'])))
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i> Stopped</span>
+                                    @elseif($drop->status === 'sending' || $drop->status === 'processing')
+                                        <span class="badge bg-warning text-dark"><span class="spinner-border spinner-border-sm me-1"></span> Sending</span>
                                     @else
-                                        <span class="badge bg-info">{{ ucfirst($drop->status) }}</span>
+                                        <span class="badge bg-secondary">{{ ucfirst($drop->status) }}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -501,9 +505,9 @@
                                         <span class="badge bg-warning text-dark" id="statusBadge-{{ $c->id }}">
                                             <span class="spinner-border spinner-border-sm me-1"></span> Sending (<span class="progress-pct">{{ $c->progress_percentage }}%</span>)
                                         </span>
-                                    @elseif($c->status === 'cancelled')
+                                    @elseif($c->status === 'cancelled' || $c->status === 'stopped' || $c->status === 'failed')
                                         <span class="badge bg-danger">
-                                            <i class="bi-pause-circle me-1"></i> Paused / Halted
+                                            <i class="bi bi-x-circle me-1"></i> Stopped
                                         </span>
                                     @elseif($c->status === 'draft')
                                         <span class="badge bg-secondary">Draft</span>
@@ -520,10 +524,10 @@
                                         <div class="progress" style="height: 6px; width: 120px;">
                                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="progressBar-{{ $c->id }}" style="width: {{ $c->progress_percentage }}%;"></div>
                                         </div>
-                                    @elseif($c->status === 'cancelled')
+                                    @elseif($c->status === 'cancelled' || $c->status === 'stopped' || $c->status === 'failed')
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <span class="small fw-semibold text-danger">{{ number_format($c->processed_count) }} / {{ number_format($c->recipients_count) }}</span>
-                                            <span class="badge bg-danger-subtle text-danger">{{ $c->progress_percentage }}% Halted</span>
+                                            <span class="badge bg-danger-subtle text-danger">Stopped</span>
                                         </div>
                                         <div class="progress" style="height: 6px; width: 120px;">
                                             <div class="progress-bar bg-danger" style="width: {{ $c->progress_percentage }}%;"></div>

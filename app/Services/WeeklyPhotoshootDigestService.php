@@ -231,96 +231,128 @@ class WeeklyPhotoshootDigestService
 
         // 8. Clean up any incomplete orphaned campaign for this weekly drop if retrying after a crash
         EmailCampaign::where('name', "Weekly Photoshoot Drop: {$range['label']}")
-            ->where('status', 'sending')
+            ->whereIn('status', ['sending', 'stopped', 'cancelled', 'draft'])
             ->whereDoesntHave('recipients')
             ->delete();
 
-        // Create EmailCampaign Record
-        $campaign = EmailCampaign::create([
-            'name' => "Weekly Photoshoot Drop: {$range['label']}",
-            'subject' => $subject,
-            'preview_text' => "Explore this week's newly published commercial studio photoshoots and multi-angle prompts.",
-            'target_segment' => 'all_verified',
-            'template_preset' => 'weekly_photoshoot_drop',
-            'content' => $contentHtml,
-            'status' => 'sending',
-            'recipients_count' => $totalRecipients,
-            'track_opens' => 1,
-            'track_clicks' => 1,
-            'scheduled_at' => now(),
-            'sent_at' => now(),
-            'created_by' => auth()->id() ?? null,
-        ]);
+        try {
+            // Create EmailCampaign Record
+            $campaign = EmailCampaign::create([
+                'name' => "Weekly Photoshoot Drop: {$range['label']}",
+                'subject' => $subject,
+                'preview_text' => "Explore this week's newly published commercial studio photoshoots and multi-angle prompts.",
+                'target_segment' => 'all_verified',
+                'template_preset' => 'weekly_photoshoot_drop',
+                'content' => $contentHtml,
+                'status' => 'sending',
+                'recipients_count' => $totalRecipients,
+                'track_opens' => 1,
+                'track_clicks' => 1,
+                'scheduled_at' => now(),
+                'sent_at' => now(),
+                'created_by' => auth()->id() ?? null,
+            ]);
 
-        // 9. Bulk Seed CampaignRecipients
-        $recipientRows = [];
-        $nowTimestamp = now();
+            // 9. Bulk Seed CampaignRecipients
+            $recipientRows = [];
+            $nowTimestamp = now();
 
-        foreach ($audience as $user) {
-            $recipientRows[] = [
+            foreach ($audience as $user) {
+                $recipientRows[] = [
+                    'campaign_id' => $campaign->id,
+                    'recipient_email' => strtolower(trim($user->email)),
+                    'recipient_name' => $user->name ?: ($user->username ?: 'Creator'),
+                    'tracking_token' => EmailTrackingService::generateToken(),
+                    'status' => 'queued',
+                    'created_at' => $nowTimestamp,
+                    'updated_at' => $nowTimestamp,
+                ];
+            }
+
+            foreach (array_chunk($recipientRows, 300) as $chunkRows) {
+                CampaignRecipient::insert($chunkRows);
+            }
+
+            // 10. Sequential Batched Job Dispatching
+            $recipientIds = CampaignRecipient::where('campaign_id', $campaign->id)
+                ->where('status', 'queued')
+                ->pluck('id')
+                ->toArray();
+
+            $chunks = array_chunk($recipientIds, $batchSize);
+            $currentDelay = 0;
+
+            foreach ($chunks as $batchIds) {
+                SendCampaignBatchJob::dispatch($campaign->id, $batchIds)
+                    ->delay(now()->addSeconds($currentDelay));
+
+                $currentDelay += $batchDelaySeconds;
+            }
+
+            // 11. Record WeeklyDigestHistory
+            WeeklyDigestHistory::updateOrCreate(
+                ['period_key' => $range['period_key']],
+                [
+                    'campaign_id' => $campaign->id,
+                    'period_start' => $range['start'],
+                    'period_end' => $range['end'],
+                    'photoshoots_count' => $totalPhotoshoots,
+                    'photoshoot_ids' => $photoshoots->pluck('id')->toArray(),
+                    'recipients_count' => $totalRecipients,
+                    'status' => 'dispatched',
+                ]
+            );
+
+            Log::info("Weekly Photoshoot Digest dispatched.", [
                 'campaign_id' => $campaign->id,
-                'recipient_email' => strtolower(trim($user->email)),
-                'recipient_name' => $user->name ?: ($user->username ?: 'Creator'),
-                'tracking_token' => EmailTrackingService::generateToken(),
-                'status' => 'queued',
-                'created_at' => $nowTimestamp,
-                'updated_at' => $nowTimestamp,
+                'period_key' => $range['period_key'],
+                'photoshoots' => $totalPhotoshoots,
+                'recipients' => $totalRecipients,
+                'batches' => $totalBatches,
+                'total_delay_seconds' => $currentDelay,
+            ]);
+
+            return [
+                'success' => true,
+                'status' => 'dispatched',
+                'campaign_id' => $campaign->id,
+                'period_key' => $range['period_key'],
+                'photoshoots_count' => $totalPhotoshoots,
+                'recipients_count' => $totalRecipients,
+                'batches_count' => $totalBatches,
+                'duration_seconds' => $currentDelay,
+                'message' => "Successfully launched Weekly Photoshoot Digest campaign #{$campaign->id} ({$totalPhotoshoots} photoshoots) to {$totalRecipients} subscribers in {$totalBatches} controlled batches.",
+            ];
+        } catch (\Throwable $e) {
+            Log::error("Weekly Photoshoot Digest execution stopped due to error: " . $e->getMessage(), [
+                'exception' => $e,
+                'period_key' => $range['period_key'] ?? null,
+            ]);
+
+            if (isset($campaign) && $campaign) {
+                $campaign->update(['status' => 'cancelled']);
+            }
+
+            WeeklyDigestHistory::updateOrCreate(
+                ['period_key' => $range['period_key']],
+                [
+                    'campaign_id' => isset($campaign) ? $campaign->id : null,
+                    'period_start' => $range['start'],
+                    'period_end' => $range['end'],
+                    'photoshoots_count' => $totalPhotoshoots,
+                    'photoshoot_ids' => $photoshoots->pluck('id')->toArray(),
+                    'recipients_count' => $totalRecipients,
+                    'status' => 'stopped',
+                ]
+            );
+
+            return [
+                'success' => false,
+                'status' => 'stopped',
+                'campaign_id' => isset($campaign) ? $campaign->id : null,
+                'period_key' => $range['period_key'],
+                'message' => 'Weekly photoshoot drop encountered an error and was stopped: ' . $e->getMessage(),
             ];
         }
-
-        foreach (array_chunk($recipientRows, 300) as $chunkRows) {
-            CampaignRecipient::insert($chunkRows);
-        }
-
-        // 10. Sequential Batched Job Dispatching
-        $recipientIds = CampaignRecipient::where('campaign_id', $campaign->id)
-            ->where('status', 'queued')
-            ->pluck('id')
-            ->toArray();
-
-        $chunks = array_chunk($recipientIds, $batchSize);
-        $currentDelay = 0;
-
-        foreach ($chunks as $batchIds) {
-            SendCampaignBatchJob::dispatch($campaign->id, $batchIds)
-                ->delay(now()->addSeconds($currentDelay));
-
-            $currentDelay += $batchDelaySeconds;
-        }
-
-        // 11. Record WeeklyDigestHistory
-        WeeklyDigestHistory::updateOrCreate(
-            ['period_key' => $range['period_key']],
-            [
-                'campaign_id' => $campaign->id,
-                'period_start' => $range['start'],
-                'period_end' => $range['end'],
-                'photoshoots_count' => $totalPhotoshoots,
-                'photoshoot_ids' => $photoshoots->pluck('id')->toArray(),
-                'recipients_count' => $totalRecipients,
-                'status' => 'dispatched',
-            ]
-        );
-
-        Log::info("Weekly Photoshoot Digest dispatched.", [
-            'campaign_id' => $campaign->id,
-            'period_key' => $range['period_key'],
-            'photoshoots' => $totalPhotoshoots,
-            'recipients' => $totalRecipients,
-            'batches' => $totalBatches,
-            'total_delay_seconds' => $currentDelay,
-        ]);
-
-        return [
-            'success' => true,
-            'status' => 'dispatched',
-            'campaign_id' => $campaign->id,
-            'period_key' => $range['period_key'],
-            'photoshoots_count' => $totalPhotoshoots,
-            'recipients_count' => $totalRecipients,
-            'batches_count' => $totalBatches,
-            'duration_seconds' => $currentDelay,
-            'message' => "Successfully launched Weekly Photoshoot Digest campaign #{$campaign->id} ({$totalPhotoshoots} photoshoots) to {$totalRecipients} subscribers in {$totalBatches} controlled batches.",
-        ];
     }
 }
