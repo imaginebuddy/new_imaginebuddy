@@ -48,6 +48,10 @@ class Kernel extends ConsoleKernel
             ->dailyAt('10:30')
             ->withoutOverlapping();
 
+        $schedule->command('email:send-pending-optin-reminder')
+            ->dailyAt('11:00')
+            ->withoutOverlapping();
+
         $schedule->command('email:send-quota-alerts')
             ->dailyAt('09:00')
             ->withoutOverlapping();

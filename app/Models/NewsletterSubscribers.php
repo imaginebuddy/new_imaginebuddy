@@ -17,12 +17,22 @@ class NewsletterSubscribers extends Model
         'ip_address',
         'confirmed_at',
         'unsubscribed_at',
+        'reminder_sent_at',
     ];
 
     protected $casts = [
         'confirmed_at' => 'datetime',
         'unsubscribed_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
     ];
+
+    /**
+     * Relationship to EmailSuppression record if suppressed.
+     */
+    public function suppression()
+    {
+        return $this->hasOne(EmailSuppression::class, 'email', 'email');
+    }
 
     /**
      * Scope for active confirmed subscribers.
@@ -38,6 +48,26 @@ class NewsletterSubscribers extends Model
     public function scopePending($query)
     {
         return $query->where('status', 'pending_verification');
+    }
+
+    /**
+     * Scope for pending subscribers eligible for a 24h follow-up reminder.
+     */
+    public function scopePendingReminder($query)
+    {
+        return $query->where('status', 'pending_verification')
+            ->whereNull('reminder_sent_at')
+            ->where('created_at', '<=', now()->subHours(24))
+            ->where('created_at', '>=', now()->subDays(7));
+    }
+
+    /**
+     * Scope for stale pending subscribers (older than 7 days) to auto-expire.
+     */
+    public function scopeExpiredPending($query)
+    {
+        return $query->where('status', 'pending_verification')
+            ->where('created_at', '<', now()->subDays(7));
     }
 
     /**

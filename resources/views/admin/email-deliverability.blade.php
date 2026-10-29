@@ -378,10 +378,29 @@
                         <tr>
                             <td class="fw-semibold text-body">{{ $sub->email }}</td>
                             <td>
-                                @if($sub->status === 'subscribed')
+                                @if($sub->suppression)
+                                    @if($sub->suppression->reason === 'hard_bounce')
+                                        <span class="badge bg-danger" title="Hard Bounce (SES)">Hard Bounce</span>
+                                    @elseif($sub->suppression->reason === 'soft_bounce')
+                                        <span class="badge bg-warning text-dark" title="Soft Bounce">Soft Bounce</span>
+                                    @elseif($sub->suppression->reason === 'complaint')
+                                        <span class="badge bg-danger" title="Spam Complaint">Complaint</span>
+                                    @elseif($sub->suppression->reason === 'disposable')
+                                        <span class="badge bg-secondary" title="Disposable Domain">Disposable</span>
+                                    @elseif($sub->suppression->reason === 'admin_suppressed')
+                                        <span class="badge bg-dark" title="Admin Blocked">Admin Blocked</span>
+                                    @else
+                                        <span class="badge bg-secondary" title="Suppressed ({{ $sub->suppression->reason }})">Suppressed</span>
+                                    @endif
+                                @elseif($sub->status === 'subscribed')
                                     <span class="badge bg-success">Subscribed</span>
                                 @elseif($sub->status === 'pending_verification')
                                     <span class="badge bg-warning text-dark">Pending Opt-In</span>
+                                    @if($sub->reminder_sent_at)
+                                        <span class="badge bg-light text-muted border ms-1" title="Reminder sent {{ $sub->reminder_sent_at->format('M d, H:i') }}">Reminder Sent</span>
+                                    @endif
+                                @elseif($sub->status === 'expired')
+                                    <span class="badge bg-dark">Expired</span>
                                 @else
                                     <span class="badge bg-secondary">Unsubscribed</span>
                                 @endif

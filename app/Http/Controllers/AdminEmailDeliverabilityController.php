@@ -47,7 +47,7 @@ class AdminEmailDeliverabilityController extends Controller
 
         // 4. Tab Data
         if ($tab === 'subscribers') {
-            $subscribersQuery = NewsletterSubscribers::latest();
+            $subscribersQuery = NewsletterSubscribers::with('suppression')->latest();
             if (!empty($q)) {
                 $subscribersQuery->where('email', 'LIKE', "%{$q}%");
             }
