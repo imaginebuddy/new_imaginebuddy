@@ -53,6 +53,7 @@ class EmailTemplate extends Model
             // Admins can freely customize links (e.g. use custom URLs or vault/photoshoots)
             'broadcast-campaign' => [],
             'newsletter-double-opt-in' => ['{confirm_url}'],
+            'newsletter-opt-in-reminder' => ['{confirm_url}'],
             'newsletter-welcome' => [],
             'welcome-drip-day3' => [],
             'abandoned-checkout' => [],
