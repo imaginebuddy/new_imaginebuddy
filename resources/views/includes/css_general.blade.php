@@ -882,6 +882,19 @@ var thanks = "{{ __('misc.thanks') }}";
   color: #1e293b !important;
 }
 
+.prompt-free-badge {
+  background-color: #00b87c !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.5px !important;
+  padding: 5px 11px !important;
+  line-height: 1.2 !important;
+  box-shadow: 0 2px 8px rgba(0, 184, 124, 0.4) !important;
+  text-transform: uppercase !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
 .prompt-card-title,
 .photoshoot-card-title {
   white-space: normal !important;
@@ -1050,6 +1063,143 @@ body.dark-mode .prompt-copy-icon-bg {
   height: 100% !important;
   object-fit: cover !important;
   display: block !important;
+}
+
+/* Prompt Card Image Carousel for Example Images */
+.prompt-card-media-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+.prompt-card-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.prompt-carousel-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.prompt-carousel-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+.prompt-carousel-slide.active {
+  position: relative !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 2 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.prompt-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 12;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background-color: rgba(17, 24, 39, 0.65) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.25s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.prompt-carousel-arrow i {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  color: #ffffff !important;
+}
+
+.prompt-carousel-prev {
+  left: 10px;
+}
+
+.prompt-carousel-next {
+  right: 10px;
+}
+
+.prompt-card-item:hover .prompt-carousel-arrow,
+.guide-prompt-card-wrapper:hover .prompt-carousel-arrow,
+.prompt-card-carousel:hover .prompt-carousel-arrow {
+  opacity: 0.9 !important;
+}
+
+.prompt-carousel-arrow:hover {
+  opacity: 1 !important;
+  background-color: rgba(17, 24, 39, 0.95) !important;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.prompt-carousel-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.prompt-carousel-dots {
+  z-index: 10;
+  pointer-events: auto !important;
+}
+
+.prompt-carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.prompt-carousel-dot.active {
+  width: 16px;
+  border-radius: 4px;
+  background-color: #ffffff;
+}
+
+@media (hover: none), (max-width: 768px) {
+  .prompt-carousel-arrow {
+    opacity: 0.85 !important;
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
 }
 
 .btn-copy-prompt-grid {

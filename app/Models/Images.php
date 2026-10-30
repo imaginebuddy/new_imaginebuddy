@@ -196,7 +196,7 @@ class Images extends Model
 		'images.copies_count',
 		'images.categories_id'
 	   ])
-	   ->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution']);
+	   ->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution', 'examples:id,images_id,file']);
 	 }
 
 	 public function scopeCountLikesDownloads($query)

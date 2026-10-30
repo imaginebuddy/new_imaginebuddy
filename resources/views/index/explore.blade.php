@@ -230,6 +230,12 @@ switch(request()->get('timeframe')) {
 
           if ($newItems.length > 0) {
             $('#imagesFlex').append($newItems);
+            if ($('#imagesFlex').length && $.fn.flexImages) {
+              $('#imagesFlex').flexImages({ rowHeight: 680 });
+            }
+            if (typeof syncCarouselImages === 'function') {
+              syncCarouselImages();
+            }
             state.page++;
 
             var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;

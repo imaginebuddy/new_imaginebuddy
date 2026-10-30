@@ -17,28 +17,52 @@
 
 			$previewName = $image->preview ?: ($stockImage ? $stockImage->name : '');
 			$previewUrl  = $image->preview ? Storage::url(config('path.preview').$image->preview) : ($stockImage ? url('files/preview/'.$stockImage->resolution, $stockImage->name).'?size=medium&type='.$image->item_for_sale : asset('public/uploads/preview/' . $previewName));
+
+			$exampleImages = $image->examples ? $image->examples->filter(function($ex) {
+				return !empty($ex->file);
+			}) : collect();
+
+			$hasExamples = $exampleImages->isNotEmpty();
+			$slides = collect();
+			if ($hasExamples) {
+				if ($previewUrl) {
+					$slides->push($previewUrl);
+				}
+				foreach ($exampleImages as $ex) {
+					$slides->push(Storage::url(config('path.examples') . $ex->file));
+				}
+			}
 		@endphp
 
 		<div class="item hovercard prompt-card-item rounded-4 overflow-hidden position-relative d-block text-decoration-none shadow-sm prompt-card-container" data-w="{{$newWidth}}" data-h="{{$newHeight}}">
 			<div class="card border-0 rounded-4 overflow-hidden h-100 d-flex flex-column justify-content-between p-2 prompt-card-bg">
 				
 				<!-- 1. Top Image Section with Badges Overlay -->
-				<div class="position-relative overflow-hidden w-100 flex-grow-1 rounded-4" style="{{$background}}">
+				<div class="position-relative overflow-hidden w-100 flex-grow-1 rounded-4 prompt-card-media-wrapper" style="{{$background}}">
 					<!-- Top Badges Overlay -->
-					<div class="prompt-card-top-bar d-flex justify-content-between align-items-center position-absolute top-0 start-0 w-100 p-3" style="z-index: 5; pointer-events: none;">
-						<!-- Top Left Dark Translucent Badge: Category/Model -->
-						<span class="badge text-white fw-medium rounded-pill px-3 py-2 shadow-sm text-capitalize d-inline-flex align-items-center gap-1" style="pointer-events: auto; font-size: 12px; background-color: rgba(24, 43, 23, 0.85); backdrop-filter: blur(8px);">
-							@if ($image->item_for_sale == 'sale')
-								<i class="fa fa-crown text-warning me-1" title="Premium Prompt"></i>
+					<div class="prompt-card-top-bar d-flex justify-content-between align-items-center position-absolute top-0 start-0 w-100 p-3" style="z-index: 15; pointer-events: none;">
+						<!-- Top Left Badges: Free Tag + Category/Model -->
+						<div class="d-inline-flex align-items-center gap-2 flex-wrap" style="pointer-events: auto; max-width: calc(100% - 48px);">
+							@if ($image->item_for_sale == 'free')
+								<span class="badge prompt-free-badge rounded-pill shadow-sm d-inline-flex align-items-center">
+									Free
+								</span>
 							@endif
-							@if ($image->category)
-								{{ ucfirst(strtolower($image->category->name)) }}
-							@elseif ($image->ai_model)
-								{{ ucfirst(strtolower($image->ai_model)) }}
-							@else
-								Prompt
-							@endif
-						</span>
+
+							<!-- Dark Translucent Badge: Category/Model -->
+							<span class="badge text-white fw-medium rounded-pill px-3 py-2 shadow-sm text-capitalize d-inline-flex align-items-center gap-1" style="font-size: 12px; background-color: rgba(24, 43, 23, 0.85); backdrop-filter: blur(8px);">
+								@if ($image->item_for_sale == 'sale')
+									<i class="fa fa-crown text-warning me-1" title="Premium Prompt"></i>
+								@endif
+								@if ($image->category)
+									{{ ucfirst(strtolower($image->category->name)) }}
+								@elseif ($image->ai_model)
+									{{ ucfirst(strtolower($image->ai_model)) }}
+								@else
+									Prompt
+								@endif
+							</span>
+						</div>
 
 						<!-- Top Right White Circle: Heart Icon + Count -->
 						<div class="prompt-badge-circle fw-bold rounded-circle shadow-sm d-flex flex-column align-items-center justify-content-center" style="pointer-events: auto; width: 36px; height: 36px;">
@@ -47,10 +71,42 @@
 						</div>
 					</div>
 
-					<!-- Full Cover Image Link -->
-					<a href="{{ url('prompt', $image->slug) }}" class="d-block w-100 h-100 text-decoration-none">
-						<img alt="{{ $image->title }}" class="previewImage prompt-card-img rounded-4" src="{{ $previewUrl }}" data-src="{{ $previewUrl }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
-					</a>
+					@if (!$hasExamples)
+						<!-- Full Cover Image Link (Original untouched layout) -->
+						<a href="{{ url('prompt', $image->slug) }}" class="d-block w-100 h-100 text-decoration-none">
+							<img alt="{{ $image->title }}" class="previewImage prompt-card-img rounded-4" src="{{ $previewUrl }}" data-src="{{ $previewUrl }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+						</a>
+					@else
+						<!-- Image Carousel Showcase for Example Images -->
+						<div class="prompt-card-carousel position-relative w-100 h-100 overflow-hidden rounded-4" data-current-slide="0" data-total-slides="{{ $slides->count() }}">
+							<div class="prompt-carousel-track w-100 h-100 position-relative">
+								@foreach ($slides as $idx => $slideUrl)
+									<a href="{{ url('prompt', $image->slug) }}" class="prompt-carousel-slide d-block w-100 h-100 text-decoration-none {{ $idx === 0 ? 'active' : '' }}" data-slide-index="{{ $idx }}" data-img-src="{{ $slideUrl }}" aria-hidden="{{ $idx === 0 ? 'false' : 'true' }}">
+										<img alt="{{ $image->title }} {{ $idx > 0 ? '- Example ' . $idx : '' }}" class="{{ $idx === 0 ? 'previewImage ' : '' }}prompt-card-img rounded-4" src="{{ $slideUrl }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+									</a>
+								@endforeach
+							</div>
+
+							@if ($slides->count() > 1)
+								<!-- Left Navigation Arrow -->
+								<button type="button" class="btn prompt-carousel-arrow prompt-carousel-prev" data-action="prev" aria-label="Previous example image" title="Previous image">
+									<i class="bi bi-chevron-left"></i>
+								</button>
+
+								<!-- Right Navigation Arrow -->
+								<button type="button" class="btn prompt-carousel-arrow prompt-carousel-next" data-action="next" aria-label="Next example image" title="Next image">
+									<i class="bi bi-chevron-right"></i>
+								</button>
+
+								<!-- Subtle Dots Indicators -->
+								<div class="prompt-carousel-dots d-flex align-items-center gap-1 position-absolute bottom-0 start-50 translate-middle-x mb-2" style="z-index: 10; pointer-events: none;">
+									@foreach ($slides as $idx => $slideUrl)
+										<span class="prompt-carousel-dot {{ $idx === 0 ? 'active' : '' }}" data-dot-index="{{ $idx }}"></span>
+									@endforeach
+								</div>
+							@endif
+						</div>
+					@endif
 				</div>
 
 				<!-- 2. Bottom Details Section (Title, Subtext, Author, Share & Copy) PLACED AFTER THE IMAGE -->

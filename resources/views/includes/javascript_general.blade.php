@@ -408,4 +408,141 @@ $(window).on('scroll resize', function() {
     }
   }, pingInterval);
 })();
+
+// Prompt Card Image Carousel Navigation
+$(document).on('click', '.prompt-carousel-arrow', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  var btn = $(this);
+  var action = btn.attr('data-action') || (btn.hasClass('prompt-carousel-next') ? 'next' : 'prev');
+  var carousel = btn.closest('.prompt-card-carousel');
+  var slides = carousel.find('.prompt-carousel-slide');
+  var dots = carousel.find('.prompt-carousel-dot');
+  var total = slides.length;
+  if (total <= 1) return;
+
+  var currentIdx = parseInt(carousel.attr('data-current-slide') || '0', 10);
+  if (isNaN(currentIdx) || currentIdx < 0 || currentIdx >= total) {
+    currentIdx = slides.index(slides.filter('.active'));
+    if (currentIdx === -1) currentIdx = 0;
+  }
+
+  var nextIdx;
+  if (action === 'next') {
+    nextIdx = (currentIdx + 1) % total;
+  } else {
+    nextIdx = (currentIdx - 1 + total) % total;
+  }
+
+  // Switch active slide
+  var targetSlide = slides.eq(nextIdx);
+
+  // Guarantee correct image src
+  var intendedSrc = targetSlide.attr('data-img-src');
+  if (intendedSrc) {
+    var img = targetSlide.find('img');
+    if (img.length && img.attr('src') !== intendedSrc) {
+      img.attr('src', intendedSrc);
+    }
+  }
+
+  slides.removeClass('active').attr('aria-hidden', 'true');
+  targetSlide.addClass('active').attr('aria-hidden', 'false');
+
+  // Update dots
+  if (dots.length) {
+    dots.removeClass('active');
+    dots.eq(nextIdx).addClass('active');
+  }
+
+  carousel.attr('data-current-slide', nextIdx);
+});
+
+// Prompt Card Carousel Dot Navigation
+$(document).on('click', '.prompt-carousel-dot', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  var dot = $(this);
+  var targetIdx = parseInt(dot.attr('data-dot-index') || '0', 10);
+  var carousel = dot.closest('.prompt-card-carousel');
+  var slides = carousel.find('.prompt-carousel-slide');
+  var dots = carousel.find('.prompt-carousel-dot');
+  var total = slides.length;
+  if (total <= 1 || targetIdx < 0 || targetIdx >= total) return;
+
+  var targetSlide = slides.eq(targetIdx);
+  var intendedSrc = targetSlide.attr('data-img-src');
+  if (intendedSrc) {
+    var img = targetSlide.find('img');
+    if (img.length && img.attr('src') !== intendedSrc) {
+      img.attr('src', intendedSrc);
+    }
+  }
+
+  slides.removeClass('active').attr('aria-hidden', 'true');
+  targetSlide.addClass('active').attr('aria-hidden', 'false');
+
+  dots.removeClass('active');
+  dots.eq(targetIdx).addClass('active');
+
+  carousel.attr('data-current-slide', targetIdx);
+});
+
+// Restore/ensure correct carousel image src across all cards
+function syncCarouselImages() {
+  $('.prompt-card-carousel .prompt-carousel-slide').each(function() {
+    var slide = $(this);
+    var intendedSrc = slide.attr('data-img-src');
+    if (intendedSrc) {
+      var img = slide.find('img');
+      if (img.length && img.attr('src') !== intendedSrc) {
+        img.attr('src', intendedSrc);
+      }
+    }
+  });
+}
+
+$(document).ready(syncCarouselImages);
+$(document).ajaxComplete(function() {
+  syncCarouselImages();
+  if ($('#imagesFlex').length && $.fn.flexImages) {
+    var unstyled = $('#imagesFlex').find('.item:not([style*="height"])');
+    if (unstyled.length > 0) {
+      $('#imagesFlex').flexImages({ rowHeight: 680 });
+    }
+  }
+});
+
+// Mobile Touch Swipe for Prompt Card Carousel
+(function() {
+  var touchStartX = 0;
+  var touchStartY = 0;
+
+  $(document).on('touchstart', '.prompt-card-carousel', function(e) {
+    var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+    touchStartX = touch.pageX;
+    touchStartY = touch.pageY;
+  });
+
+  $(document).on('touchend', '.prompt-card-carousel', function(e) {
+    var carousel = $(this);
+    var slides = carousel.find('.prompt-carousel-slide');
+    if (slides.length <= 1) return;
+
+    var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+    var diffX = touch.pageX - touchStartX;
+    var diffY = touch.pageY - touchStartY;
+
+    // Detect horizontal swipe gesture (at least 40px and more horizontal than vertical)
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX < 0) {
+        carousel.find('.prompt-carousel-next').trigger('click');
+      } else {
+        carousel.find('.prompt-carousel-prev').trigger('click');
+      }
+    }
+  });
+})();
 </script>

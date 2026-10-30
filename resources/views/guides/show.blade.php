@@ -937,6 +937,10 @@ html {
   color: #0b0f17 !important;
   border-color: transparent !important;
 }
+[data-bs-theme="dark"] .guide-prompt-copy-btn .prompt-copy-icon-bg {
+  background-color: #0b0f17 !important;
+  color: var(--guide-mint) !important;
+}
 .guide-prompt-copy-btn:hover {
   filter: brightness(1.1);
 }
@@ -944,6 +948,7 @@ html {
   background: var(--guide-bg-surface) !important;
   border: 1px solid var(--guide-border-subtle) !important;
   color: var(--guide-text-main) !important;
+}
 /* Related Topics Tag Cloud */
 .guide-topics-cloud-card {
   background: var(--guide-bg-surface);
