@@ -507,12 +507,6 @@ function syncCarouselImages() {
 $(document).ready(syncCarouselImages);
 $(document).ajaxComplete(function() {
   syncCarouselImages();
-  if ($('#imagesFlex').length && $.fn.flexImages) {
-    var unstyled = $('#imagesFlex').find('.item:not([style*="height"])');
-    if (unstyled.length > 0) {
-      $('#imagesFlex').flexImages({ rowHeight: 680 });
-    }
-  }
 });
 
 // Mobile Touch Swipe for Prompt Card Carousel

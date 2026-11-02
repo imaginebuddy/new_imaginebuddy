@@ -187,8 +187,6 @@ switch(request()->get('timeframe')) {
 (function($) {
   "use strict";
 
-  $('#imagesFlex').flexImages({ rowHeight: 680 });
-
   var state = {
     page: {{ $images->hasMorePages() ? 2 : 'null' }},
     hasMore: {{ $images->hasMorePages() ? 'true' : 'false' }},
@@ -230,9 +228,6 @@ switch(request()->get('timeframe')) {
 
           if ($newItems.length > 0) {
             $('#imagesFlex').append($newItems);
-            if ($('#imagesFlex').length && $.fn.flexImages) {
-              $('#imagesFlex').flexImages({ rowHeight: 680 });
-            }
             if (typeof syncCarouselImages === 'function') {
               syncCarouselImages();
             }

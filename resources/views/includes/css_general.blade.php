@@ -428,11 +428,11 @@
   z-index: 10;
 }
 
-/* --- Standardized Prompt Card Grid System Across All Pages: 3 Cards Per Row --- */
+/* --- Standardized Prompt Card Dynamic Masonry Layout System --- */
 .flex-images {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 1.25rem !important;
+  display: block !important;
+  column-count: 3 !important;
+  column-gap: 1.25rem !important;
   overflow: visible !important;
   height: auto !important;
   margin: 0 !important;
@@ -441,32 +441,50 @@
 }
 
 .flex-images .item {
-  width: calc((100% - 2.5rem) / 3) !important;
-  max-width: calc((100% - 2.5rem) / 3) !important;
+  width: 100% !important;
+  max-width: 100% !important;
   min-width: 0 !important;
-  flex: 0 0 calc((100% - 2.5rem) / 3) !important;
+  display: inline-block !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  -webkit-column-break-inside: avoid !important;
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0 0 1.25rem 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   float: none !important;
   box-sizing: border-box !important;
   height: auto !important;
+  vertical-align: top !important;
+}
+
+[data-bs-theme="dark"] .flex-images .item,
+[data-theme="dark"] .flex-images .item,
+body.dark-mode .flex-images .item {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 991px) {
+  .flex-images {
+    column-count: 2 !important;
+    column-gap: 1.25rem !important;
+  }
   .flex-images .item {
-    width: calc((100% - 1.25rem) / 2) !important;
-    max-width: calc((100% - 1.25rem) / 2) !important;
-    min-width: 0 !important;
-    flex: 0 0 calc((100% - 1.25rem) / 2) !important;
+    padding: 0 0 1.25rem 0 !important;
   }
 }
 
 @media (max-width: 575px) {
+  .flex-images {
+    column-count: 1 !important;
+    column-gap: 0 !important;
+  }
   .flex-images .item {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    flex: 0 0 100% !important;
+    padding: 0 0 1rem 0 !important;
   }
 }
 
@@ -857,10 +875,6 @@ var thanks = "{{ __('misc.thanks') }}";
 }
 
 /* --- Modern AI Prompt Card Custom Styling --- */
-.flex-images .item {
-  margin: 14px 16px !important;
-}
-
 .prompt-card-container {
   background-color: #ffffff !important;
 }
@@ -1058,25 +1072,29 @@ body.dark-mode .prompt-copy-icon-bg {
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.flex-images .item img.prompt-card-img {
+.flex-images .item img.prompt-card-img,
+.guide-prompt-card-wrapper img.prompt-card-img,
+img.prompt-card-img {
   width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
   display: block !important;
 }
 
-/* Prompt Card Image Carousel for Example Images */
+/* Prompt Card Dynamic Media Frame & Carousel */
 .prompt-card-media-wrapper {
   position: relative;
   overflow: hidden;
   width: 100%;
-  flex: 1 1 auto;
+  height: auto;
+  display: block;
 }
 
 .prompt-card-carousel {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: auto;
   border-radius: inherit;
   overflow: hidden;
 }
@@ -1084,7 +1102,7 @@ body.dark-mode .prompt-copy-icon-bg {
 .prompt-carousel-track {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: auto;
   border-radius: inherit;
 }
 
@@ -1110,7 +1128,13 @@ body.dark-mode .prompt-copy-icon-bg {
   z-index: 2 !important;
   display: block !important;
   width: 100% !important;
+  height: auto !important;
+}
+
+.prompt-carousel-slide:not(.active) img.prompt-card-img {
+  width: 100% !important;
   height: 100% !important;
+  object-fit: contain !important;
 }
 
 .prompt-carousel-arrow {
@@ -1248,11 +1272,6 @@ body.dark-mode .prompt-copy-icon-bg {
   .prompt-guest-protected {
     display: none !important;
   }
-}
-
-/* Force zero margin on flex-images items */
-.flex-images .item {
-  margin: 0px 0px !important;
 }
 
 /* Author Header & Follow Button Mobile Optimization */

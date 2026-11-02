@@ -11,9 +11,20 @@
 				$background = 'background-color: #'.$color.';';
 			}
 
-			$stockImage = $image->stock ? ($image->stock->where('type', 'medium')->first() ?: $image->stock->first()) : null;
-			$newWidth   = 480;
-			$newHeight  = 740;
+			$stockImage = $image->stock ? ($image->stock->where('type', 'small')->first() ?: ($image->stock->where('type', 'medium')->first() ?: $image->stock->first())) : null;
+			$cardWidth  = null;
+			$cardHeight = null;
+			if ($stockImage && !empty($stockImage->resolution)) {
+				$resParts = explode('x', $stockImage->resolution);
+				if (!empty($resParts[0]) && !empty($resParts[1])) {
+					$cardWidth  = (int) $resParts[0];
+					$cardHeight = (int) $resParts[1];
+				}
+			}
+
+			$aspectRatioStyle = ($cardWidth && $cardHeight) ? "aspect-ratio: {$cardWidth} / {$cardHeight};" : "";
+			$dataW = $cardWidth ?: 480;
+			$dataH = $cardHeight ?: 640;
 
 			$previewName = $image->preview ?: ($stockImage ? $stockImage->name : '');
 			$previewUrl  = $image->preview ? Storage::url(config('path.preview').$image->preview) : ($stockImage ? url('files/preview/'.$stockImage->resolution, $stockImage->name).'?size=medium&type='.$image->item_for_sale : asset('public/uploads/preview/' . $previewName));
@@ -34,11 +45,11 @@
 			}
 		@endphp
 
-		<div class="item hovercard prompt-card-item rounded-4 overflow-hidden position-relative d-block text-decoration-none shadow-sm prompt-card-container" data-w="{{$newWidth}}" data-h="{{$newHeight}}">
-			<div class="card border-0 rounded-4 overflow-hidden h-100 d-flex flex-column justify-content-between p-2 prompt-card-bg">
+		<div class="item position-relative d-block text-decoration-none prompt-card-masonry-wrapper" data-w="{{$dataW}}" data-h="{{$dataH}}">
+			<div class="card border-0 rounded-4 overflow-hidden d-flex flex-column p-2 shadow-sm hovercard prompt-card-item prompt-card-bg">
 				
 				<!-- 1. Top Image Section with Badges Overlay -->
-				<div class="position-relative overflow-hidden w-100 flex-grow-1 rounded-4 prompt-card-media-wrapper" style="{{$background}}">
+				<div class="position-relative overflow-hidden w-100 rounded-4 prompt-card-media-wrapper" style="{{$background}} {{$aspectRatioStyle}}">
 					<!-- Top Badges Overlay -->
 					<div class="prompt-card-top-bar d-flex justify-content-between align-items-center position-absolute top-0 start-0 w-100 p-3" style="z-index: 15; pointer-events: none;">
 						<!-- Top Left Badges: Free Tag + Category/Model -->
@@ -73,16 +84,16 @@
 
 					@if (!$hasExamples)
 						<!-- Full Cover Image Link (Original untouched layout) -->
-						<a href="{{ url('prompt', $image->slug) }}" class="d-block w-100 h-100 text-decoration-none">
-							<img alt="{{ $image->title }}" class="previewImage prompt-card-img rounded-4" src="{{ $previewUrl }}" data-src="{{ $previewUrl }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+						<a href="{{ url('prompt', $image->slug) }}" class="d-block w-100 text-decoration-none">
+							<img alt="{{ $image->title }}" class="previewImage prompt-card-img rounded-4" src="{{ $previewUrl }}" data-src="{{ $previewUrl }}" style="width: 100%; height: auto; display: block;" />
 						</a>
 					@else
 						<!-- Image Carousel Showcase for Example Images -->
-						<div class="prompt-card-carousel position-relative w-100 h-100 overflow-hidden rounded-4" data-current-slide="0" data-total-slides="{{ $slides->count() }}">
-							<div class="prompt-carousel-track w-100 h-100 position-relative">
+						<div class="prompt-card-carousel position-relative w-100 overflow-hidden rounded-4" data-current-slide="0" data-total-slides="{{ $slides->count() }}" style="{{$aspectRatioStyle}}">
+							<div class="prompt-carousel-track w-100 position-relative">
 								@foreach ($slides as $idx => $slideUrl)
-									<a href="{{ url('prompt', $image->slug) }}" class="prompt-carousel-slide d-block w-100 h-100 text-decoration-none {{ $idx === 0 ? 'active' : '' }}" data-slide-index="{{ $idx }}" data-img-src="{{ $slideUrl }}" aria-hidden="{{ $idx === 0 ? 'false' : 'true' }}">
-										<img alt="{{ $image->title }} {{ $idx > 0 ? '- Example ' . $idx : '' }}" class="{{ $idx === 0 ? 'previewImage ' : '' }}prompt-card-img rounded-4" src="{{ $slideUrl }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+									<a href="{{ url('prompt', $image->slug) }}" class="prompt-carousel-slide d-block w-100 text-decoration-none {{ $idx === 0 ? 'active' : '' }}" data-slide-index="{{ $idx }}" data-img-src="{{ $slideUrl }}" aria-hidden="{{ $idx === 0 ? 'false' : 'true' }}">
+										<img alt="{{ $image->title }} {{ $idx > 0 ? '- Example ' . $idx : '' }}" class="{{ $idx === 0 ? 'previewImage ' : '' }}prompt-card-img rounded-4" src="{{ $slideUrl }}" style="width: 100%; height: auto; display: block;" />
 									</a>
 								@endforeach
 							</div>

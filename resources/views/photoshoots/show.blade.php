@@ -797,10 +797,6 @@
 (function($) {
   "use strict";
 
-  if ($('#imagesFlex').length && $.fn.flexImages) {
-    $('#imagesFlex').flexImages({ rowHeight: 580 });
-  }
-
   var state = {
     page: {{ $images->hasMorePages() ? ($images->currentPage() + 1) : 'null' }},
     hasMore: {{ $images->hasMorePages() ? 'true' : 'false' }},
@@ -854,9 +850,6 @@
 
           if ($newItems.length > 0) {
             $('#imagesFlex').append($newItems);
-            if ($('#imagesFlex').length && $.fn.flexImages) {
-              $('#imagesFlex').flexImages({ rowHeight: 580 });
-            }
 
             state.hasMore = !!response.hasMore;
             state.page = response.nextPage;
@@ -875,9 +868,6 @@
 
           if ($newItems.length > 0) {
             $('#imagesFlex').append($newItems);
-            if ($('#imagesFlex').length && $.fn.flexImages) {
-              $('#imagesFlex').flexImages({ rowHeight: 580 });
-            }
             state.page++;
 
             var hasNext = $wrapper.find('#linkPagination .pagination .next, #linkPagination .pagination [rel="next"]').length > 0;
