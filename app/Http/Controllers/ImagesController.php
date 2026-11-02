@@ -241,6 +241,8 @@ class ImagesController extends Controller
 				->where('photoshoot_id', $response->photoshoot_id)
 				->whereStatus('active')
 				->where('id', '<>', $response->id)
+				->orderBy('photoshoot_order', 'asc')
+				->orderBy('id', 'desc')
 				->take(9)
 				->get();
 		}

@@ -340,12 +340,17 @@ class Photoshoot extends Model
 
     public function images()
     {
-        return $this->hasMany(Images::class, 'photoshoot_id')->where('status', 'active');
+        return $this->hasMany(Images::class, 'photoshoot_id')
+            ->where('status', 'active')
+            ->orderBy('photoshoot_order', 'asc')
+            ->orderBy('id', 'desc');
     }
 
     public function allImages()
     {
-        return $this->hasMany(Images::class, 'photoshoot_id');
+        return $this->hasMany(Images::class, 'photoshoot_id')
+            ->orderBy('photoshoot_order', 'asc')
+            ->orderBy('id', 'desc');
     }
 
     public function landingPageItems()

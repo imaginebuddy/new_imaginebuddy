@@ -530,10 +530,16 @@
 
       <!-- CARD 5: Prompts currently in this Photoshoot -->
 			<div class="card shadow-custom border-0">
-				<div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-          <h5 class="fw-bold mb-0 text-dark">
-            <i class="bi bi-images me-2 text-primary"></i>5. Prompts in this Photoshoot (<span id="promptCountBadge">{{ $data->allImages->count() }}</span>)
-          </h5>
+				<div class="card-header bg-white py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <h5 class="fw-bold mb-0 text-dark">
+              <i class="bi bi-images me-2 text-primary"></i>5. Prompts in this Photoshoot (<span id="promptCountBadge">{{ $data->allImages->count() }}</span>)
+            </h5>
+            <span id="reorderStatusBadge" class="badge ms-2 d-none shadow-xs py-2 px-3 fw-medium"></span>
+          </div>
+          <small class="text-muted d-flex align-items-center">
+            <i class="bi bi-grip-vertical me-1 text-primary"></i> Drag handle on left to reorder
+          </small>
         </div>
 				<div class="card-body p-lg-4">
 
@@ -541,19 +547,25 @@
             <table class="table table-hover align-middle mb-0" id="tableAssociatedPrompts">
               <thead class="table-light">
                 <tr>
+                  <th scope="col" style="width: 45px;" class="text-center" title="Drag to reorder">
+                    <i class="bi bi-arrow-down-up text-muted"></i>
+                  </th>
                   <th scope="col" style="width: 70px;">ID</th>
                   <th scope="col" style="width: 70px;">Preview</th>
                   <th scope="col">Prompt Title</th>
                   <th scope="col">Uploaded By</th>
                   <th scope="col" style="width: 100px;">Tier</th>
                   <th scope="col" style="width: 100px;">Status</th>
-                  <th scope="col" style="width: 140px;">Actions</th>
+                  <th scope="col" style="width: 100px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="associatedPromptsBody">
                 @if ($data->allImages->count() != 0)
                   @foreach ($data->allImages as $image)
-                    <tr id="promptRow-{{ $image->id }}">
+                    <tr id="promptRow-{{ $image->id }}" data-id="{{ $image->id }}" class="prompt-sortable-row">
+                      <td class="drag-handle text-center text-muted" style="cursor: grab; width: 45px;" title="Drag to reorder">
+                        <i class="bi bi-grip-vertical fs-5"></i>
+                      </td>
                       <td class="fw-bold text-muted">{{ $image->id }}</td>
                       <td>
                         <img src="{{ Storage::url(config('path.thumbnail') . $image->thumbnail) }}" class="rounded shadow-sm" width="48" height="48" style="object-fit: cover;" />
@@ -586,7 +598,7 @@
                   @endforeach
                 @else
                   <tr id="noPromptsRow">
-                    <td colspan="7" class="text-center p-5 text-muted fw-light">
+                    <td colspan="8" class="text-center p-5 text-muted fw-light">
                       No prompts currently in this photoshoot. Use the search box above to add existing prompts.
                     </td>
                   </tr>
@@ -598,6 +610,34 @@
         </div>
       </div>
 
+      <style>
+        .prompt-sortable-row .drag-handle {
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: none;
+          transition: color 0.15s ease;
+        }
+        .prompt-sortable-row .drag-handle:hover {
+          color: #0d6efd !important;
+        }
+        .prompt-sortable-row .drag-handle:active {
+          cursor: grabbing !important;
+        }
+        .sortable-ghost {
+          opacity: 0.35;
+          background-color: #e0f2fe !important;
+          outline: 2px dashed #0284c7;
+        }
+        .sortable-chosen {
+          background-color: #f8fafc !important;
+        }
+        .sortable-drag {
+          opacity: 1 !important;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          background: #ffffff !important;
+        }
+      </style>
+
     </div>
 
   </div>
@@ -605,6 +645,7 @@
 @endsection
 
 @section('javascript')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
 
@@ -618,6 +659,148 @@ $(document).ready(function() {
     '</div>';
     $('#ajaxAlertContainer').html(alertHtml);
   }
+
+  // --------------------------------------------------------------------------
+  // Drag-and-Drop Prompt Sorting
+  // --------------------------------------------------------------------------
+  var associatedPromptsList = document.getElementById('associatedPromptsBody');
+  var isReordering = false;
+
+  function sendReorderRequest(order) {
+    if (!order || order.length === 0 || isReordering) {
+      return;
+    }
+
+    isReordering = true;
+    var $badge = $('#reorderStatusBadge');
+    $badge.removeClass('d-none bg-danger-subtle text-danger bg-success-subtle text-success border-danger-subtle border-success-subtle')
+      .addClass('bg-primary-subtle text-primary border border-primary-subtle')
+      .html('<span class="spinner-border spinner-border-sm me-1"></span> Saving order...')
+      .show();
+
+    $.ajax({
+      url: "{{ url('panel/admin/photoshoots/reorder-prompts') }}",
+      type: 'POST',
+      data: {
+        _token: "{{ csrf_token() }}",
+        photoshoot_id: photoshootId,
+        order: order
+      },
+      dataType: 'json',
+      success: function(res) {
+        isReordering = false;
+        if (res.success) {
+          $badge.removeClass('bg-primary-subtle text-primary border-primary-subtle')
+            .addClass('bg-success-subtle text-success border border-success-subtle')
+            .html('<i class="bi bi-check2-circle me-1"></i> Order saved')
+            .fadeIn();
+
+          setTimeout(function() {
+            $badge.fadeOut();
+          }, 2500);
+        }
+      },
+      error: function(xhr) {
+        isReordering = false;
+        $badge.removeClass('bg-primary-subtle text-primary border-primary-subtle')
+          .addClass('bg-danger-subtle text-danger border border-danger-subtle')
+          .html('<i class="bi bi-exclamation-triangle me-1"></i> Error saving order');
+
+        var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error updating prompt order. Please refresh and try again.';
+        showAlert(errMsg, 'danger');
+      }
+    });
+  }
+
+  function initSortablePrompts() {
+    if (typeof Sortable !== 'undefined' && associatedPromptsList) {
+      new Sortable(associatedPromptsList, {
+        handle: '.drag-handle',
+        draggable: '.prompt-sortable-row',
+        animation: 180,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function(evt) {
+          if (evt.oldIndex === evt.newIndex) {
+            return;
+          }
+
+          var order = [];
+          $('#associatedPromptsBody tr.prompt-sortable-row').each(function() {
+            var id = $(this).data('id');
+            if (id) {
+              order.push(id);
+            }
+          });
+
+          sendReorderRequest(order);
+        }
+      });
+    } else {
+      // Native HTML5 Drag and Drop Fallback
+      initNativeDragFallback();
+    }
+  }
+
+  function initNativeDragFallback() {
+    var draggedRow = null;
+
+    $('#associatedPromptsBody').on('dragstart', '.prompt-sortable-row', function(e) {
+      draggedRow = this;
+      $(this).addClass('opacity-50');
+      if (e.originalEvent && e.originalEvent.dataTransfer) {
+        e.originalEvent.dataTransfer.effectAllowed = 'move';
+        e.originalEvent.dataTransfer.setData('text/plain', $(this).data('id'));
+      }
+    });
+
+    $('#associatedPromptsBody').on('dragend', '.prompt-sortable-row', function() {
+      $(this).removeClass('opacity-50');
+      $('.prompt-sortable-row').removeClass('border-top border-primary');
+      draggedRow = null;
+    });
+
+    $('#associatedPromptsBody').on('dragover', '.prompt-sortable-row', function(e) {
+      e.preventDefault();
+      if (e.originalEvent && e.originalEvent.dataTransfer) {
+        e.originalEvent.dataTransfer.dropEffect = 'move';
+      }
+      if (this !== draggedRow) {
+        $(this).addClass('border-top border-primary');
+      }
+    });
+
+    $('#associatedPromptsBody').on('dragleave', '.prompt-sortable-row', function() {
+      $(this).removeClass('border-top border-primary');
+    });
+
+    $('#associatedPromptsBody').on('drop', '.prompt-sortable-row', function(e) {
+      e.preventDefault();
+      $(this).removeClass('border-top border-primary');
+      if (draggedRow && this !== draggedRow) {
+        $(draggedRow).insertBefore(this);
+        var order = [];
+        $('#associatedPromptsBody tr.prompt-sortable-row').each(function() {
+          var id = $(this).data('id');
+          if (id) {
+            order.push(id);
+          }
+        });
+        sendReorderRequest(order);
+      }
+    });
+
+    $('#associatedPromptsBody').on('mousedown', '.drag-handle', function() {
+      $(this).closest('tr.prompt-sortable-row').attr('draggable', 'true');
+    });
+
+    $('#associatedPromptsBody').on('mouseup mouseleave', '.drag-handle', function() {
+      $(this).closest('tr.prompt-sortable-row').removeAttr('draggable');
+    });
+  }
+
+  initSortablePrompts();
 
   // Live AJAX Search for Prompts
   $('#searchPromptInput').on('keyup input', function() {
@@ -710,7 +893,8 @@ $(document).ready(function() {
           // Append new prompt row if not already present
           if ($('#promptRow-' + res.prompt.id).length === 0) {
             var p = res.prompt;
-            var newRow = '<tr id="promptRow-' + p.id + '">' +
+            var newRow = '<tr id="promptRow-' + p.id + '" data-id="' + p.id + '" class="prompt-sortable-row">' +
+              '<td class="drag-handle text-center text-muted" style="cursor: grab; width: 45px;" title="Drag to reorder"><i class="bi bi-grip-vertical fs-5"></i></td>' +
               '<td class="fw-bold text-muted">' + p.id + '</td>' +
               '<td><img src="' + p.thumb_url + '" class="rounded shadow-sm" width="48" height="48" style="object-fit: cover;" /></td>' +
               '<td><a href="{{ url("prompt") }}/' + p.slug + '" target="_blank" class="fw-bold text-dark text-decoration-none">' + p.title + ' <i class="bi bi-box-arrow-up-right small text-muted ms-1"></i></a><small class="text-muted d-block"><code>' + p.slug + '</code></small></td>' +
@@ -719,7 +903,7 @@ $(document).ready(function() {
               '<td><span class="badge bg-success">Active</span></td>' +
               '<td><button type="button" class="btn btn-link text-danger e-none fs-5 p-0 border-0 btnRemovePrompt" data-id="' + p.id + '" title="Remove from Photoshoot"><i class="bi-trash-fill"></i></button></td>' +
             '</tr>';
-            $('#associatedPromptsBody').prepend(newRow);
+            $('#associatedPromptsBody').append(newRow);
 
             // Update badge count
             var currentCount = parseInt($('#promptCountBadge').text()) || 0;
@@ -769,8 +953,8 @@ $(document).ready(function() {
               showAlert(res.message, 'success');
               $('#promptRow-' + promptId).fadeOut(300, function() {
                 $(this).remove();
-                if ($('#associatedPromptsBody tr').length === 0) {
-                  $('#associatedPromptsBody').html('<tr id="noPromptsRow"><td colspan="7" class="text-center p-5 text-muted fw-light">No prompts currently in this photoshoot. Use the search box above to add existing prompts.</td></tr>');
+                if ($('#associatedPromptsBody tr.prompt-sortable-row').length === 0) {
+                  $('#associatedPromptsBody').html('<tr id="noPromptsRow"><td colspan="8" class="text-center p-5 text-muted fw-light">No prompts currently in this photoshoot. Use the search box above to add existing prompts.</td></tr>');
                 }
               });
 

@@ -899,6 +899,7 @@ class HomeController extends Controller
     $images = Images::selectFieldsRelation()
       ->where('photoshoot_id', $photoshoot->id)
       ->whereStatus('active')
+      ->orderBy('photoshoot_order', 'asc')
       ->orderBy('id', 'desc')
       ->paginate(12);
 

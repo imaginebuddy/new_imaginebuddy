@@ -26,6 +26,7 @@ class Images extends Model
 		'categories_id',
 		'subcategories_id',
 		'photoshoot_id',
+		'photoshoot_order',
 		'tags',
 		'camera',
 		'exif',

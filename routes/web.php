@@ -530,6 +530,7 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/photoshoots/search-prompts', [AdminController::class, 'searchPromptsForPhotoshoot']);
 	Route::post('panel/admin/photoshoots/add-prompt', [AdminController::class, 'addPromptToPhotoshoot']);
 	Route::post('panel/admin/photoshoots/remove-prompt', [AdminController::class, 'removePromptFromPhotoshoot']);
+	Route::post('panel/admin/photoshoots/reorder-prompts', [AdminController::class, 'reorderPhotoshootPrompts']);
 
 	// Images
 	Route::get('panel/admin/images',[AdminController::class, 'images'])->name('images');

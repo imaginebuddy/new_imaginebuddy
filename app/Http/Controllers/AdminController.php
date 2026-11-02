@@ -2202,7 +2202,10 @@ class AdminController extends Controller
 		$photoshoot = Photoshoot::findOrFail($id);
 		
 		// Unlink all images belonging to this photoshoot without deleting the images
-		Images::where('photoshoot_id', $photoshoot->id)->update(['photoshoot_id' => null]);
+		Images::where('photoshoot_id', $photoshoot->id)->update([
+			'photoshoot_id' => null,
+			'photoshoot_order' => 0
+		]);
 		
 		if (!empty($photoshoot->raw_image)) {
 			$this->deleteRawProductImageFile($photoshoot->raw_image);
@@ -2371,7 +2374,9 @@ class AdminController extends Controller
 			}
 		}
 
+		$nextOrder = (Images::where('photoshoot_id', $photoshoot->id)->max('photoshoot_order') ?? 0) + 1;
 		$image->photoshoot_id = $photoshoot->id;
+		$image->photoshoot_order = $nextOrder;
 		$image->save();
 
 		$photoshoot->increment('prompts_count');
@@ -2387,6 +2392,7 @@ class AdminController extends Controller
 				'user_name' => $image->user ? $image->user->username : 'Unknown',
 				'tier' => $image->item_for_sale == 'sale' ? 'Premium' : 'Free',
 				'status' => $image->status,
+				'photoshoot_order' => $nextOrder,
 			]
 		]);
 	}
@@ -2407,6 +2413,7 @@ class AdminController extends Controller
 
 		if ($image->photoshoot_id == $photoshoot->id) {
 			$image->photoshoot_id = null;
+			$image->photoshoot_order = 0;
 			$image->save();
 
 			if ($photoshoot->prompts_count > 0) {
@@ -2417,6 +2424,35 @@ class AdminController extends Controller
 		return response()->json([
 			'success' => true,
 			'message' => 'Prompt removed from photoshoot successfully. Prompt remains in database as standalone.'
+		]);
+	}
+
+	public function reorderPhotoshootPrompts(Request $request)
+	{
+		if (!auth()->user()->hasPermission('images')) {
+			return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+		}
+
+		$request->validate([
+			'photoshoot_id' => 'required|exists:photoshoots,id',
+			'order'         => 'required|array',
+			'order.*'       => 'required|integer|exists:images,id',
+		]);
+
+		$photoshootId = (int) $request->photoshoot_id;
+		$order = $request->order;
+
+		\DB::transaction(function () use ($photoshootId, $order) {
+			foreach ($order as $index => $promptId) {
+				Images::where('id', (int) $promptId)
+					->where('photoshoot_id', $photoshootId)
+					->update(['photoshoot_order' => $index + 1]);
+			}
+		});
+
+		return response()->json([
+			'success' => true,
+			'message' => 'Prompts order updated successfully.'
 		]);
 	}
 
