@@ -46,7 +46,7 @@
 		@endphp
 
 		<div class="item position-relative d-block text-decoration-none prompt-card-masonry-wrapper" data-w="{{$dataW}}" data-h="{{$dataH}}">
-			<div class="card border-0 rounded-4 overflow-hidden d-flex flex-column p-2 shadow-sm hovercard prompt-card-item prompt-card-bg">
+			<div class="card rounded-4 overflow-hidden d-flex flex-column p-2 shadow-sm hovercard prompt-card-item prompt-card-bg">
 				
 				<!-- 1. Top Image Section with Badges Overlay -->
 				<div class="position-relative overflow-hidden w-100 rounded-4 prompt-card-media-wrapper" style="{{$background}} {{$aspectRatioStyle}}">

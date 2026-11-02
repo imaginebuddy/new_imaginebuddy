@@ -1059,12 +1059,28 @@ body.dark-mode .prompt-copy-icon-bg {
 
 .prompt-card-item {
   border-radius: 20px !important;
+  border: 1px solid #e2e8f0 !important;
   overflow: hidden !important;
-  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  box-sizing: border-box !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease !important;
 }
 
 .prompt-card-item:hover {
   transform: translateY(-5px) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .prompt-card-item,
+[data-theme="dark"] .prompt-card-item,
+body.dark-mode .prompt-card-item {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .prompt-card-item:hover,
+[data-theme="dark"] .prompt-card-item:hover,
+body.dark-mode .prompt-card-item:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
 .prompt-card-wrapper {

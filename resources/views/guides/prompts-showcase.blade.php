@@ -44,7 +44,7 @@
           }
         @endphp
         <div class="col-md-6 col-lg-4">
-          <div class="card border-0 rounded-4 overflow-hidden d-flex flex-column p-2 guide-prompt-card-wrapper prompt-card-item shadow-sm">
+          <div class="card rounded-4 overflow-hidden d-flex flex-column p-2 guide-prompt-card-wrapper prompt-card-item shadow-sm">
             
             <!-- 1. Top Image Section with Badges Overlay -->
             <div class="position-relative overflow-hidden w-100 rounded-4 guide-prompt-media-frame prompt-card-media-wrapper" style="{{ $aspectRatioStyle }}">
