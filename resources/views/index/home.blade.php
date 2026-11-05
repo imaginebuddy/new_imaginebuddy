@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+  $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
+@endphp
 <div class="container-fluid home-cover" style="background-image: url('{{ asset('public/img/' . $settings->image_header) }}') !important; background-size: cover !important; background-position: center center !important;">
       <div class="mb-4 position-relative custom-pt-6">
         <div class="container px-5">
@@ -21,11 +24,11 @@
               </div><!-- end announcements -->
             @endif
 
-          <h1 class="display-3 fw-bold text-white home-hero-title">{{ __('seo.welcome_text') }}</h1>
-          <p class="col-md-12 fs-4 fw-bold text-white">{{ __('seo.welcome_subtitle') }}</p>
+          <h1 class="display-3 fw-bold text-white home-hero-title">{{ $homeContent->getVal('hero_title', __('seo.welcome_text')) }}</h1>
+          <p class="col-md-12 fs-4 fw-bold text-white">{{ $homeContent->getVal('hero_subtitle', __('seo.welcome_subtitle')) }}</p>
           <form action="{{ url('search') }}" method="get" class="position-relative">
             <i class="bi bi-search btn-search"></i>
-            <input class="form-control form-control-lg ps-5 input-search-lg border-0 search-lg" type="text" name="q" value="{{ \App\Services\SearchSecurityGuard::sanitize(request('q')) }}" autocomplete="off" placeholder="{{__('misc.search')}}" required minlength="3">
+            <input class="form-control form-control-lg ps-5 input-search-lg border-0 search-lg" type="text" name="q" value="{{ \App\Services\SearchSecurityGuard::sanitize(request('q')) }}" autocomplete="off" placeholder="{{ $homeContent->getVal('search_placeholder', __('misc.search')) }}" required minlength="3">
           </form>
 
 		  @if ($categoryPopular)
@@ -104,21 +107,41 @@
 </div><!-- container photos -->
 
     {{-- Show the Difference Section ("WHAT MAKES IMAGINEBUDDY DIFFERENT?") --}}
-    @include('includes.home-show-difference')
+    @if ($homeContent->diff_enabled)
+      @include('includes.home-show-difference')
+    @endif
 
     {{-- 1. Latest Photoshoots Section --}}
-    @include('includes.home-latest-photoshoots')
+    @if ($homeContent->photoshoots_enabled)
+      @include('includes.home-latest-photoshoots')
+    @endif
 
     {{-- 2. How It Works Section --}}
-    @include('includes.home-how-it-works')
+    @if ($homeContent->how_it_works_enabled)
+      @include('includes.home-how-it-works')
+    @endif
 
     {{-- 3. Who Is ImagineBuddy For Section --}}
-    @include('includes.home-who-is-it-for')
+    @if ($homeContent->who_is_it_for_enabled)
+      @include('includes.home-who-is-it-for')
+    @endif
 
     {{-- 4. Free Prompts and Premium Access Section --}}
-    @include('includes.home-free-vs-pro')
+    @if ($homeContent->free_vs_pro_enabled)
+      @include('includes.home-free-vs-pro')
+    @endif
 
-    @if ($images->count() != 0)
+    @if ($images->count() != 0 && $homeContent->promo_section_enabled)
+    @php
+      $promoItems = $homeContent->getVal('promo_items') ?: [
+        ['title' => 'E-commerce Product Images:', 'desc' => 'Clean, product-focused visuals for online stores.'],
+        ['title' => 'Premium Studio Photography:', 'desc' => 'Polished compositions with professional-looking lighting.'],
+        ['title' => 'Lifestyle Product Photography:', 'desc' => 'Place products in visually engaging environments.'],
+        ['title' => 'Social Media Creatives:', 'desc' => 'Develop fresh concepts for Instagram and other social platforms.'],
+        ['title' => 'Advertising Visuals:', 'desc' => 'Explore campaign-style compositions for marketing creatives.'],
+        ['title' => 'Seasonal Campaign Concepts:', 'desc' => 'Experiment with festive, promotional, and occasion-based styling.'],
+      ];
+    @endphp
     <section class="section py-5 py-large bg-light home-promo-section border-top border-bottom">
       <div class="container">
         <div class="row align-items-center">
@@ -127,63 +150,39 @@
           </div>
           <div class="col-12 col-lg-6 text-lg-start text-center ps-lg-4">
             <span class="badge rounded-pill fw-bold mb-3 px-3 py-2 promo-eyebrow" style="background-color: rgba(0, 214, 144, 0.12); color: #00d690; font-size: 0.78rem; letter-spacing: 0.08em;">
-              ONE PRODUCT, MORE CREATIVE POSSIBILITIES
+              {{ $homeContent->getVal('promo_eyebrow', 'ONE PRODUCT, MORE CREATIVE POSSIBILITIES') }}
             </span>
             <h2 class="fw-bold mb-2 promo-heading" style="font-size: clamp(1.75rem, 2.8vw, 2.5rem); line-height: 1.25;">
-              More Ways to Showcase Your Product
+              {{ $homeContent->getVal('promo_heading', 'More Ways to Showcase Your Product') }}
             </h2>
+            @if ($homeContent->getVal('promo_subheading'))
             <p class="mb-4 promo-lead" style="font-size: 1rem; line-height: 1.6; color: #64748b;">
-              Your product may need more than one image. Explore different photography concepts for different marketing goals.
+              {{ $homeContent->getVal('promo_subheading') }}
             </p>
+            @endif
 
             <ul class="list-unstyled mb-4 text-start promo-concepts-list">
+              @foreach ($promoItems as $pItem)
               <li class="d-flex align-items-start mb-3">
                 <i class="bi bi-check-circle-fill text-mint me-3 mt-1 flex-shrink-0" style="color: #00d690; font-size: 1.15rem; line-height: 1;"></i>
                 <div style="font-size: 0.95rem; line-height: 1.6;">
-                  <strong class="promo-item-title">E-commerce Product Images:</strong> <span class="promo-item-desc text-secondary-custom">Clean, product-focused visuals for online stores.</span>
+                  <strong class="promo-item-title">{{ $pItem['title'] ?? '' }}</strong> <span class="promo-item-desc text-secondary-custom">{{ $pItem['desc'] ?? '' }}</span>
                 </div>
               </li>
-              <li class="d-flex align-items-start mb-3">
-                <i class="bi bi-check-circle-fill text-mint me-3 mt-1 flex-shrink-0" style="color: #00d690; font-size: 1.15rem; line-height: 1;"></i>
-                <div style="font-size: 0.95rem; line-height: 1.6;">
-                  <strong class="promo-item-title">Premium Studio Photography:</strong> <span class="promo-item-desc text-secondary-custom">Polished compositions with professional-looking lighting.</span>
-                </div>
-              </li>
-              <li class="d-flex align-items-start mb-3">
-                <i class="bi bi-check-circle-fill text-mint me-3 mt-1 flex-shrink-0" style="color: #00d690; font-size: 1.15rem; line-height: 1;"></i>
-                <div style="font-size: 0.95rem; line-height: 1.6;">
-                  <strong class="promo-item-title">Lifestyle Product Photography:</strong> <span class="promo-item-desc text-secondary-custom">Place products in visually engaging environments.</span>
-                </div>
-              </li>
-              <li class="d-flex align-items-start mb-3">
-                <i class="bi bi-check-circle-fill text-mint me-3 mt-1 flex-shrink-0" style="color: #00d690; font-size: 1.15rem; line-height: 1;"></i>
-                <div style="font-size: 0.95rem; line-height: 1.6;">
-                  <strong class="promo-item-title">Social Media Creatives:</strong> <span class="promo-item-desc text-secondary-custom">Develop fresh concepts for Instagram and other social platforms.</span>
-                </div>
-              </li>
-              <li class="d-flex align-items-start mb-3">
-                <i class="bi bi-check-circle-fill text-mint me-3 mt-1 flex-shrink-0" style="color: #00d690; font-size: 1.15rem; line-height: 1;"></i>
-                <div style="font-size: 0.95rem; line-height: 1.6;">
-                  <strong class="promo-item-title">Advertising Visuals:</strong> <span class="promo-item-desc text-secondary-custom">Explore campaign-style compositions for marketing creatives.</span>
-                </div>
-              </li>
-              <li class="d-flex align-items-start mb-3">
-                <i class="bi bi-check-circle-fill text-mint me-3 mt-1 flex-shrink-0" style="color: #00d690; font-size: 1.15rem; line-height: 1;"></i>
-                <div style="font-size: 0.95rem; line-height: 1.6;">
-                  <strong class="promo-item-title">Seasonal Campaign Concepts:</strong> <span class="promo-item-desc text-secondary-custom">Experiment with festive, promotional, and occasion-based styling.</span>
-                </div>
-              </li>
+              @endforeach
             </ul>
 
+            @if ($homeContent->getVal('promo_note'))
             <div class="mb-4 promo-note p-3 rounded-3" style="border-left: 3px solid #00d690;">
               <p class="small mb-0" style="line-height: 1.6; font-size: 0.88rem;">
-                Use these concepts as starting points and review every generated image for product accuracy, readable branding, and realistic details.
+                {{ $homeContent->getVal('promo_note') }}
               </p>
             </div>
+            @endif
 
             <div class="mt-2 pt-1">
-              <a href="{{ url('categories') }}" class="btn btn-lg btn-main rounded-pill btn-custom px-4 px-md-5 py-2.5 arrow shadow-sm fw-semibold">
-                Find Your Photography Style
+              <a href="{{ url($homeContent->getVal('promo_cta_url', 'categories')) }}" class="btn btn-lg btn-main rounded-pill btn-custom px-4 px-md-5 py-2.5 arrow shadow-sm fw-semibold">
+                {{ $homeContent->getVal('promo_cta_text', 'Find Your Photography Style') }}
               </a>
             </div>
         </div>
@@ -229,7 +228,9 @@
     @endif
 
     {{-- Transformation Before/After Showcase Section --}}
-    @include('includes.transformation-section')
+    @if ($homeContent->transformation_enabled)
+      @include('includes.transformation-section')
+    @endif
 
     @if (isset($testimonials) && $testimonials->isNotEmpty())
     <section class="section py-5 py-large bg-light testimonials-section">
@@ -273,7 +274,9 @@
     @endif
 
     {{-- FAQ Section for Prompt Library --}}
-    @include('includes.faq-section')
+    @if ($homeContent->faq_enabled)
+      @include('includes.faq-section')
+    @endif
 
 <style>
 .home-hero-title {

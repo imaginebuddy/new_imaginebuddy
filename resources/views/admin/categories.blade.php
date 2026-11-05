@@ -6,9 +6,14 @@
       <i class="bi-chevron-right me-1 fs-6"></i>
       <span class="text-muted">{{ __('misc.categories') }} ({{$data->count()}})</span>
 
-			<a href="{{ url('panel/admin/categories/add') }}" class="btn btn-sm btn-dark float-lg-end mt-1 mt-lg-0">
-				<i class="bi-plus-lg"></i> {{ trans('misc.add_new') }}
-			</a>
+			<div class="float-lg-end mt-1 mt-lg-0">
+				<a href="{{ url('panel/admin/categories/listing-settings') }}" class="btn btn-sm btn-outline-primary me-2">
+					<i class="bi bi-gear me-1"></i> Listing Page Settings (/categories)
+				</a>
+				<a href="{{ url('panel/admin/categories/add') }}" class="btn btn-sm btn-dark">
+					<i class="bi-plus-lg"></i> {{ trans('misc.add_new') }}
+				</a>
+			</div>
   </h5>
 
 <div class="content">
@@ -47,7 +52,10 @@
                      <td>{{ $category->name }}</td>
                      <td><span class="badge bg-{{ $category->mode == 'on' ? 'success' : 'danger' }}">{{ ucfirst($category->mode) }}</span></td>
                      <td>
-                       <a href="{{ url('panel/admin/categories/edit/').'/'.$category->id }}" class="text-reset fs-5 me-2">
+                       <a href="{{ url('category', $category->slug) }}" target="_blank" class="text-reset fs-5 me-2" title="Preview Category (/category/{{ $category->slug }})">
+                         <i class="bi bi-box-arrow-up-right"></i>
+                       </a>
+                       <a href="{{ url('panel/admin/categories/edit/').'/'.$category->id }}" class="text-reset fs-5 me-2" title="{{ __('admin.edit') }}">
                          <i class="far fa-edit"></i>
                        </a>
 

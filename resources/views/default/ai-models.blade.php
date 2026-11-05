@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
-@section('title'){{ __('misc.ai_models') ?? 'AI Models' }} - @endsection
-@section('description_custom'){{ 'Browse curated, tested AI prompts across Gemini, ChatGPT, Midjourney, Flux and more. Generate commercial product visuals on ' . config('settings.title', 'Imagine Buddy') . '.' }}@endsection
-@section('keywords_custom'){{ 'AI models, Gemini prompts, ChatGPT prompts, Midjourney prompts, Flux prompts, AI image prompts, product photography' }}@endsection
+@php
+  $pageSettings = $pageSettings ?? \App\Models\WebsitePageSetting::getByKey('ai_models');
+@endphp
+
+@section('title'){{ !empty($pageSettings->seo_title) ? $pageSettings->seo_title . ' - ' : ((__('misc.ai_models') ?? 'AI Models') . ' - ') }}@endsection
+@section('description_custom'){{ !empty($pageSettings->meta_description) ? $pageSettings->meta_description . ' - ' : ('Browse curated, tested AI prompts across Gemini, ChatGPT, Midjourney, Flux and more. Generate commercial product visuals on ' . config('settings.title', 'Imagine Buddy') . '.') }}@endsection
+@section('keywords_custom'){{ !empty($pageSettings->meta_keywords) ? $pageSettings->meta_keywords . ',' : 'AI models, Gemini prompts, ChatGPT prompts, Midjourney prompts, Flux prompts, AI image prompts, product photography,' }}@endsection
 
 @section('content')
 <section class="section section-sm">
@@ -14,10 +18,10 @@
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-2">
           <div>
             <h1 class="mb-0 fw-bold title-custom" id="modelsHeading">
-              {{ __('misc.ai_models') ?? 'AI Models' }}
+              {!! !empty($pageSettings->page_title) ? $pageSettings->page_title : (__('misc.ai_models') ?? 'AI Models') !!}
             </h1>
             <p class="lead text-muted mt-0 mb-0" id="modelsSubheading">
-              {{ __('misc.browse_by_ai_model') ?? 'Browse tested prompts by AI generator model' }}
+              {{ !empty($pageSettings->subtitle) ? $pageSettings->subtitle : (__('misc.browse_by_ai_model') ?? 'Browse tested prompts by AI generator model') }}
             </p>
           </div>
         </div>
@@ -28,7 +32,7 @@
         <div class="row mb-3">
           <div class="col-12 col-sm-8 col-md-5 col-lg-3">
             <div class="position-relative">
-              <input type="text" id="modelSearchInput" class="form-control form-control-sm rounded-pill bg-card-custom border" style="font-size: 0.85rem; padding-left: 2.35rem !important; padding-right: 2.2rem !important;" placeholder="{{ trans('misc.search') }} {{ strtolower(__('misc.ai_models') ?? 'AI models') }}..." autocomplete="off">
+              <input type="text" id="modelSearchInput" class="form-control form-control-sm rounded-pill bg-card-custom border" style="font-size: 0.85rem; padding-left: 2.35rem !important; padding-right: 2.2rem !important;" placeholder="{{ $pageSettings->getExtra('search_placeholder') ?: (trans('misc.search') . ' ' . strtolower(__('misc.ai_models') ?? 'AI models') . '...') }}" autocomplete="off">
               <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="font-size: 0.825rem; left: 14px; pointer-events: none; z-index: 5;"></i>
               <button id="clearModelSearch" class="btn btn-sm text-muted position-absolute top-50 translate-middle-y p-0 d-none" type="button" style="border:none; background:none; font-size: 0.85rem; right: 12px; z-index: 5;">
                 <i class="bi bi-x-circle-fill"></i>

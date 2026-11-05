@@ -1,81 +1,73 @@
+@php
+  $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
+  $howSteps = $homeContent->getVal('how_it_works_steps') ?: [
+    [
+      'badge' => 'STEP 1',
+      'icon' => 'bi-upload',
+      'title' => 'Upload Your Product',
+      'desc' => 'Choose a clear photo of your product. It can be skincare, a handbag, jewellery, food, electronics, or another product.'
+    ],
+    [
+      'badge' => 'STEP 2',
+      'icon' => 'bi-copy',
+      'title' => 'Copy an Adaptive Prompt',
+      'desc' => 'Explore ImagineBuddy\'s photography concepts and copy a prompt that matches the style you want to create.'
+    ],
+    [
+      'badge' => 'STEP 3',
+      'icon' => 'bi-stars',
+      'title' => 'Generate Your Visual',
+      'desc' => 'Upload your product to ChatGPT or Gemini, paste the prompt, and generate a new product photography concept.'
+    ]
+  ];
+@endphp
 <!-- How It Works Section -->
 <section class="section py-4 py-md-5 how-it-works-section position-relative border-top border-bottom">
   <div class="container px-3 px-md-4">
     <!-- Header -->
     <div class="text-center mb-4 mb-md-5">
       <div class="text-uppercase fw-bold text-muted small mb-2 how-it-works-eyebrow" style="letter-spacing: 0.14em; font-size: clamp(0.72rem, 1.8vw, 0.8rem);">
-        YOUR CREATIVE WORKFLOW, SIMPLIFIED
+        {{ $homeContent->getVal('how_it_works_eyebrow', 'YOUR CREATIVE WORKFLOW, SIMPLIFIED') }}
       </div>
       <h2 class="fw-bold title-custom mb-3" style="font-size: clamp(1.65rem, 3.8vw, 2.5rem); line-height: 1.25;">
-        From Product Photo to <span class="font-serif-italic">AI Photoshoot</span> in 3 Steps
+        {!! $homeContent->getVal('how_it_works_heading', 'From Product Photo to <span class="font-serif-italic">AI Photoshoot</span> in 3 Steps') !!}
       </h2>
     </div>
 
     <!-- 3 Steps Cards -->
     <div class="row g-3 g-md-4 justify-content-center mb-4 mb-md-5">
-      <!-- Step 1 -->
+      @foreach ($howSteps as $step)
       <div class="col-12 col-md-4">
         <div class="card h-100 p-3 p-sm-4 p-lg-5 rounded-4 border bg-card-custom shadow-xs how-it-works-card">
           <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
             <span class="step-icon-box d-inline-flex align-items-center justify-content-center rounded-circle fs-4">
-              <i class="bi bi-upload"></i>
+              <i class="bi {{ $step['icon'] ?? 'bi-stars' }}"></i>
             </span>
             <span class="badge-step text-muted fw-bold">
-              STEP 1
+              {{ $step['badge'] ?? '' }}
             </span>
           </div>
-          <h3 class="fw-bold title-custom mb-2 mb-md-3" style="font-size: clamp(1.1rem, 2.2vw, 1.25rem);">Upload Your Product</h3>
+          <h3 class="fw-bold title-custom mb-2 mb-md-3" style="font-size: clamp(1.1rem, 2.2vw, 1.25rem);">
+            {{ $step['title'] ?? '' }}
+          </h3>
           <p class="text-muted mb-0" style="line-height: 1.65; font-size: 0.92rem;">
-            Choose a clear photo of your product. It can be skincare, a handbag, jewellery, food, electronics, or another product.
+            {{ $step['desc'] ?? '' }}
           </p>
         </div>
       </div>
-
-      <!-- Step 2 -->
-      <div class="col-12 col-md-4">
-        <div class="card h-100 p-3 p-sm-4 p-lg-5 rounded-4 border bg-card-custom shadow-xs how-it-works-card">
-          <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-            <span class="step-icon-box d-inline-flex align-items-center justify-content-center rounded-circle fs-4">
-              <i class="bi bi-copy"></i>
-            </span>
-            <span class="badge-step text-muted fw-bold">
-              STEP 2
-            </span>
-          </div>
-          <h3 class="fw-bold title-custom mb-2 mb-md-3" style="font-size: clamp(1.1rem, 2.2vw, 1.25rem);">Copy an Adaptive Prompt</h3>
-          <p class="text-muted mb-0" style="line-height: 1.65; font-size: 0.92rem;">
-            Explore ImagineBuddy's photography concepts and copy a prompt that matches the style you want to create.
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="col-12 col-md-4">
-        <div class="card h-100 p-3 p-sm-4 p-lg-5 rounded-4 border bg-card-custom shadow-xs how-it-works-card">
-          <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-            <span class="step-icon-box d-inline-flex align-items-center justify-content-center rounded-circle fs-4">
-              <i class="bi bi-stars"></i>
-            </span>
-            <span class="badge-step text-muted fw-bold">
-              STEP 3
-            </span>
-          </div>
-          <h3 class="fw-bold title-custom mb-2 mb-md-3" style="font-size: clamp(1.1rem, 2.2vw, 1.25rem);">Generate Your Visual</h3>
-          <p class="text-muted mb-0" style="line-height: 1.65; font-size: 0.92rem;">
-            Upload your product to ChatGPT or Gemini, paste the prompt, and generate a new product photography concept.
-          </p>
-        </div>
-      </div>
+      @endforeach
     </div>
 
     <!-- CTA & Subtext -->
     <div class="text-center">
-      <a href="{{ url('prompts/free') }}" class="btn btn-main rounded-pill btn-custom px-4 px-md-5 py-2.5 arrow shadow-sm fw-semibold">
-        Try Your First Prompt
+      <a href="{{ url($homeContent->getVal('how_it_works_cta_url', 'prompts/free')) }}" class="btn btn-main rounded-pill btn-custom px-4 px-md-5 py-2.5 arrow shadow-sm fw-semibold">
+        {{ $homeContent->getVal('how_it_works_cta_text', 'Try Your First Prompt') }}
       </a>
+      @if ($homeContent->getVal('how_it_works_subtext'))
       <p class="text-muted mt-2 mt-md-3 mb-0 small" style="font-style: italic; font-size: 0.85rem;">
-        No need to start every creative idea from a blank prompt.
+        {{ $homeContent->getVal('how_it_works_subtext') }}
       </p>
+      @endif
     </div>
   </div>
 </section>

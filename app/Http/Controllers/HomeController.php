@@ -15,6 +15,7 @@ use App\Models\Collections;
 use App\Models\Photoshoot;
 use App\Models\Testimonial;
 use App\Models\ClientLogo;
+use App\Models\HomepageSetting;
 use Illuminate\Http\Request;
 use App\Models\AdminSettings;
 use Illuminate\Support\Facades\Auth;
@@ -92,7 +93,8 @@ class HomeController extends Controller
         'categoryPopular' => $categoryPopular,
         'testimonials' => $testimonials,
         'clientLogos' => $clientLogos,
-        'latestPhotoshoots' => $latestPhotoshoots
+        'latestPhotoshoots' => $latestPhotoshoots,
+        'homeContent' => HomepageSetting::getSettings()
       ]
     );
   }
@@ -176,6 +178,7 @@ class HomeController extends Controller
   public function free()
   {
     Helper::seo()->setPage('prompts_free');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('prompts_free');
     $images = Query::freeImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -186,8 +189,9 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.free') . ' Prompts',
-      'description' => __('misc.free_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: (__('misc.free') . ' Prompts'),
+      'description' => $pageSettings->subtitle ?: __('misc.free_desc'),
     ]);
   }
 
@@ -198,6 +202,7 @@ class HomeController extends Controller
     }
 
     Helper::seo()->setPage('prompts_premium');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('prompts_premium');
     $images = Query::premiumImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -208,14 +213,16 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.premium'),
-      'description' => __('misc.premium_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: __('misc.premium'),
+      'description' => $pageSettings->subtitle ?: __('misc.premium_desc'),
     ]);
   }
 
   public function latest()
   {
     Helper::seo()->setPage('explore_latest');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('latest');
     $images = Query::latestImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -226,8 +233,9 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.latest'),
-      'description' => __('misc.latest_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: __('misc.latest'),
+      'description' => $pageSettings->subtitle ?: __('misc.latest_desc'),
     ]);
   }
 
@@ -253,6 +261,7 @@ class HomeController extends Controller
   public function popular()
   {
     Helper::seo()->setPage('explore_popular');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('popular');
     $images = Query::popularImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -263,8 +272,9 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.popular'),
-      'description' => __('misc.popular_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: __('misc.popular'),
+      'description' => $pageSettings->subtitle ?: __('misc.popular_desc'),
     ]);
   }
 
@@ -288,6 +298,7 @@ class HomeController extends Controller
   public function viewed()
   {
     Helper::seo()->setPage('explore_viewed');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('most_viewed');
     $images = Query::viewedImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -298,14 +309,16 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.most_viewed'),
-      'description' => __('misc.most_viewed_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: __('misc.most_viewed'),
+      'description' => $pageSettings->subtitle ?: __('misc.most_viewed_desc'),
     ]);
   }
 
   public function downloads()
   {
     Helper::seo()->setPage('explore_downloads');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('most_downloads');
     $images = Query::downloadsImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -316,14 +329,16 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.most_downloads'),
-      'description' => __('misc.most_downloads_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: __('misc.most_downloads'),
+      'description' => $pageSettings->subtitle ?: __('misc.most_downloads_desc'),
     ]);
   }
 
   public function copied()
   {
     Helper::seo()->setPage('explore_copied');
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('most_copied');
     $images = Query::copiedImages();
     $categories = Categories::where('mode', 'on')->orderBy('name')->get();
 
@@ -334,8 +349,9 @@ class HomeController extends Controller
     return view('index.explore', [
       'images' => $images,
       'categories' => $categories,
-      'title' => __('misc.most_copied_prompts'),
-      'description' => __('misc.most_copied_prompts_desc'),
+      'pageSettings' => $pageSettings,
+      'title' => $pageSettings->page_title ?: __('misc.most_copied_prompts'),
+      'description' => $pageSettings->subtitle ?: __('misc.most_copied_prompts_desc'),
     ]);
   }
 
@@ -375,7 +391,8 @@ class HomeController extends Controller
       'tags' => $initialTags,
       'tagsHasMore' => $tagsHasMore,
       'tagsNextPage' => $tagsNextPage,
-      'activeTab' => $tab
+      'activeTab' => $tab,
+      'listingSettings' => \App\Models\CategoriesPageSetting::getSettings(),
     ]);
   }
 
@@ -486,6 +503,7 @@ class HomeController extends Controller
       'models' => $initialModels,
       'modelsHasMore' => $modelsHasMore,
       'modelsNextPage' => $modelsNextPage,
+      'pageSettings' => \App\Models\WebsitePageSetting::getByKey('ai_models'),
     ]);
   }
 
@@ -608,6 +626,8 @@ class HomeController extends Controller
     if (request()->ajax()) {
       return view('includes.images')->with($data)->render();
     }
+
+    $data['modelContent'] = \App\Models\AiModelContent::getBySlug($slug, $matchedModel);
 
     return view('default.ai-model')->with($data);
   }
@@ -784,7 +804,8 @@ class HomeController extends Controller
       'getSubscription' => auth()->check() ? auth()->user()->getSubscription() : null,
       'testimonials' => $testimonials,
       'clientLogos' => $clientLogos,
-      'totalUsers' => $totalUsers
+      'totalUsers' => $totalUsers,
+      'pageSettings' => \App\Models\WebsitePageSetting::getByKey('pricing'),
     ]);
   }
 
@@ -889,7 +910,9 @@ class HomeController extends Controller
       ]);
     }
 
-    return view('photoshoots.index', compact('photoshoots', 'categories', 'categorySlug', 'currentCategory'));
+    $pageSettings = \App\Models\WebsitePageSetting::getByKey('photoshoots');
+
+    return view('photoshoots.index', compact('photoshoots', 'categories', 'categorySlug', 'currentCategory', 'pageSettings'));
   }
 
   public function photoshootDetail($slug)

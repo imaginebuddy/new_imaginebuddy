@@ -1,6 +1,22 @@
 @extends('layouts.app')
 
-@section('title'){{ trans('misc.categories').' - ' }}@endsection
+@php
+  $listingSettings = $listingSettings ?? \App\Models\CategoriesPageSetting::getSettings();
+  $catTitle = $listingSettings->getVal('page_title', trans('misc.categories'));
+  $catSubtitle = $listingSettings->getVal('page_subtitle', trans('misc.browse_by_category'));
+  $tagsTitle = $listingSettings->getVal('tags_title', __('misc.tags'));
+  $tagsSubtitle = $listingSettings->getVal('tags_subtitle', __('misc.tags_desc'));
+@endphp
+
+@section('title'){{ $listingSettings->getVal('meta_title', trans('misc.categories').' - ') }}@endsection
+
+@if ($listingSettings->getVal('meta_description'))
+@section('description_custom'){{ Helper::removeLineBreak($listingSettings->getVal('meta_description')) . ' - ' }}@endsection
+@endif
+
+@if ($listingSettings->getVal('meta_keywords'))
+@section('keywords_custom'){{ $listingSettings->getVal('meta_keywords') . ',' }}@endsection
+@endif
 
 @section('content')
 <section class="section section-sm">
@@ -12,10 +28,10 @@
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-2">
           <div>
             <h1 class="mb-0 fw-bold title-custom" id="tabHeading">
-              {{ ($activeTab ?? 'categories') == 'tags' ? __('misc.tags') : trans('misc.categories') }}
+              {{ ($activeTab ?? 'categories') == 'tags' ? $tagsTitle : $catTitle }}
             </h1>
             <p class="lead text-muted mt-0 mb-0" id="tabSubheading">
-              {{ ($activeTab ?? 'categories') == 'tags' ? __('misc.tags_desc') : trans('misc.browse_by_category') }}
+              {{ ($activeTab ?? 'categories') == 'tags' ? $tagsSubtitle : $catSubtitle }}
             </p>
           </div>
 
@@ -29,9 +45,9 @@
                     role="tab" 
                     aria-controls="pills-categories" 
                     aria-selected="{{ ($activeTab ?? 'categories') == 'categories' ? 'true' : 'false' }}"
-                    data-title="{{ trans('misc.categories') }}"
-                    data-subtitle="{{ trans('misc.browse_by_category') }}">
-              <i class="bi bi-grid-fill me-1"></i> {{ trans('misc.categories') }}
+                    data-title="{{ $catTitle }}"
+                    data-subtitle="{{ $catSubtitle }}">
+              <i class="bi bi-grid-fill me-1"></i> {{ $catTitle }}
             </button>
             <button class="nav-link rounded-pill px-4 py-2 fw-bold {{ ($activeTab ?? 'categories') == 'tags' ? 'active' : '' }}" 
                     id="pills-tags-tab" 
@@ -41,13 +57,39 @@
                     role="tab" 
                     aria-controls="pills-tags" 
                     aria-selected="{{ ($activeTab ?? 'categories') == 'tags' ? 'true' : 'false' }}"
-                    data-title="{{ __('misc.tags') }}"
-                    data-subtitle="{{ __('misc.tags_desc') }}">
-              <i class="bi bi-tags-fill me-1"></i> {{ __('misc.tags') }}
+                    data-title="{{ $tagsTitle }}"
+                    data-subtitle="{{ $tagsSubtitle }}">
+              <i class="bi bi-tags-fill me-1"></i> {{ $tagsTitle }}
             </button>
           </div>
         </div>
       </div>
+
+      {{-- Optional Promotional CTA Banner --}}
+      @if ($listingSettings->cta_banner_enabled && $listingSettings->cta_banner_title)
+      <div class="col-12 mb-4">
+        <div class="card border-0 rounded-4 shadow-sm p-4 text-white" style="background: linear-gradient(135deg, #0b0e14 0%, #1e293b 100%);">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+              <span class="badge rounded-pill fw-bold mb-2 px-3 py-1" style="background-color: rgba(0, 214, 144, 0.18); color: #00d690; font-size: 0.75rem; letter-spacing: 0.06em;">
+                CUSTOM SERVICE
+              </span>
+              <h4 class="fw-bold mb-1 text-white">{{ $listingSettings->cta_banner_title }}</h4>
+              @if ($listingSettings->cta_banner_desc)
+              <p class="text-muted mb-0 small" style="color: #cbd5e1 !important;">{{ $listingSettings->cta_banner_desc }}</p>
+              @endif
+            </div>
+            @if ($listingSettings->cta_banner_btn_text)
+            <div class="flex-shrink-0">
+              <a href="{{ url($listingSettings->cta_banner_btn_url ?: 'hire') }}" class="btn btn-main rounded-pill btn-custom px-4 py-2 fw-semibold shadow-sm text-nowrap">
+                {{ $listingSettings->cta_banner_btn_text }}
+              </a>
+            </div>
+            @endif
+          </div>
+        </div>
+      </div>
+      @endif
 
       {{-- Tab Content Container --}}
       <div class="col-md-12">
@@ -60,7 +102,7 @@
             <div class="row mb-3">
               <div class="col-12 col-sm-8 col-md-5 col-lg-3">
                 <div class="position-relative">
-                  <input type="text" id="categorySearchInput" class="form-control form-control-sm rounded-pill bg-card-custom border" style="font-size: 0.85rem; padding-left: 2.35rem !important; padding-right: 2.2rem !important;" placeholder="{{ trans('misc.search') }} {{ strtolower(trans('misc.categories')) }}..." autocomplete="off">
+                  <input type="text" id="categorySearchInput" class="form-control form-control-sm rounded-pill bg-card-custom border" style="font-size: 0.85rem; padding-left: 2.35rem !important; padding-right: 2.2rem !important;" placeholder="{{ $listingSettings->getVal('category_search_placeholder', trans('misc.search') . ' ' . strtolower(trans('misc.categories')) . '...') }}" autocomplete="off">
                   <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="font-size: 0.825rem; left: 14px; pointer-events: none; z-index: 5;"></i>
                   <button id="clearCategorySearch" class="btn btn-sm text-muted position-absolute top-50 translate-middle-y p-0 d-none" type="button" style="border:none; background:none; font-size: 0.85rem; right: 12px; z-index: 5;">
                     <i class="bi bi-x-circle-fill"></i>
@@ -96,7 +138,7 @@
             <div class="row mb-3">
               <div class="col-12 col-sm-8 col-md-5 col-lg-3">
                 <div class="position-relative">
-                  <input type="text" id="tagSearchInput" class="form-control form-control-sm rounded-pill bg-card-custom border" style="font-size: 0.85rem; padding-left: 2.35rem !important; padding-right: 2.2rem !important;" placeholder="{{ trans('misc.search') }} {{ strtolower(__('misc.tags')) }}..." autocomplete="off">
+                  <input type="text" id="tagSearchInput" class="form-control form-control-sm rounded-pill bg-card-custom border" style="font-size: 0.85rem; padding-left: 2.35rem !important; padding-right: 2.2rem !important;" placeholder="{{ $listingSettings->getVal('tag_search_placeholder', trans('misc.search') . ' ' . strtolower(__('misc.tags')) . '...') }}" autocomplete="off">
                   <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="font-size: 0.825rem; left: 14px; pointer-events: none; z-index: 5;"></i>
                   <button id="clearTagSearch" class="btn btn-sm text-muted position-absolute top-50 translate-middle-y p-0 d-none" type="button" style="border:none; background:none; font-size: 0.85rem; right: 12px; z-index: 5;">
                     <i class="bi bi-x-circle-fill"></i>

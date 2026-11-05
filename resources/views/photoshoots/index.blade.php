@@ -1,6 +1,16 @@
 @extends('layouts.app')
 
-@section('title'){{ $currentCategory ? $currentCategory->name . ' AI Photoshoot Prompts & Ideas - ' : 'AI Product Photoshoot Prompts & Multi-Angle Sets - ' }}@endsection
+@php
+  $pageSettings = $pageSettings ?? \App\Models\WebsitePageSetting::getByKey('photoshoots');
+@endphp
+
+@section('title'){{ $currentCategory ? $currentCategory->name . ' AI Photoshoot Prompts & Ideas - ' : (!empty($pageSettings->seo_title) ? $pageSettings->seo_title . ' - ' : 'AI Product Photoshoot Prompts & Multi-Angle Sets - ') }}@endsection
+@if (!$currentCategory && !empty($pageSettings->meta_description))
+@section('description_custom'){{ $pageSettings->meta_description . ' - ' }}@endsection
+@endif
+@if (!$currentCategory && !empty($pageSettings->meta_keywords))
+@section('keywords_custom'){{ $pageSettings->meta_keywords . ',' }}@endsection
+@endif
 
 @section('content')
 <section class="section section-sm py-4" style="padding-top: 95px !important;">
@@ -15,14 +25,14 @@
         @if ($currentCategory)
           {{ $currentCategory->name }} AI Photoshoot Prompts
         @else
-          Turn One Product Photo Into a Premium Multi Angle AI Photoshoot.
+          {!! !empty($pageSettings->page_title) ? $pageSettings->page_title : 'Turn One Product Photo Into a Premium Multi Angle AI Photoshoot.' !!}
         @endif
       </h1>
       <p class="lead text-muted mx-auto" style="max-width: 1220px;">
         @if ($currentCategory)
           Explore curated multi-prompt commercial photoshoot concepts for {{ strtolower($currentCategory->name) }} products. Generate consistent on-brand models, professional studio and lifestyle lighting setups, and multi-angle product coverage across ChatGPT, Google Gemini, and Midjourney.
         @else
-          Explore curated multi-prompt commercial photoshoot concepts. Generate consistent virtual models, studio lighting setups, and multiple camera angles across ChatGPT, Google Gemini, and Midjourney.
+          {{ !empty($pageSettings->subtitle) ? $pageSettings->subtitle : 'Explore curated multi-prompt commercial photoshoot concepts. Generate consistent virtual models, studio lighting setups, and multiple camera angles across ChatGPT, Google Gemini, and Midjourney.' }}
         @endif
       </p>
     </div>
@@ -31,7 +41,7 @@
     <div class="photoshoot-filter-wrapper mb-5 position-relative">
       <div class="photoshoot-category-scroll d-flex align-items-center gap-2 overflow-x-auto py-2 px-1">
         <a href="{{ url('photoshoots') }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ empty($categorySlug) ? 'btn-custom fw-semibold active text-white' : 'btn-outline-custom' }}">
-          All Categories
+          {{ $pageSettings->getExtra('all_categories_label', 'All Categories') }}
         </a>
         @foreach ($categories as $cat)
           <a href="{{ url('photoshoots') }}?category={{ $cat->slug }}" class="btn btn-sm rounded-pill px-4 py-2 text-nowrap flex-shrink-0 {{ $categorySlug == $cat->slug ? 'btn-custom fw-semibold active text-white' : 'btn-outline-custom' }}">
@@ -93,36 +103,36 @@
       <div class="row g-4 align-items-center mb-5">
         <div class="col-lg-7">
           <span class="badge rounded-pill bg-dark text-white px-3 py-2 fw-bold text-uppercase mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-            Multi-Angle Prompt Consistency
+            {{ $pageSettings->getExtra('guide_badge', 'Multi-Angle Prompt Consistency') }}
           </span>
           <h2 class="display-6 fw-bold title-custom mb-3" style="line-height: 1.2;">
-            Consistent Commercial AI Photoshoots for E-Commerce &amp; Creators
+            {!! $pageSettings->getExtra('guide_title', 'Consistent Commercial AI Photoshoots for E-Commerce & Creators') !!}
           </h2>
           <p class="text-muted mb-3" style="line-height: 1.75; font-size: 0.98rem;">
-            Creating professional product catalogs and commercial campaigns with generative AI requires subject consistency across diverse camera angles, focal lengths, and studio lighting setups. ImagineBuddy's curated photoshoot sets provide tested, multi-prompt recipes that preserve subject identity, materials, and color accuracy across every frame.
+            {!! nl2br(e($pageSettings->getExtra('guide_desc_1', "Creating professional product catalogs and commercial campaigns with generative AI requires subject consistency across diverse camera angles, focal lengths, and studio lighting setups. ImagineBuddy's curated photoshoot sets provide tested, multi-prompt recipes that preserve subject identity, materials, and color accuracy across every frame."))) !!}
           </p>
           <p class="text-muted mb-0" style="line-height: 1.75; font-size: 0.98rem;">
-            Create professional <strong>AI product photography</strong> for <a href="{{ url('category/beauty-and-skincare') }}">beauty and skincare products</a>, <a href="{{ url('category/footwear') }}">footwear</a>, <a href="{{ url('category/fashion-and-apparel') }}">fashion and apparel</a>, <a href="{{ url('category/electronics-and-gadgets') }}">consumer electronics</a>, and more. Our <strong>AI product photography prompts</strong> are designed for leading AI image generation platforms, including <strong>ChatGPT</strong>, <strong>Google Gemini</strong>, and <strong>Midjourney</strong>. Simply copy a prompt, past in your favorite ai image generator, and generate high-quality commercial product images, advertising visuals, and complete product lookbooks in minutes.
+            {!! $pageSettings->getExtra('guide_desc_2', 'Create professional <strong>AI product photography</strong> for <a href="' . url('category/beauty-and-skincare') . '">beauty and skincare products</a>, <a href="' . url('category/footwear') . '">footwear</a>, <a href="' . url('category/fashion-and-apparel') . '">fashion and apparel</a>, <a href="' . url('category/electronics-and-gadgets') . '">consumer electronics</a>, and more. Our <strong>AI product photography prompts</strong> are designed for leading AI image generation platforms, including <strong>ChatGPT</strong>, <strong>Google Gemini</strong>, and <strong>Midjourney</strong>. Simply copy a prompt, past in your favorite ai image generator, and generate high-quality commercial product images, advertising visuals, and complete product lookbooks in minutes.') !!}
           </p>
 
         </div>
         <div class="col-lg-5">
           <div class="faq-card bg-card-custom rounded-4 p-4 border border-custom shadow-xs">
             <h3 class="h5 fw-bold title-custom mb-3 d-flex align-items-center">
-              <i class="bi bi-stars text-mint me-2"></i> Why Use Photoshoot Sets?
+              <i class="bi bi-stars text-mint me-2"></i> {{ $pageSettings->getExtra('guide_card_title', 'Why Use Photoshoot Sets?') }}
             </h3>
             <ul class="list-unstyled mb-0 d-flex flex-column gap-3 text-muted" style="line-height: 1.6; font-size: 0.92rem;">
               <li class="d-flex align-items-start">
                 <i class="bi bi-check-circle-fill text-mint me-2 mt-1"></i>
-                <span><strong class="text-dark title-custom">Consistent Lighting &amp; Ambience:</strong> Studio softbox, dramatic rim light, and natural golden hour consistency across every prompt.</span>
+                <span><strong class="text-dark title-custom">{{ $pageSettings->getExtra('guide_bullet_1_title', 'Consistent Lighting & Ambience:') }}</strong> {{ $pageSettings->getExtra('guide_bullet_1_desc', 'Studio softbox, dramatic rim light, and natural golden hour consistency across every prompt.') }}</span>
               </li>
               <li class="d-flex align-items-start">
                 <i class="bi bi-check-circle-fill text-mint me-2 mt-1"></i>
-                <span><strong class="text-dark title-custom">Multi-Angle Coverage:</strong> Front hero view, 45° dynamic profile, macro texture close-ups, and contextual lifestyle shots.</span>
+                <span><strong class="text-dark title-custom">{{ $pageSettings->getExtra('guide_bullet_2_title', 'Multi-Angle Coverage:') }}</strong> {{ $pageSettings->getExtra('guide_bullet_2_desc', 'Front hero view, 45° dynamic profile, macro texture close-ups, and contextual lifestyle shots.') }}</span>
               </li>
               <li class="d-flex align-items-start">
                 <i class="bi bi-check-circle-fill text-mint me-2 mt-1"></i>
-                <span><strong class="text-dark title-custom">Commercial License Ready:</strong> Tested prompt recipes tailored for e-commerce listings, social media ads, and brand marketing.</span>
+                <span><strong class="text-dark title-custom">{{ $pageSettings->getExtra('guide_bullet_3_title', 'Commercial License Ready:') }}</strong> {{ $pageSettings->getExtra('guide_bullet_3_desc', 'Tested prompt recipes tailored for e-commerce listings, social media ads, and brand marketing.') }}</span>
               </li>
             </ul>
           </div>

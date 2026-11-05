@@ -1,6 +1,16 @@
 @extends('layouts.app')
 
-@section('title') {{ __('misc.pricing') }} - @endsection
+@php
+  $pageSettings = $pageSettings ?? \App\Models\WebsitePageSetting::getByKey('pricing');
+@endphp
+
+@section('title'){{ !empty($pageSettings->seo_title) ? $pageSettings->seo_title . ' - ' : __('misc.pricing') . ' - ' }}@endsection
+@if (!empty($pageSettings->meta_description))
+@section('description_custom'){{ $pageSettings->meta_description . ' - ' }}@endsection
+@endif
+@if (!empty($pageSettings->meta_keywords))
+@section('keywords_custom'){{ $pageSettings->meta_keywords . ',' }}@endsection
+@endif
 
 @section('css')
 <style type="text/css">
@@ -485,16 +495,15 @@
           </div>
           <span class="pricing-hero-bullet text-muted opacity-50">&bull;</span>
           <span class="pricing-hero-badge-text fw-medium">
-            Trusted by <strong>{{ number_format($totalUsers) }}+</strong> Creators<span class="d-none d-sm-inline">, Ecom Brands & Agencies</span>
+            {{ $pageSettings->getExtra('hero_badge_text') ?: ('Trusted by ' . number_format($totalUsers) . '+ Creators, Ecom Brands & Agencies') }}
           </span>
         </div>
 
         <h1 class="pricing-hero-title fw-bold mb-3">
-          Studio-Grade AI Photoshoots <br class="d-none d-md-block">
-          <span class="text-color-default font-serif-italic">For Less Than a Cup of Coffee</span>
+          {!! !empty($pageSettings->page_title) ? $pageSettings->page_title : 'Studio-Grade AI Photoshoots <br class="d-none d-md-block"><span class="text-color-default font-serif-italic">For Less Than a Cup of Coffee</span>' !!}
         </h1>
         <p class="pricing-hero-subtitle mx-auto mb-4" style="max-width: 680px;">
-          Unlock 100 daily production-grade AI prompts with camera lenses, studio lighting recipes, multi-angle variations, and full commercial client rights.
+          {{ !empty($pageSettings->subtitle) ? $pageSettings->subtitle : 'Unlock 100 daily production-grade AI prompts with camera lenses, studio lighting recipes, multi-angle variations, and full commercial client rights.' }}
         </p>
 
         <!-- Monthly / Yearly Billing Toggle Switch -->
@@ -505,7 +514,7 @@
             <label class="c-pointer fw-semibold pricing-toggle-label fs-6 d-flex align-items-center" for="plan">
               {{ __('misc.yearly') }}
               <span class="badge bg-success text-white rounded-pill ms-2 px-2.5 py-1 font-monospace" style="font-size: 0.72rem; letter-spacing: 0.3px;">
-                SAVE 25% + 2 MO FREE
+                {{ $pageSettings->getExtra('save_badge_text', 'SAVE 25% + 2 MO FREE') }}
               </span>
             </label>
           </div>
@@ -753,7 +762,7 @@
       <span class="badge rounded-pill pricing-badge px-3 py-1.5 fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">
         SIDE-BY-SIDE
       </span>
-      <h2 class="display-6 fw-bold title-custom mb-3">Compare Plans & Features</h2>
+      <h2 class="display-6 fw-bold title-custom mb-3">{{ $pageSettings->getExtra('table_heading', 'Compare Plans & Features') }}</h2>
       <p class="pricing-hero-subtitle lead mx-auto" style="max-width: 620px;">
         See exactly what you get when you step up to ImagineBuddy Pro.
       </p>
@@ -1031,10 +1040,10 @@
           <i class="bi bi-stars text-warning me-1"></i> RISK-FREE CREATIVE FREEDOM
         </span>
         <h2 class="display-5 fw-bold text-white mb-3">
-          Ready to Create Studio-Grade Visuals?
+          {{ $pageSettings->getExtra('cta_title', 'Ready to Create Studio-Grade Visuals?') }}
         </h2>
         <p class="lead text-white-50 mb-4" style="font-size: 1.15rem; line-height: 1.6;">
-          Join {{ number_format($totalUsers) }}+ creators, brands, and agencies elevating their photography for just {{ $curr['symbol'] }}{{ $isIndia ? '8' : '0.10' }}/day.
+          {{ $pageSettings->getExtra('cta_subtitle', 'Join ' . number_format($totalUsers) . '+ creators, brands, and agencies elevating their photography for just ' . $curr['symbol'] . ($isIndia ? '8' : '0.10') . '/day.') }}
         </p>
 
         @if ($plans->whereDownloadableContent('images')->count() > 0)
@@ -1056,7 +1065,7 @@
               href="@auth javascript:void(0); @else{{ url('/login') }}@endauth"
               @if (auth()->check()) data-bs-toggle="modal" data-bs-target="#checkout" @endif
               class="btn btn-warning btn-lg rounded-pill px-5 py-3 fw-bold text-dark shadow">
-              <i class="bi bi-stars me-1"></i> Get Started with Pro Today
+              <i class="bi bi-stars me-1"></i> {{ $pageSettings->getExtra('cta_btn_text', 'Get Started with Pro Today') }}
             </a>
           </div>
         @endif
@@ -1068,6 +1077,13 @@
               <i class="bi bi-shield-check text-success me-1"></i> 256-Bit SSL Checkout
             </span>
           </div>
+          <div class="col-auto d-none d-sm-inline text-white-50">&bull;</div>
+          <div class="col-auto">
+            <span class="small text-white-50 d-inline-flex align-items-center">
+              <i class="bi bi-arrow-repeat text-info me-1"></i> {{ $pageSettings->getExtra('cta_guarantee', 'Cancel anytime with one click. No questions asked.') }}
+            </span>
+          </div>
+        </div>
           <div class="col-auto d-none d-sm-inline text-white-50">&bull;</div>
           <div class="col-auto">
             <span class="small text-white-50 d-inline-flex align-items-center">

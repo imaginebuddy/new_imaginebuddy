@@ -62,6 +62,10 @@ class AdminHireController extends Controller
     {
         $this->checkPermission();
 
+        $request->merge([
+            'status' => $request->has('status') ? 'on' : 'off',
+        ]);
+
         $rules = [
             'status' => 'required|in:on,off',
             'hero_eyebrow' => 'required|max:191',

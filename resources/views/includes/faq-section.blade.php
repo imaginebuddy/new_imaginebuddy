@@ -1,5 +1,7 @@
 @php
-  $homeFaqList = [
+  $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
+
+  $defaultHomeFaqList = [
     [
       'question' => 'What is ImagineBuddy?',
       'answer' => '<p>ImagineBuddy is an AI product photography prompt platform that helps users explore product-focused visual concepts using AI image generators such as ChatGPT and Gemini.</p>'
@@ -33,6 +35,15 @@
       'answer' => '<p>Yes, explore the free prompts available on ImagineBuddy to get started. Visit the pricing page to compare the current free and Pro plans.</p>'
     ],
   ];
+
+  $homeFaqList = $homeContent->getVal('faq_items') ?: $defaultHomeFaqList;
+  $faqBadge = $homeContent->getVal('faq_badge', 'FAQ');
+  $faqTitle = $homeContent->getVal('faq_title', "Frequently <br>\nAsked <br>\nQuestions");
+  $faqSubtitle = $homeContent->getVal('faq_subtitle', 'Everything you need to know about our photoshoot prompt library before getting started.');
+  $faqContactText = $homeContent->getVal('faq_contact_text', 'Can’t find your answer? Just ask us.');
+  $faqContactUrl = $homeContent->getVal('faq_contact_url', 'contact');
+  $faqViewAllText = $homeContent->getVal('faq_view_all_text', 'Browse All FAQs');
+  $faqViewAllUrl = $homeContent->getVal('faq_view_all_url', 'frequently-asked-questions');
 @endphp
 <!-- FAQ Section -->
 <section class="section py-5 py-large faq-section position-relative" id="faq">
@@ -43,23 +54,27 @@
       <div class="col-12 col-lg-5">
         <div class="faq-sticky-header">
           <span class="badge rounded-pill bg-dark text-white px-3 py-2 fw-bold text-uppercase mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-            FAQ
+            {{ $faqBadge }}
           </span>
           <h2 class="display-5 fw-bold title-custom mb-4" style="line-height: 1.15; font-size: 2.75rem;">
-            Frequently <br>
-            Asked <br>
-            Questions
+            {!! nl2br(e($faqTitle)) !!}
           </h2>
+          @if ($faqSubtitle)
           <p class="text-muted lead mb-2" style="font-size: 1.05rem;">
-            Everything you need to know about our photoshoot prompt library before getting started.
+            {{ $faqSubtitle }}
           </p>
+          @endif
+          @if ($faqContactText)
           <p class="text-muted mb-4" style="font-size: 0.95rem;">
-            Can’t find your answer? <a href="{{ url('contact') }}" class="title-custom fw-bold text-decoration-underline">Just ask us.</a>
+            <a href="{{ url($faqContactUrl) }}" class="title-custom fw-bold text-decoration-underline">{{ $faqContactText }}</a>
           </p>
+          @endif
 
-          <a href="{{ url('frequently-asked-questions') }}" class="btn btn-sm btn-dark rounded-pill px-4 py-2 fw-semibold">
-            Browse All FAQs <i class="bi-arrow-right ms-1"></i>
+          @if ($faqViewAllText)
+          <a href="{{ url($faqViewAllUrl) }}" class="btn btn-sm btn-dark rounded-pill px-4 py-2 fw-semibold">
+            {{ $faqViewAllText }} <i class="bi-arrow-right ms-1"></i>
           </a>
+          @endif
         </div>
       </div>
 
@@ -75,12 +90,12 @@
                     data-bs-target="#home-faq-collapse-{{ $index }}"
                     aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
                     aria-controls="home-faq-collapse-{{ $index }}">
-              <h3 class="fw-bold title-custom mb-0 me-3 fs-6 fs-md-5">{{ $faqItem['question'] }}</h3>
+              <h3 class="fw-bold title-custom mb-0 me-3 fs-6 fs-md-5">{{ $faqItem['question'] ?? '' }}</h3>
               <span class="faq-icon-indicator text-muted fs-4 lh-1 flex-shrink-0"></span>
             </button>
             <div id="home-faq-collapse-{{ $index }}" class="collapse {{ $index === 0 ? 'show' : '' }} faq-collapse" data-bs-parent="#faqAccordion">
               <div class="pt-3 text-muted faq-answer-content" style="line-height: 1.7; font-size: 0.98rem;">
-                {!! $faqItem['answer'] !!}
+                {!! $faqItem['answer'] ?? '' !!}
               </div>
             </div>
           </div>

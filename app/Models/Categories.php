@@ -9,6 +9,10 @@ class Categories extends Model
 	protected $guarded = [];
 	public $timestamps = false;
 
+	protected $casts = [
+		'cta_banner_enabled' => 'boolean',
+	];
+
 	public function images()
 	{
 		return $this->hasMany(Images::class, 'categories_id')->where('status', 'active');

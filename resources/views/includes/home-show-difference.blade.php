@@ -1,20 +1,37 @@
+@php
+  $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
+  $genericItems = $homeContent->getVal('diff_card_generic_items') ?: [
+    'Often require manual edits for different products.',
+    'May need adjustments to colours, props, backgrounds, and lighting.',
+    'Can require repeated experimentation to achieve the desired look.'
+  ];
+  $adaptiveItems = $homeContent->getVal('diff_card_adaptive_items') ?: [
+    'Designed to respond to the uploaded product.',
+    'Guide product-focused styling, lighting, props, and backgrounds.',
+    'Help you explore different creative directions with less manual prompt editing.'
+  ];
+@endphp
 <!-- Show the Difference Section -->
 <section class="section py-4 py-md-5 show-difference-section position-relative border-top border-bottom">
   <div class="container px-3 px-md-4">
     <!-- Header -->
     <div class="mb-4 mb-md-5 text-center mx-auto w-100" style="max-width: 100%;">
       <div class="text-uppercase fw-bold text-muted small mb-2 show-diff-eyebrow" style="letter-spacing: 0.14em; font-size: clamp(0.72rem, 1.8vw, 0.8rem);">
-        WHAT MAKES IMAGINEBUDDY DIFFERENT?
+        {{ $homeContent->getVal('diff_eyebrow', 'WHAT MAKES IMAGINEBUDDY DIFFERENT?') }}
       </div>
       <h2 class="fw-bold title-custom mb-3 show-diff-title">
-        One Photography Style. <span class="font-serif-italic">Adapted to</span> Your Product.
+        {!! $homeContent->getVal('diff_heading', 'One Photography Style. <span class="font-serif-italic">Adapted to</span> Your Product.') !!}
       </h2>
+      @if ($homeContent->getVal('diff_description_1'))
       <p class="text-muted mb-2 mx-auto" style="line-height: 1.7; font-size: clamp(0.95rem, 2vw, 1.02rem); max-width: 860px;">
-        Generic prompts often need manual adjustments for different products. ImagineBuddy's adaptive prompts are designed to guide AI to create product-focused visuals based on the product you upload.
+        {{ $homeContent->getVal('diff_description_1') }}
       </p>
+      @endif
+      @if ($homeContent->getVal('diff_description_2'))
       <p class="text-muted mb-0 mx-auto" style="line-height: 1.7; font-size: clamp(0.92rem, 2vw, 0.98rem); max-width: 860px;">
-        Whether it's skincare, jewellery, fashion, food, or home d&eacute;cor, explore creative photography concepts tailored to your product.
+        {!! $homeContent->getVal('diff_description_2') !!}
       </p>
+      @endif
     </div>
 
     <!-- Comparison Cards -->
@@ -22,26 +39,18 @@
       <!-- Card 1: Generic Prompts -->
       <div class="col-12 col-md-6">
         <div class="card h-100 p-4 p-lg-5 diff-card-generic shadow-xs">
-          <h3 class="fw-bold title-custom mb-3 mb-md-4" style="font-size: clamp(1.2rem, 2.4vw, 1.35rem);">Generic Prompts</h3>
+          <h3 class="fw-bold title-custom mb-3 mb-md-4" style="font-size: clamp(1.2rem, 2.4vw, 1.35rem);">
+            {{ $homeContent->getVal('diff_card_generic_title', 'Generic Prompts') }}
+          </h3>
           <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+            @foreach ($genericItems as $gItem)
             <li class="d-flex align-items-start gap-2 gap-sm-3">
               <span class="diff-cross-icon fw-semibold flex-shrink-0">✕</span>
               <span class="diff-text-muted">
-                Often require manual edits for different products.
+                {{ $gItem }}
               </span>
             </li>
-            <li class="d-flex align-items-start gap-2 gap-sm-3">
-              <span class="diff-cross-icon fw-semibold flex-shrink-0">✕</span>
-              <span class="diff-text-muted">
-                May need adjustments to colours, props, backgrounds, and lighting.
-              </span>
-            </li>
-            <li class="d-flex align-items-start gap-2 gap-sm-3">
-              <span class="diff-cross-icon fw-semibold flex-shrink-0">✕</span>
-              <span class="diff-text-muted">
-                Can require repeated experimentation to achieve the desired look.
-              </span>
-            </li>
+            @endforeach
           </ul>
         </div>
       </div>
@@ -49,26 +58,18 @@
       <!-- Card 2: Adaptive Prompts by ImagineBuddy -->
       <div class="col-12 col-md-6">
         <div class="card h-100 p-4 p-lg-5 border-0 text-white diff-card-adaptive" style="background-color: #00d690 !important;">
-          <h3 class="fw-bold text-white mb-3 mb-md-4" style="font-size: clamp(1.2rem, 2.4vw, 1.35rem);">Adaptive Prompts by ImagineBuddy</h3>
+          <h3 class="fw-bold text-white mb-3 mb-md-4" style="font-size: clamp(1.2rem, 2.4vw, 1.35rem);">
+            {{ $homeContent->getVal('diff_card_adaptive_title', 'Adaptive Prompts by ImagineBuddy') }}
+          </h3>
           <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+            @foreach ($adaptiveItems as $aItem)
             <li class="d-flex align-items-start gap-2 gap-sm-3">
               <span class="text-white fw-bold flex-shrink-0" style="font-size: 1.1rem; line-height: 1.3;">✓</span>
               <span class="text-white" style="line-height: 1.6; font-size: 0.95rem; opacity: 0.98;">
-                Designed to respond to the uploaded product.
+                {{ $aItem }}
               </span>
             </li>
-            <li class="d-flex align-items-start gap-2 gap-sm-3">
-              <span class="text-white fw-bold flex-shrink-0" style="font-size: 1.1rem; line-height: 1.3;">✓</span>
-              <span class="text-white" style="line-height: 1.6; font-size: 0.95rem; opacity: 0.98;">
-                Guide product-focused styling, lighting, props, and backgrounds.
-              </span>
-            </li>
-            <li class="d-flex align-items-start gap-2 gap-sm-3">
-              <span class="text-white fw-bold flex-shrink-0" style="font-size: 1.1rem; line-height: 1.3;">✓</span>
-              <span class="text-white" style="line-height: 1.6; font-size: 0.95rem; opacity: 0.98;">
-                Help you explore different creative directions with less manual prompt editing.
-              </span>
-            </li>
+            @endforeach
           </ul>
         </div>
       </div>
@@ -76,12 +77,14 @@
 
     <!-- CTA & Subtext Row matching exact layout from reference image -->
     <div class="diff-cta-row d-flex flex-wrap align-items-center justify-content-center text-center gap-3 gap-md-4 mt-4 pt-1">
-      <a href="{{ url('latest') }}" class="btn-explore-adaptive">
-        Explore Adaptive Prompts
+      <a href="{{ url($homeContent->getVal('diff_cta_url', 'latest')) }}" class="btn-explore-adaptive">
+        {{ $homeContent->getVal('diff_cta_text', 'Explore Adaptive Prompts') }}
       </a>
+      @if ($homeContent->getVal('diff_disclaimer'))
       <span class="diff-disclaimer-text">
-        Results depend on the AI image generator, the prompt, and the uploaded product image.
+        {{ $homeContent->getVal('diff_disclaimer') }}
       </span>
+      @endif
     </div>
   </div>
 </section>

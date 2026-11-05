@@ -1,22 +1,69 @@
 @php
+  $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
   $isIndia = Helper::isIndia();
   $curr = Helper::currentCurrency();
 
   $defaultBeforeImage = asset('public/img/White-Oud-Perfume-01.webp');
   $defaultAfterImage = asset('public/img/premium-white-oud-perfume-ad-02.webp');
 
-  $sliderBeforeImg = !empty($customBeforeImg) ? $customBeforeImg : $defaultBeforeImage;
-  $sliderAfterImg = !empty($customAfterImg) ? $customAfterImg : $defaultAfterImage;
+  $cfgBeforeImg = $homeContent->getVal('transformation_before_image');
+  $cfgAfterImg = $homeContent->getVal('transformation_after_image');
 
-  $sliderBeforeLabel = !empty($customBeforeLabel) ? $customBeforeLabel : 'Raw Snapshot';
-  $sliderAfterLabel = !empty($customAfterLabel) ? $customAfterLabel : 'Campaign Ready';
+  if (!empty($customBeforeImg)) {
+    $sliderBeforeImg = $customBeforeImg;
+  } elseif (!empty($cfgBeforeImg)) {
+    $sliderBeforeImg = \Illuminate\Support\Str::startsWith($cfgBeforeImg, ['http://', 'https://']) ? $cfgBeforeImg : asset($cfgBeforeImg);
+  } else {
+    $sliderBeforeImg = $defaultBeforeImage;
+  }
+
+  if (!empty($customAfterImg)) {
+    $sliderAfterImg = $customAfterImg;
+  } elseif (!empty($cfgAfterImg)) {
+    $sliderAfterImg = \Illuminate\Support\Str::startsWith($cfgAfterImg, ['http://', 'https://']) ? $cfgAfterImg : asset($cfgAfterImg);
+  } else {
+    $sliderAfterImg = $defaultAfterImage;
+  }
+
+  $sliderBeforeLabel = !empty($customBeforeLabel) ? $customBeforeLabel : $homeContent->getVal('transformation_before_label', 'Raw Snapshot');
+  $sliderAfterLabel = !empty($customAfterLabel) ? $customAfterLabel : $homeContent->getVal('transformation_after_label', 'Campaign Ready');
 
   $sliderBeforeAlt = !empty($customBeforeAlt) ? $customBeforeAlt : 'Raw Product Snapshot (Before)';
   $sliderAfterAlt = !empty($customAfterAlt) ? $customAfterAlt : 'Campaign Ready Commercial Visual (After)';
 
-  $sectionEyebrow = !empty($customEyebrow) ? $customEyebrow : 'THE TRANSFORMATION';
-  $sectionHeading = !empty($customHeading) ? $customHeading : 'See the <span class="font-serif-italic">Difference Yourself</span>';
-  $sectionSubheading = !empty($customSubheading) ? $customSubheading : 'Witness how simple, unedited product snapshots are instantly elevated into highly polished, premium brand campaigns.';
+  $sectionEyebrow = !empty($customEyebrow) ? $customEyebrow : $homeContent->getVal('transformation_eyebrow', 'THE TRANSFORMATION');
+  $sectionHeading = !empty($customHeading) ? $customHeading : $homeContent->getVal('transformation_heading', 'See the <span class="font-serif-italic">Difference Yourself</span>');
+  $sectionSubheading = !empty($customSubheading) ? $customSubheading : $homeContent->getVal('transformation_subheading', 'Witness how simple, unedited product snapshots are instantly elevated into highly polished, premium brand campaigns.');
+
+  $rightBadge = $homeContent->getVal('transformation_right_badge', 'AI Photoshoot Prompt Library');
+  $rightBadgeSub = $homeContent->getVal('transformation_right_badge_sub', 'Unlimited Creative Ideation');
+  $rightHeadline = $homeContent->getVal('transformation_right_headline', 'Studio-Quality Product Concepts. <br class="d-none d-sm-inline"><span class="text-mint">Without the Photoshoot Overhead.</span>');
+  $rightDescription = $homeContent->getVal('transformation_right_description', 'Create premium product photography concepts without the cost, logistics, and delays of traditional photoshoots. Access battle-tested AI prompt recipes tailored for ecommerce, ads, and product launches—generating new visual directions on demand without booking a studio for every new campaign or SKU.');
+
+  $tradItems = $homeContent->getVal('transformation_traditional_items') ?: [
+    'Photographer & studio rental',
+    'Props, models & set styling',
+    'Shipping logistics & days of delay',
+    'Repeated cost for every single SKU',
+  ];
+  $tradPrice = $isIndia 
+    ? $homeContent->getVal('transformation_traditional_price_inr', '₹35,000 – ₹75,000+ / shoot')
+    : $homeContent->getVal('transformation_traditional_price_usd', '$500 – $2,500+ / shoot');
+
+  $libItems = $homeContent->getVal('transformation_library_items') ?: [
+    'Unlimited prompt access',
+    'Multi-angle & commercial aesthetics',
+    'Instant concept iterations in minutes',
+    'Zero studio bookings or physical logistics',
+  ];
+  $libPrice = $isIndia 
+    ? $homeContent->getVal('transformation_library_price_inr', '₹250 /month')
+    : $homeContent->getVal('transformation_library_price_usd', '$3 /month');
+
+  $ctaTitle = $homeContent->getVal('transformation_cta_title', 'Never Pay Per Prompt');
+  $ctaSubtitle = $homeContent->getVal('transformation_cta_subtitle');
+  $ctaBtnText = $homeContent->getVal('transformation_cta_btn_text', 'Explore Premium Prompts');
+  $ctaBtnUrl = $homeContent->getVal('transformation_cta_btn_url', 'pricing');
 @endphp
 
 <!-- Transformation Showcase Section -->
@@ -117,22 +164,23 @@
             <!-- Category & Value Eyebrow Badge -->
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
               <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-3 py-2 fw-semibold" style="font-size: 0.8rem;">
-                <i class="bi bi-collection-play text-mint me-1"></i> AI Photoshoot Prompt Library
+                <i class="bi bi-collection-play text-mint me-1"></i> {{ $rightBadge }}
               </span>
+              @if ($rightBadgeSub)
               <span class="text-muted small">
-                • Unlimited Creative Ideation
+                • {{ $rightBadgeSub }}
               </span>
+              @endif
             </div>
 
             <!-- Benefit-Driven Headline -->
             <h3 class="fw-bold title-custom display-6 mb-3" style="font-size: 1.95rem; line-height: 1.25;">
-              Studio-Quality Product Concepts. <br class="d-none d-sm-inline">
-              <span class="text-mint">Without the Photoshoot Overhead.</span>
+              {!! $rightHeadline !!}
             </h3>
 
             <!-- Supporting Description -->
             <p class="text-muted mb-4 lead" style="font-size: 1.02rem; line-height: 1.65;">
-              Create premium product photography concepts without the cost, logistics, and delays of traditional photoshoots. Access battle-tested AI prompt recipes tailored for ecommerce, ads, and product launches—generating new visual directions on demand without booking a studio for every new campaign or SKU.
+              {{ $rightDescription }}
             </p>
 
             <!-- Cost, Speed & Flexibility Comparison Matrix -->
@@ -147,15 +195,14 @@
                       </span>
                     </div>
                     <ul class="list-unstyled mb-2 small text-muted" style="font-size: 0.82rem; line-height: 1.5;">
-                      <li class="mb-1">• Photographer & studio rental</li>
-                      <li class="mb-1">• Props, models & set styling</li>
-                      <li class="mb-1">• Shipping logistics & days of delay</li>
-                      <li class="mb-0">• Repeated cost for every single SKU</li>
+                      @foreach ($tradItems as $item)
+                      <li class="mb-1">• {{ $item }}</li>
+                      @endforeach
                     </ul>
                     <div class="pt-2 border-top border-custom">
                       <small class="text-muted d-block" style="font-size: 0.75rem;">Est. Production Cost:</small>
                       <span class="text-danger fw-bold text-decoration-line-through small">
-                        @if ($isIndia) ₹35,000 – ₹75,000+ / shoot @else $500 – $2,500+ / shoot @endif
+                        {{ $tradPrice }}
                       </span>
                     </div>
                   </div>
@@ -170,15 +217,14 @@
                       </span>
                     </div>
                     <ul class="list-unstyled mb-2 small text-muted" style="font-size: 0.82rem; line-height: 1.5;">
-                      <li class="mb-1 text-dark title-custom fw-semibold">• <strong>Unlimited prompt access</strong></li>
-                      <li class="mb-1">• Multi-angle & commercial aesthetics</li>
-                      <li class="mb-1">• Instant concept iterations in minutes</li>
-                      <li class="mb-0">• Zero studio bookings or physical logistics</li>
+                      @foreach ($libItems as $item)
+                      <li class="mb-1 text-dark title-custom fw-semibold">• <strong>{{ $item }}</strong></li>
+                      @endforeach
                     </ul>
                     <div class="pt-2 border-top border-custom">
                       <small class="text-muted d-block" style="font-size: 0.75rem;">Full Unlimited Access:</small>
                       <span class="text-mint fw-bolder fs-5 lh-1">
-                        @if ($isIndia) ₹250 <span class="fs-6 fw-normal text-muted">/month</span> @else $3 <span class="fs-6 fw-normal text-muted">/month</span> @endif
+                        {{ $libPrice }}
                       </span>
                     </div>
                   </div>
@@ -193,16 +239,20 @@
                   <span class="badge badge-tier rounded-pill px-2 py-1 fw-bold">
                     <i class="bi bi-infinity me-1"></i> Unlimited Access
                   </span>
-                  <span class="fw-bold title-custom fs-6">Never Pay Per Prompt</span>
+                  <span class="fw-bold title-custom fs-6">{{ $ctaTitle }}</span>
                 </div>
                 <small class="text-muted d-block">
-                  Unlock the full commercial photoshoot prompt library for just @if ($isIndia) <strong>₹250/mo</strong> (or ₹2,550/yr) @else <strong>$3/mo</strong> (or $27/yr) @endif.
+                  @if (!empty($ctaSubtitle))
+                    {{ $ctaSubtitle }}
+                  @else
+                    Unlock the full commercial photoshoot prompt library for just @if ($isIndia) <strong>₹250/mo</strong> (or ₹2,550/yr) @else <strong>$3/mo</strong> (or $27/yr) @endif.
+                  @endif
                 </small>
               </div>
               
               <div class="flex-shrink-0">
-                <a href="{{ url('pricing') }}" class="btn btn-main rounded-pill px-4 py-2.5 fw-bold arrow shadow-sm text-nowrap d-inline-flex align-items-center">
-                  <span>Explore Premium Prompts</span>
+                <a href="{{ url($ctaBtnUrl) }}" class="btn btn-main rounded-pill px-4 py-2.5 fw-bold arrow shadow-sm text-nowrap d-inline-flex align-items-center">
+                  <span>{{ $ctaBtnText }}</span>
                 </a>
               </div>
             </div>

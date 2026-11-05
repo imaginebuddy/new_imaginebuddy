@@ -450,14 +450,24 @@
               </div><!-- /end collapse blogMenu -->
               @endif
 
-              @if (auth()->user()->hasPermission('page_manager') || auth()->user()->hasPermission('seo_pages') || auth()->user()->hasPermission('full_access'))
+              @if (auth()->user()->hasPermission('page_manager') || auth()->user()->hasPermission('seo_pages') || auth()->user()->hasPermission('general_settings') || auth()->user()->hasPermission('full_access'))
               <li class="nav-item">
-                  <a href="#pageManagerMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/page-manager*')) active @endif" @if (request()->is('panel/admin/page-manager*')) aria-expanded="true" @endif>
+                  <a href="#pageManagerMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/page-manager*') || request()->is('panel/admin/homepage-content*') || request()->is('panel/admin/website-pages-content*')) active @endif" @if (request()->is('panel/admin/page-manager*') || request()->is('panel/admin/homepage-content*') || request()->is('panel/admin/website-pages-content*')) aria-expanded="true" @endif>
                       <i class="bi-files me-2"></i> Page Manager
                   </a>
               </li><!-- /end list -->
 
-              <div class="collapse w-100 @if (request()->is('panel/admin/page-manager*')) show @endif ps-3" id="pageManagerMenu">
+              <div class="collapse w-100 @if (request()->is('panel/admin/page-manager*') || request()->is('panel/admin/homepage-content*') || request()->is('panel/admin/website-pages-content*')) show @endif ps-3" id="pageManagerMenu">
+                <li>
+                  <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/homepage-content*')) text-white fw-semibold @endif" href="{{ url('panel/admin/homepage-content') }}">
+                    <i class="bi-house-gear fs-7 me-1"></i> Homepage Content
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/website-pages-content*')) text-white fw-semibold @endif" href="{{ url('panel/admin/website-pages-content') }}">
+                    <i class="bi-layout-text-window-reverse fs-7 me-1"></i> Website Pages Content
+                  </a>
+                </li>
                 <li>
                   <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/page-manager') || request()->is('panel/admin/page-manager/edit/*')) text-white @endif" href="{{ url('panel/admin/page-manager') }}">
                     <i class="bi-chevron-right fs-7 me-1"></i> All Pages & Hubs

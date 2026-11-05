@@ -501,6 +501,8 @@ Route::group(['middleware' => 'role'], function() {
 
 	// Categories
 	Route::get('panel/admin/categories',[AdminController::class, 'categories'])->name('categories');
+	Route::get('panel/admin/categories/listing-settings',[AdminController::class, 'categoriesListingSettings'])->name('categories.listing_settings');
+	Route::post('panel/admin/categories/listing-settings',[AdminController::class, 'saveCategoriesListingSettings']);
 	Route::get('panel/admin/categories/add',[AdminController::class, 'addCategories'])->name('categories');
 	Route::post('panel/admin/categories/add',[AdminController::class, 'storeCategories']);
 	Route::get('panel/admin/categories/edit/{id}',[AdminController::class, 'editCategories'])->name('categories');
@@ -833,6 +835,16 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/page-manager/{id}/items/attach', [\App\Http\Controllers\AdminPageManagerController::class, 'attachItem']);
 	Route::post('panel/admin/page-manager/{pageId}/items/detach/{itemId}', [\App\Http\Controllers\AdminPageManagerController::class, 'detachItem']);
 	Route::get('panel/admin/page-manager/search/prompts', [\App\Http\Controllers\AdminPageManagerController::class, 'searchPrompts']);
+
+	// Homepage Content Settings
+	Route::get('panel/admin/homepage-content', [\App\Http\Controllers\AdminHomepageContentController::class, 'edit'])->name('admin.homepage_content');
+	Route::post('panel/admin/homepage-content', [\App\Http\Controllers\AdminHomepageContentController::class, 'update']);
+
+	// Website Pages Static Content Management
+	Route::get('panel/admin/website-pages-content', [\App\Http\Controllers\AdminWebsitePageContentController::class, 'index'])->name('admin.website_pages_content');
+	Route::post('panel/admin/website-pages-content/update/{key}', [\App\Http\Controllers\AdminWebsitePageContentController::class, 'updatePage']);
+	Route::get('panel/admin/website-pages-content/ai-model/{slug}', [\App\Http\Controllers\AdminWebsitePageContentController::class, 'editAiModel'])->name('admin.website_pages_content.ai_model');
+	Route::post('panel/admin/website-pages-content/ai-model/{slug}', [\App\Http\Controllers\AdminWebsitePageContentController::class, 'updateAiModel']);
 
 	// Hire Service Settings & Inquiries CRM
 	Route::get('panel/admin/hire/settings', [AdminHireController::class, 'settings'])->name('hire.settings');

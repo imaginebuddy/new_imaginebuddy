@@ -38,7 +38,13 @@ switch(request()->get('timeframe')) {
   $categoriesList = $categories ?? App\Models\Categories::where('mode', 'on')->orderBy('name')->get();
 @endphp
 
-@section('title'){{ $title.$timeframe_text.' - ' }}@endsection
+@section('title'){{ (!empty($pageSettings->seo_title) ? $pageSettings->seo_title : strip_tags($title)).$timeframe_text.' - ' }}@endsection
+@if (!empty($pageSettings->meta_description))
+@section('description_custom'){{ $pageSettings->meta_description . ' - ' }}@endsection
+@endif
+@if (!empty($pageSettings->meta_keywords))
+@section('keywords_custom'){{ $pageSettings->meta_keywords . ',' }}@endsection
+@endif
 
 @section('content')
 
@@ -49,7 +55,7 @@ switch(request()->get('timeframe')) {
 
 		<div class="col-lg-12 py-5">
 			<h1 class="mb-0">
-				{{ $title }}
+				{!! $title !!}
 			</h1>
 			<p class="lead text-muted mt-0">{{ $description }}</p>
 		  </div>

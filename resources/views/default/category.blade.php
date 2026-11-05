@@ -37,7 +37,11 @@
         </div>
         @endif
       <p class="lead text-muted mt-0">
-        Explore <span style="color: #00d690;font-weight: bold;">{{ number_format($images->total()) }}</span> curated, tested AI prompts designed for {{ Lang::has('categories.' . $category->slug) ? __('categories.' . $category->slug) : str($category->name)->lower() }}. Generate high-end commercial product visuals across Gemini, ChatGPT, and more.
+        @if (!empty($category->hero_lead))
+          {{ $category->hero_lead }}
+        @else
+          Explore <span style="color: #00d690;font-weight: bold;">{{ number_format($images->total()) }}</span> curated, tested AI prompts designed for {{ Lang::has('categories.' . $category->slug) ? __('categories.' . $category->slug) : str($category->name)->lower() }}. Generate high-end commercial product visuals across Gemini, ChatGPT, and more.
+        @endif
         <!-- {{ '('.number_format($images->total()).') '.trans_choice('misc.images_available_category',$images->total()) }} -->
       </p>
     </div>

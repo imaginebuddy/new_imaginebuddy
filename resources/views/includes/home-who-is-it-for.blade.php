@@ -1,81 +1,65 @@
+@php
+  $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
+  $personas = $homeContent->getVal('who_is_it_for_items') ?: [
+    [
+      'title' => 'E-commerce Business Owners',
+      'desc' => 'Develop more visual concepts for your product catalogue.'
+    ],
+    [
+      'title' => 'Brand Owners',
+      'desc' => 'Explore fresh campaign ideas without planning every concept from scratch.'
+    ],
+    [
+      'title' => 'Digital Marketers',
+      'desc' => 'Create starting points for advertising and social media creatives.'
+    ],
+    [
+      'title' => 'Designers & Creative Agencies',
+      'desc' => 'Experiment with product-focused visual directions.'
+    ],
+    [
+      'title' => 'Photographers',
+      'desc' => 'Use AI to explore moodboards, compositions, and creative references.'
+    ],
+    [
+      'title' => 'Content Creators',
+      'desc' => 'Develop product visuals for marketing content and brand collaborations.'
+    ]
+  ];
+@endphp
 <!-- Who Is ImagineBuddy For Section -->
 <section class="section py-4 py-md-5 text-white position-relative who-is-it-for-section border-top border-bottom" style="background-color: #0b0e14 !important; border-color: rgba(255, 255, 255, 0.08) !important;">
   <div class="container px-3 px-md-4">
     <div class="mb-4 mb-md-5 text-center mx-auto" style="max-width: 1000px;">
       <h2 class="fw-bold text-white mb-2 mb-md-3 who-is-it-for-title">
-        Built for People Who Need Better Product Visuals
+        {{ $homeContent->getVal('who_is_it_for_heading', 'Built for People Who Need Better Product Visuals') }}
       </h2>
+      @if ($homeContent->getVal('who_is_it_for_subheading'))
       <p class="lead mb-0 text-secondary-custom mx-auto" style="font-size: clamp(0.98rem, 1.8vw, 1.1rem); line-height: 1.6; color: #94a3b8 !important; max-width: 760px;">
-        Whether you run a brand or create marketing content, ImagineBuddy helps you explore new directions for product photography.
+        {{ $homeContent->getVal('who_is_it_for_subheading') }}
       </p>
+      @endif
     </div>
 
     <div class="row g-3 g-md-4 g-lg-5 mb-4 mb-md-5">
-      <!-- 1. E-commerce Business Owners -->
+      @foreach ($personas as $persona)
       <div class="col-12 col-sm-6 col-md-4">
         <div class="persona-block pt-3 pt-md-4 border-top" style="border-color: rgba(255, 255, 255, 0.12) !important;">
-          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">E-commerce Business Owners</h3>
+          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">
+            {{ $persona['title'] ?? '' }}
+          </h3>
           <p class="mb-0" style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-            Develop more visual concepts for your product catalogue.
+            {{ $persona['desc'] ?? '' }}
           </p>
         </div>
       </div>
-
-      <!-- 2. Brand Owners -->
-      <div class="col-12 col-sm-6 col-md-4">
-        <div class="persona-block pt-3 pt-md-4 border-top" style="border-color: rgba(255, 255, 255, 0.12) !important;">
-          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">Brand Owners</h3>
-          <p class="mb-0" style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-            Explore fresh campaign ideas without planning every concept from scratch.
-          </p>
-        </div>
-      </div>
-
-      <!-- 3. Digital Marketers -->
-      <div class="col-12 col-sm-6 col-md-4">
-        <div class="persona-block pt-3 pt-md-4 border-top" style="border-color: rgba(255, 255, 255, 0.12) !important;">
-          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">Digital Marketers</h3>
-          <p class="mb-0" style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-            Create starting points for advertising and social media creatives.
-          </p>
-        </div>
-      </div>
-
-      <!-- 4. Designers & Creative Agencies -->
-      <div class="col-12 col-sm-6 col-md-4">
-        <div class="persona-block pt-3 pt-md-4 border-top" style="border-color: rgba(255, 255, 255, 0.12) !important;">
-          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">Designers &amp; Creative Agencies</h3>
-          <p class="mb-0" style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-            Experiment with product-focused visual directions.
-          </p>
-        </div>
-      </div>
-
-      <!-- 5. Photographers -->
-      <div class="col-12 col-sm-6 col-md-4">
-        <div class="persona-block pt-3 pt-md-4 border-top" style="border-color: rgba(255, 255, 255, 0.12) !important;">
-          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">Photographers</h3>
-          <p class="mb-0" style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-            Use AI to explore moodboards, compositions, and creative references.
-          </p>
-        </div>
-      </div>
-
-      <!-- 6. Content Creators -->
-      <div class="col-12 col-sm-6 col-md-4">
-        <div class="persona-block pt-3 pt-md-4 border-top" style="border-color: rgba(255, 255, 255, 0.12) !important;">
-          <h3 class="fw-bold text-white mb-2" style="font-size: clamp(1.02rem, 2vw, 1.15rem);">Content Creators</h3>
-          <p class="mb-0" style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-            Develop product visuals for marketing content and brand collaborations.
-          </p>
-        </div>
-      </div>
+      @endforeach
     </div>
 
     <!-- CTA Button -->
     <div class="text-center mt-2">
-      <a href="{{ url('latest') }}" class="btn btn-main rounded-pill btn-custom px-4 px-md-5 py-2.5 arrow shadow-sm fw-semibold">
-        Discover What You Can Create
+      <a href="{{ url($homeContent->getVal('who_is_it_for_cta_url', 'latest')) }}" class="btn btn-main rounded-pill btn-custom px-4 px-md-5 py-2.5 arrow shadow-sm fw-semibold">
+        {{ $homeContent->getVal('who_is_it_for_cta_text', 'Discover What You Can Create') }}
       </a>
     </div>
   </div>

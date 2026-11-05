@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
-@section('title'){{ $modelName . ' - AI Prompts - ' }}@endsection
-@section('description_custom'){{ 'Explore ' . number_format($images->total()) . ' curated, tested AI prompts designed for ' . $modelName . '. Generate high-end commercial product visuals.' }}@endsection
-@section('keywords_custom'){{ strtolower($modelName) . ' prompts, ' . strtolower($modelName) . ' ai photography, ai product photography, commercial prompts' }}@endsection
+@php
+  $modelContent = $modelContent ?? \App\Models\AiModelContent::getBySlug($slug ?? \Illuminate\Support\Str::slug($modelName), $modelName);
+@endphp
+
+@section('title'){{ !empty($modelContent->seo_title) ? $modelContent->seo_title . ' - ' : ($modelName . ' - AI Prompts - ') }}@endsection
+@section('description_custom'){{ !empty($modelContent->meta_description) ? $modelContent->meta_description . ' - ' : ('Explore ' . number_format($images->total()) . ' curated, tested AI prompts designed for ' . $modelName . '. Generate high-end commercial product visuals.') }}@endsection
+@section('keywords_custom'){{ !empty($modelContent->meta_keywords) ? $modelContent->meta_keywords . ',' : (strtolower($modelName) . ' prompts, ' . strtolower($modelName) . ' ai photography, ai product photography, commercial prompts') }}@endsection
 
 @section('content')
 <section class="section section-sm">
@@ -11,7 +15,11 @@
     {{-- Hero Section --}}
     <div class="col-lg-12 py-5">
       <h1 class="mb-0">
-        {{ $modelName }} - <span style="color: #00d690;">AI Prompts</span>
+        @if (!empty($modelContent->page_title))
+          {!! $modelContent->page_title !!}
+        @else
+          {{ $modelName }} - <span style="color: #00d690;">AI Prompts</span>
+        @endif
       </h1>
 
       @if (!empty($otherModels) && count($otherModels) > 1)
@@ -26,7 +34,11 @@
       @endif
 
       <p class="lead text-muted mt-0">
-        Explore <span style="color: #00d690;font-weight: bold;">{{ number_format($images->total()) }}</span> curated, tested AI prompts designed for {{ $modelName }}. Generate high-end commercial visuals with tested prompts for {{ $modelName }}.
+        @if (!empty($modelContent->hero_lead))
+          {{ $modelContent->hero_lead }}
+        @else
+          Explore <span style="color: #00d690;font-weight: bold;">{{ number_format($images->total()) }}</span> curated, tested AI prompts designed for {{ $modelName }}. Generate high-end commercial visuals with tested prompts for {{ $modelName }}.
+        @endif
       </p>
     </div>
 

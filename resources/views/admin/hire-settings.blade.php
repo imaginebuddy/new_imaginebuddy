@@ -41,10 +41,9 @@
                             <label class="col-sm-3 col-form-label text-lg-end fw-semibold">Hire Page Status</label>
                             <div class="col-sm-9">
                                 <div class="form-check form-switch form-switch-md">
-                                    <input class="form-check-input" type="checkbox" name="status" value="on" id="statusSwitch" @checked($settings->status == 'on')>
-                                    <label class="form-check-label" for="statusSwitch">Enable "Hire" Service Page & Navigation Item</label>
+                                    <input class="form-check-input" type="checkbox" name="status" value="on" role="switch" id="statusSwitch" @checked(old('status', $settings->status) == 'on')>
                                 </div>
-                                <small class="text-muted">When disabled, the Hire page displays a maintenance notice and hides navigation link.</small>
+                                <small class="text-muted d-block mt-2">When enabled, the "Hire" service page and navigation menu link are active. When disabled, the page displays a maintenance notice.</small>
                             </div>
                         </div>
 

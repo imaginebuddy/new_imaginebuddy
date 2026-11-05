@@ -195,6 +195,13 @@ class AdminController extends Controller
 		$sql->seo_title   = $request->seo_title;
 		$sql->keywords    = $request->keywords;
 		$sql->description = $request->description;
+		$sql->hero_lead   = $request->hero_lead;
+		$sql->content_guide = $request->content_guide;
+		$sql->cta_banner_enabled = $request->has('cta_banner_enabled') ? 1 : 0;
+		$sql->cta_banner_title   = $request->cta_banner_title;
+		$sql->cta_banner_desc    = $request->cta_banner_desc;
+		$sql->cta_banner_btn_text = $request->cta_banner_btn_text;
+		$sql->cta_banner_btn_url = $request->cta_banner_btn_url;
 		$sql->thumbnail   = $thumbnail;
 		$sql->mode        = $request->mode ?? 'off';
 		$sql->save();
@@ -261,17 +268,57 @@ class AdminController extends Controller
 		}
 
 		// UPDATE CATEGORY
-		$categories->name       = $request->name;
-		$categories->slug       = strtolower($request->slug);
-		$categories->page_title = $request->page_title;
-		$categories->seo_title  = $request->seo_title;
-		$categories->keywords   = $request->keywords;
+		$categories->name        = $request->name;
+		$categories->slug        = strtolower($request->slug);
+		$categories->page_title  = $request->page_title;
+		$categories->seo_title   = $request->seo_title;
+		$categories->keywords    = $request->keywords;
 		$categories->description = $request->description;
-		$categories->thumbnail  = $thumbnail;
-		$categories->mode       = $request->mode ?? 'off';
+		$categories->hero_lead   = $request->hero_lead;
+		$categories->content_guide = $request->content_guide;
+		$categories->cta_banner_enabled = $request->has('cta_banner_enabled') ? 1 : 0;
+		$categories->cta_banner_title   = $request->cta_banner_title;
+		$categories->cta_banner_desc    = $request->cta_banner_desc;
+		$categories->cta_banner_btn_text = $request->cta_banner_btn_text;
+		$categories->cta_banner_btn_url = $request->cta_banner_btn_url;
+		$categories->thumbnail   = $thumbnail;
+		$categories->mode        = $request->mode ?? 'off';
 		$categories->save();
 
-		return redirect('panel/admin/categories')->withSuccessMessage(__('misc.success_update'));
+		return redirect('panel/admin/categories/edit/' . $categories->id)->withSuccessMessage(__('misc.success_update'));
+	}
+
+	public function categoriesListingSettings()
+	{
+		$settings = \App\Models\CategoriesPageSetting::getSettings();
+		return view('admin.categories-listing-settings', compact('settings'));
+	}
+
+	public function saveCategoriesListingSettings(Request $request)
+	{
+		$settings = \App\Models\CategoriesPageSetting::getSettings();
+
+		$data = $request->validate([
+			'page_title' => 'nullable|string|max:255',
+			'page_subtitle' => 'nullable|string|max:1000',
+			'tags_title' => 'nullable|string|max:255',
+			'tags_subtitle' => 'nullable|string|max:1000',
+			'category_search_placeholder' => 'nullable|string|max:255',
+			'tag_search_placeholder' => 'nullable|string|max:255',
+			'meta_title' => 'nullable|string|max:255',
+			'meta_description' => 'nullable|string|max:1000',
+			'meta_keywords' => 'nullable|string|max:255',
+			'cta_banner_title' => 'nullable|string|max:255',
+			'cta_banner_desc' => 'nullable|string|max:1000',
+			'cta_banner_btn_text' => 'nullable|string|max:255',
+			'cta_banner_btn_url' => 'nullable|string|max:255',
+		]);
+
+		$data['cta_banner_enabled'] = $request->boolean('cta_banner_enabled');
+
+		$settings->update($data);
+
+		return redirect('panel/admin/categories/listing-settings')->withSuccessMessage(__('misc.success_update'));
 	}
 
 	public function deleteCategories($id)

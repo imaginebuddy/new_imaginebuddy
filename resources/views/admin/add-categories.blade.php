@@ -40,6 +40,14 @@
 		          <label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.page_title') }}</label>
 		          <div class="col-sm-10">
 		            <input value="{{ old('page_title') }}" name="page_title" type="text" class="form-control">
+                <small class="text-muted d-block mt-1">Tip: e.g. <code>Beauty &amp; Skincare &lt;span style="color: #00d690;"&gt;AI Product Photography Prompts&lt;/span&gt;</code></small>
+		          </div>
+		        </div>
+
+            <div class="row mb-3">
+		          <label class="col-sm-2 col-form-label text-lg-end">Hero Subtitle</label>
+		          <div class="col-sm-10">
+		            <textarea class="form-control" name="hero_lead" rows="2" placeholder="Optional descriptive subtitle shown beneath the category title...">{{ old('hero_lead') }}</textarea>
 		          </div>
 		        </div>
 
@@ -58,7 +66,7 @@
 		        </div>
 
 						<div class="row mb-3">
-		          <label class="col-sm-2 col-form-labe text-lg-end">{{ __('admin.description') }} (SEO)</label>
+		          <label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.description') }} (SEO)</label>
 		          <div class="col-sm-10">
                 <textarea class="form-control" name="description" rows="4">{{ old('description')}}</textarea>
 		          </div>
@@ -71,7 +79,7 @@
                  <input class="form-check-input" type="checkbox" name="mode" checked="checked" value="on" role="switch">
                </div>
               </div>
-            </fieldset><!-- end row -->
+            </fieldset>
 
             <div class="row mb-3">
               <label class="col-sm-2 col-form-label text-lg-end">{{ __('admin.thumbnail') }} ({{__('misc.optional')}})</label>
@@ -79,7 +87,7 @@
                 <div class="input-group mb-1">
                   <input name="thumbnail" type="file" class="form-control custom-file rounded-pill">
                 </div>
-                <small class="d-block">{{ __('admin.thumbnail_desc') }}</small>
+                <small class="d-block text-muted">{{ __('admin.thumbnail_desc') }}</small>
               </div>
             </div>
 
@@ -98,8 +106,3 @@
 	</div><!-- end row -->
 </div><!-- end content -->
 @endsection
-
-@section('javascript')
-
-<script type="text/javascript"></script>
-  @endsection
