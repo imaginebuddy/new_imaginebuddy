@@ -74,4 +74,17 @@ class SeoLandingPageItem extends Model
         }
         return null;
     }
+
+    /**
+     * Dynamic getter for preview image URL (compatible with S3, CloudFront, local storage, prompts, and photoshoots).
+     */
+    public function getPreviewImageUrlAttribute(): ?string
+    {
+        if ($this->item_type === 'prompt' && $this->prompt) {
+            return $this->prompt->preview_url;
+        } elseif ($this->item_type === 'photoshoot' && $this->photoshoot) {
+            return $this->photoshoot->thumbnail_url;
+        }
+        return null;
+    }
 }

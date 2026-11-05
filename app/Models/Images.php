@@ -204,4 +204,32 @@ class Images extends Model
 	 {
 		return $query->withCount(['likes', 'downloads']);
 	 }
+
+	/**
+	 * Dynamic getter for image preview URL (compatible with S3, CloudFront, local, thumbnails, and stock fallbacks).
+	 */
+	public function getPreviewUrlAttribute(): ?string
+	{
+		if (!empty($this->preview)) {
+			if (str_starts_with($this->preview, 'http://') || str_starts_with($this->preview, 'https://')) {
+				return $this->preview;
+			}
+			return \Illuminate\Support\Facades\Storage::url(config('path.preview') . $this->preview);
+		}
+
+		if (!empty($this->thumbnail)) {
+			if (str_starts_with($this->thumbnail, 'http://') || str_starts_with($this->thumbnail, 'https://')) {
+				return $this->thumbnail;
+			}
+			return \Illuminate\Support\Facades\Storage::url(config('path.thumbnail') . $this->thumbnail);
+		}
+
+		$stockImage = $this->relationLoaded('stock') ? $this->stock : $this->stock()->get();
+		$chosenStock = $stockImage ? ($stockImage->where('type', 'small')->first() ?: ($stockImage->where('type', 'medium')->first() ?: $stockImage->first())) : null;
+		if ($chosenStock && !empty($chosenStock->name)) {
+			return url('files/preview/' . $chosenStock->resolution, $chosenStock->name) . '?size=medium&type=' . $this->item_for_sale;
+		}
+
+		return null;
+	}
 }

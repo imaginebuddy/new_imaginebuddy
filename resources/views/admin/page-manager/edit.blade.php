@@ -503,10 +503,17 @@
                   <h6 class="fw-bold mb-3">Attached Prompts Showcase ({{ $page->items->where('item_type', 'prompt')->count() }})</h6>
                   <div class="row g-3">
                     @forelse ($page->items->where('item_type', 'prompt') as $item)
+                      @php
+                        $promptPreviewUrl = $item->preview_image_url ?: ($item->prompt ? $item->prompt->preview_url : null);
+                      @endphp
                       <div class="col-md-6">
                         <div class="card p-2 border shadow-sm">
-                          @if ($item->prompt && $item->prompt->preview)
-                            <img src="{{ url('public/uploads/preview', $item->prompt->preview) }}" class="img-fluid rounded mb-2" style="max-height: 120px; object-fit: cover;">
+                          @if ($promptPreviewUrl)
+                            <img src="{{ $promptPreviewUrl }}" class="img-fluid rounded mb-2" style="max-height: 120px; width: 100%; object-fit: cover;" alt="{{ $item->prompt->title ?? 'Prompt preview' }}" loading="lazy">
+                          @else
+                            <div class="bg-light rounded mb-2 d-flex align-items-center justify-content-center text-muted" style="height: 90px;">
+                              <i class="bi bi-image fs-3"></i>
+                            </div>
                           @endif
                           <div class="small fw-bold text-truncate">{{ $item->prompt->title ?? ('Prompt #' . $item->item_id) }}</div>
                           @if ($item->custom_badge)

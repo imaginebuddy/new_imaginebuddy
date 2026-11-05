@@ -458,7 +458,7 @@ class AdminPageManagerController extends Controller
             'sections' => function ($q) {
                 $q->orderBy('sort_order', 'asc');
             },
-            'items.prompt',
+            'items.prompt.stock',
             'items.photoshoot'
         ])->findOrFail($id);
 
