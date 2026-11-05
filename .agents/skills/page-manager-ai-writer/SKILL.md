@@ -92,6 +92,20 @@ Keep these exact architectural constraints in mind when constructing JSON payloa
 - All visual cards (such as the 4 alternating feature rows, prompt showcases, and before/after comparisons) are optimized for a **1:1 square aspect ratio** to guarantee images never crop or lose key product details on mobile or desktop masonry grids.
 - Blueprints and prompts should specify 1:1 framing for packshots, hero collections, and macro close-ups.
 
+### D. Structured Card-Level JSON Editing & Synchronized Management
+- The Centralized Page Manager (`/panel/admin/page-manager/edit/{id}`) includes a **Structured Card Manager & Advanced JSON Editor**:
+  - **Universal Card Sections**: Sections supporting structured cards include `prompt_grid`, `problem_solution`, `role_grid`, and `alternating_rows`.
+  - **Visual & Code Harmony**: Visual inputs (Badge, Title, Prompt/Description, Image File, and Image URL) synchronize in real time with the underlying `settings_json` textarea.
+  - **Expanded 10-Line Monospace Editor**: Features a live **"Valid JSON"** badge, syntax error detection, and a **"Beautify JSON"** button for clean 2-space indentation.
+  - **Fault-Tolerant Auto-Repair**: Strips UTF-8 BOM, normalizes curly/smart quotes (`“”‘’` to `""''`), and auto-repairs trailing commas (`/,\s*([\]}])/m`).
+  - **Auto-Wrapping**: Bare arrays of items `[ {...}, {...} ]` are automatically wrapped into `{ "cards": [...] }` upon save.
+  - **Data Preservation**: Editing one card preserves all other cards and custom JSON attributes without accidental loss or clobbering.
+
+### E. Dynamic Visibility Rule for Prompt Showcase (`prompt_grid`)
+- **Strictly Powered by Connected Prompts**: The prompt showcase on the live frontend is strictly driven by the prompts attached in **Tab 3 ("3. Connected Prompts")** / `"attached_prompts": [...]`.
+- **Auto-Hide When Empty**: If no prompts are attached in the admin (Connected Prompts count is 0 / `"attached_prompts": []`), the entire prompt showcase section (including its heading and subheading) is **completely hidden on the live frontend**.
+- **Instant Display on Attach**: When prompts are attached from the library in Tab 3, the section automatically appears on the live page with its configured heading, badge, and subheading, rendering the exact attached library prompts in the responsive masonry layout.
+
 ---
 
 ## 5. The 9 Standard Modular Sections Schema
@@ -167,9 +181,14 @@ Every landing page JSON must include the `page` object and exactly the **9 stand
   >    - **Card 4 (Compliance & Rights)**: Acceptance percentage (e.g. `"99.8%"` or `"100%"`)
 
 #### 6. `prompt_grid`
-- `badge`: `"PROMPT RECIPES"`
-- `heading`: Handpicked prompt formulas for the topic.
-- `subheading`: Explaining that clicking any card displays prompt recipes in the dynamic 3-column masonry layout without cropping.
+- `badge`: `"PROMPT RECIPES"` or `"CURATED BLUEPRINTS"`
+- `heading`: Industry/use-case specific prompt showcase title (e.g. `"Curated Fashion Campaign Photography Prompts"`).
+- `subheading`: Rich 2–3 sentence narrative explaining how structured photography recipes guide Google Gemini, ChatGPT, and Midjourney to stage your product in commercial studio, lifestyle, and advertising environments.
+- **Dynamic Visibility (Connected Prompts Only)**:
+  - The live prompt showcase is **strictly powered by Connected Prompts** attached in **Tab 3 ("3. Connected Prompts")** / `"attached_prompts": [...]`.
+  - **Auto-Hide When Empty**: If no prompts are attached in the admin (`"attached_prompts": []` or 0 items in Tab 3), the section is **completely hidden on the live frontend**.
+  - **Instant Display on Attach**: When prompts are attached from the library in Tab 3, the section automatically appears on the live page and renders those exact library prompts with high-res photoshoot variations carousel, interactive copy modal, and author attribution.
+- `settings`: `{}` (empty object, as prompts are connected programmatically from the library).
 
 #### 7. `testimonials`
 - `badge`: `"COMMUNITY TRUST"`
@@ -407,10 +426,11 @@ When generating the JSON for the Centralized Page Manager, produce a strictly va
     {
       "type": "prompt_grid",
       "sort_order": 6,
-      "badge": "PROMPT RECIPES",
+      "badge": "CURATED BLUEPRINTS",
       "heading": "Curated Photography Prompts for This Vertical",
       "subheading": "Browse structured blueprints formulated for this category. Click any prompt recipe to view complete lighting instructions and parameters in the dynamic 3-column masonry layout.",
-      "is_active": true
+      "is_active": true,
+      "settings": {}
     },
     {
       "type": "testimonials",
@@ -469,7 +489,7 @@ When generating the JSON for the Centralized Page Manager, produce a strictly va
       }
     }
   ],
-  "attached_prompts": [1, 2, 3, 4]
+  "attached_prompts": []
 }
 ```
 
@@ -484,5 +504,6 @@ When generating the JSON for the Centralized Page Manager, produce a strictly va
 - [ ] **Square 1:1 Aspect Ratio Assets**: All visual cards and prompt previews target 1:1 aspect ratio.
 - [ ] **Complete Imaginebuddy alignment**: Copy explicitly reflects Imaginebuddy's prompt platform identity, adaptive blueprints, and compatibility across Gemini, ChatGPT, and Midjourney.
 - [ ] **All 9 modular sections present**: In sequential `sort_order` (1 to 9).
+- [ ] **Prompt Grid Dynamic Visibility**: `prompt_grid` provides presentation metadata (`badge`, `heading`, `subheading`, `settings: {}`). It automatically hides on the frontend when no prompts are attached in Tab 3, and displays immediately once prompts are attached.
 - [ ] **Diverse Metrics Counter**: `metrics_counter` provides exactly 4 stats with both `"number"` and `"value"` keys, featuring diverse values (e.g. 10x, 90%, 3.4x, 100%), never repeating 10x for all 4 cards.
-- [ ] **`attached_prompts` array populated**: Included with relevant prompt IDs.
+- [ ] **`attached_prompts` array**: Set to `[]` (empty) by default unless specific relevant prompt IDs from the library are provided.

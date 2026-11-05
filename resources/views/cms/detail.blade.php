@@ -109,12 +109,14 @@
         @break
 
       @case('prompt_grid')
-        @include('cms.sections.prompt-grid', [
-          'page' => $page,
-          'section' => $section,
-          'attachedPrompts' => $attachedPrompts ?? collect()
-        ])
-        @php $promptGridRendered = true; @endphp
+        @if (!empty($attachedPrompts) && $attachedPrompts->count() > 0)
+          @include('cms.sections.prompt-grid', [
+            'page' => $page,
+            'section' => $section,
+            'attachedPrompts' => $attachedPrompts
+          ])
+          @php $promptGridRendered = true; @endphp
+        @endif
         @break
 
       @case('testimonials')
