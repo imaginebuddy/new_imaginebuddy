@@ -293,7 +293,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function destroy($id)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -316,7 +317,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function saveSection(Request $request, $pageId)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -325,7 +327,7 @@ class AdminSeoLandingPageController extends Controller
         $request->validate([
             'type' => 'required|string',
             'heading' => 'nullable|string|max:255',
-            'subheading' => 'nullable|string|max:255',
+            'subheading' => 'nullable|string',
             'badge' => 'nullable|string|max:100',
             'content' => 'nullable|string',
             'sort_order' => 'nullable|integer',
@@ -358,7 +360,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function deleteSection($pageId, $sectionId)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -373,7 +376,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function reorderSections(Request $request, $pageId)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -475,7 +479,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function attachItem(Request $request, $pageId)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -518,7 +523,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function detachItem($pageId, $itemId)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -548,7 +554,8 @@ class AdminSeoLandingPageController extends Controller
      */
     public function importJson(Request $request)
     {
-        if (!auth()->user()->hasPermission('seo_pages') && !auth()->user()->hasPermission('full_access')) {
+        $user = auth()->user();
+        if (!$user->hasPermission('page_manager') && !$user->hasPermission('seo_pages') && !$user->hasPermission('full_access') && $user->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -674,6 +681,26 @@ class AdminSeoLandingPageController extends Controller
                 $page->slug = $slug;
             }
 
+            // CMS & Vertical Silo Info
+            $page->route_prefix = !empty($pageData['route_prefix']) ? $pageData['route_prefix'] : ($page->route_prefix ?: 'use-case');
+            $page->page_type = !empty($pageData['page_type']) ? $pageData['page_type'] : ($page->page_type ?: 'solution');
+            $page->icon = $pageData['icon'] ?? $page->icon;
+            $page->header_badge = $pageData['header_badge'] ?? $page->header_badge;
+            $page->header_cta_text = $pageData['header_cta_text'] ?? $page->header_cta_text;
+            $page->header_cta_url = $pageData['header_cta_url'] ?? $page->header_cta_url;
+            $page->header_cta_subtext = $pageData['header_cta_subtext'] ?? $page->header_cta_subtext;
+            $page->before_label = $pageData['before_label'] ?? $page->before_label;
+            $page->after_label = $pageData['after_label'] ?? $page->after_label;
+            if (!empty($pageData['before_image'])) {
+                $page->before_image = $pageData['before_image'];
+            }
+            if (!empty($pageData['after_image'])) {
+                $page->after_image = $pageData['after_image'];
+            }
+            if (!empty($pageData['featured_image'])) {
+                $page->featured_image = $pageData['featured_image'];
+            }
+
             $page->excerpt = $pageData['excerpt'] ?? $page->excerpt;
             $page->target_audience = $pageData['target_audience'] ?? $page->target_audience;
             $page->primary_keyword = $pageData['primary_keyword'] ?? $page->primary_keyword;
@@ -724,19 +751,51 @@ class AdminSeoLandingPageController extends Controller
                     $section->heading = $sec['heading'] ?? 'Section ' . $sortOrder;
                     $section->subheading = $sec['subheading'] ?? null;
                     $section->content = !empty($sec['content']) ? Purify::clean($sec['content']) : null;
-                    $section->settings = $sec['settings'] ?? [];
+                    $settings = $sec['settings'] ?? [];
+                    if (($sec['type'] ?? '') === 'metrics_counter' && !empty($settings['stats']) && is_array($settings['stats'])) {
+                        foreach ($settings['stats'] as &$st) {
+                            $num = $st['number'] ?? ($st['value'] ?? '10x');
+                            $st['number'] = $num;
+                            $st['value'] = $num;
+                        }
+                    }
+                    $section->settings = $settings;
                     $section->sort_order = $sec['sort_order'] ?? $sortOrder++;
                     $section->is_active = true;
                     $section->save();
                 }
             }
 
+            // Process attached prompts if provided in JSON
+            $attachedPrompts = $data['attached_prompts'] ?? ($pageData['attached_prompts'] ?? []);
+            if (!empty($attachedPrompts) && is_array($attachedPrompts)) {
+                $page->items()->delete();
+                $itemSort = 1;
+                foreach ($attachedPrompts as $promptItem) {
+                    $promptId = is_array($promptItem) ? ($promptItem['id'] ?? null) : $promptItem;
+                    if ($promptId) {
+                        $page->items()->create([
+                            'item_type'  => 'prompt',
+                            'item_id'    => $promptId,
+                            'badge'      => is_array($promptItem) ? ($promptItem['badge'] ?? null) : null,
+                            'notes'      => is_array($promptItem) ? ($promptItem['notes'] ?? null) : null,
+                            'sort_order' => $itemSort++,
+                            'is_active'  => true,
+                        ]);
+                    }
+                }
+            }
+
             \DB::commit();
+
+            $redirectUrl = $request->boolean('redirect_to_page_manager', true)
+                ? url('panel/admin/page-manager/edit/' . $page->id)
+                : url('panel/admin/seo-pages/edit/' . $page->id);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Guide imported successfully in Draft mode!',
-                'redirect_url' => url('panel/admin/seo-pages/edit/' . $page->id),
+                'message' => 'Page and modular sections created successfully in Draft mode!',
+                'redirect_url' => $redirectUrl,
                 'page' => $page
             ]);
         } catch (\Exception $e) {

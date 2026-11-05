@@ -10,6 +10,8 @@ class SeoLandingPageSection extends Model
 {
     protected $table = 'seo_landing_page_sections';
 
+    protected $touches = ['landingPage'];
+
     protected $fillable = [
         'landing_page_id',
         'type',
@@ -50,5 +52,58 @@ class SeoLandingPageSection extends Model
     public function activeItems(): HasMany
     {
         return $this->items()->where('is_active', true);
+    }
+
+    /**
+     * Structured settings data.
+     */
+    public function getSettingsDataAttribute(): array
+    {
+        return is_array($this->settings) ? $this->settings : [];
+    }
+
+    /**
+     * Structured cards (for benefit grid, persona grid, feature blocks).
+     */
+    public function getCardsAttribute(): array
+    {
+        $settings = $this->settings_data;
+        return isset($settings['cards']) && is_array($settings['cards']) ? $settings['cards'] : [];
+    }
+
+    /**
+     * Structured workflow steps.
+     */
+    public function getStepsAttribute(): array
+    {
+        $settings = $this->settings_data;
+        return isset($settings['steps']) && is_array($settings['steps']) ? $settings['steps'] : [];
+    }
+
+    /**
+     * Structured technical & compliance specs matrix.
+     */
+    public function getSpecsAttribute(): array
+    {
+        $settings = $this->settings_data;
+        return isset($settings['specs']) && is_array($settings['specs']) ? $settings['specs'] : [];
+    }
+
+    /**
+     * Structured stats / metric counters.
+     */
+    public function getStatsAttribute(): array
+    {
+        $settings = $this->settings_data;
+        return isset($settings['stats']) && is_array($settings['stats']) ? $settings['stats'] : [];
+    }
+
+    /**
+     * Structured FAQs list.
+     */
+    public function getFaqsAttribute(): array
+    {
+        $settings = $this->settings_data;
+        return isset($settings['faqs']) && is_array($settings['faqs']) ? $settings['faqs'] : [];
     }
 }

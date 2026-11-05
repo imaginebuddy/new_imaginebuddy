@@ -450,6 +450,42 @@
               </div><!-- /end collapse blogMenu -->
               @endif
 
+              @if (auth()->user()->hasPermission('page_manager') || auth()->user()->hasPermission('seo_pages') || auth()->user()->hasPermission('full_access'))
+              <li class="nav-item">
+                  <a href="#pageManagerMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/page-manager*')) active @endif" @if (request()->is('panel/admin/page-manager*')) aria-expanded="true" @endif>
+                      <i class="bi-files me-2"></i> Page Manager
+                  </a>
+              </li><!-- /end list -->
+
+              <div class="collapse w-100 @if (request()->is('panel/admin/page-manager*')) show @endif ps-3" id="pageManagerMenu">
+                <li>
+                  <a class="nav-link text-truncate w-100 @if (request()->is('panel/admin/page-manager') || request()->is('panel/admin/page-manager/edit/*')) text-white @endif" href="{{ url('panel/admin/page-manager') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> All Pages & Hubs
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->is('panel/admin/page-manager/create')) text-white @endif" href="{{ url('panel/admin/page-manager/create') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> {{ trans('misc.add_new') }} Page
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->get('vertical') === 'use-case') text-white @endif" href="{{ url('panel/admin/page-manager?vertical=use-case') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> Use Cases
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->get('vertical') === 'garment') text-white @endif" href="{{ url('panel/admin/page-manager?vertical=garment') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> Garments
+                  </a>
+                </li>
+                <li>
+                  <a class="nav-link text-truncate @if (request()->get('vertical') === 'marketplace') text-white @endif" href="{{ url('panel/admin/page-manager?vertical=marketplace') }}">
+                    <i class="bi-chevron-right fs-7 me-1"></i> Marketplaces
+                  </a>
+                </li>
+              </div><!-- /end collapse pageManagerMenu -->
+              @endif
+
               @if (auth()->user()->hasPermission('seo_pages') || auth()->user()->hasPermission('full_access'))
               <li class="nav-item">
                   <a href="#seoPagesMenu" data-bs-toggle="collapse" class="nav-link text-truncate dropdown-toggle @if (request()->is('panel/admin/seo-pages*')) active @endif" @if (request()->is('panel/admin/seo-pages*')) aria-expanded="true" @endif>

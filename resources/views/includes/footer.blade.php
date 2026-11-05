@@ -5,6 +5,43 @@
   </div>
   @endif
   <footer class="container pt-4 border-top border-secondary border-opacity-10">
+    @php
+        $footerCmsSections = Helper::footerCmsNavigation();
+        $sectionCount = count($footerCmsSections);
+        $colClass = match($sectionCount) {
+            1 => 'col-12 col-md-6 col-lg-4',
+            2 => 'col-6 col-md-6 col-lg-4',
+            3 => 'col-6 col-md-4 col-lg-4',
+            4 => 'col-6 col-md-3 col-lg-3',
+            5 => 'col-6 col-md-4 col-lg',
+            default => 'col-6 col-md-4 col-lg-2',
+        };
+    @endphp
+
+    @if (!empty($footerCmsSections) && $sectionCount > 0)
+    <div class="footer-cms-nav mb-5 pb-5 border-bottom border-secondary border-opacity-10">
+       <div class="row g-4">
+          @foreach ($footerCmsSections as $sec)
+          <div class="{{ $colClass }}">
+             <h6 class="footer-cms-heading">{{ $sec['heading'] }}</h6>
+             <ul class="list-unstyled footer-cms-list">
+                @foreach ($sec['pages'] as $page)
+                <li>
+                   <a class="footer-cms-link" href="{{ $page->public_url }}" title="{{ $page->title }}">
+                      {{ !empty($page->internal_name) ? $page->internal_name : $page->title }}
+                   </a>
+                </li>
+                @endforeach
+             </ul>
+             <a class="footer-cms-explore" href="{{ $sec['url'] }}">
+                Explore all <i class="bi-arrow-right"></i>
+             </a>
+          </div>
+          @endforeach
+       </div>
+    </div>
+    @endif
+
      <div class="row">
         <div class="col-md-3">
            <a href="{{ url('/') }}">

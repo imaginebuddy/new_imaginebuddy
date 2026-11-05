@@ -54,10 +54,14 @@ class SitemapController extends Controller
 
             $latestPromptDate = Images::where('status', 'active')->max('date');
             $latestPhotoshootDate = Photoshoot::max('created_at');
+            $latestLandingPageDate = class_exists(\App\Models\SeoLandingPage::class)
+                ? \App\Models\SeoLandingPage::published()->max('updated_at')
+                : null;
 
             $dates = array_filter([
                 $latestPromptDate ? Carbon::parse($latestPromptDate)->format('Y-m-d') : null,
                 $latestPhotoshootDate ? Carbon::parse($latestPhotoshootDate)->format('Y-m-d') : null,
+                $latestLandingPageDate ? Carbon::parse($latestLandingPageDate)->format('Y-m-d') : null,
             ]);
 
             $latestMod = !empty($dates) ? max($dates) : Carbon::now()->format('Y-m-d');

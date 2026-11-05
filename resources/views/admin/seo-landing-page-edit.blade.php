@@ -443,7 +443,7 @@
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Subheading / Context</label>
-              <input type="text" name="subheading" id="sectionSubheadingInput" class="form-control" placeholder="Optional subtitle context">
+              <textarea name="subheading" id="sectionSubheadingInput" rows="3" class="form-control" placeholder="Optional subtitle context or explanatory paragraph"></textarea>
             </div>
             <div class="col-12" id="sectionContentWrapper">
               <label class="form-label fw-bold">Content Narrative (HTML / Text)</label>

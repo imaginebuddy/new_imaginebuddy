@@ -749,6 +749,83 @@ class Helper
 		}
 	}
 
+	/**
+	 * Programmatic CMS Vertical Solutions Navigation for Website Footer.
+	 * Returns up to 6 sections, strictly filtering out any category with 0 published pages.
+	 *
+	 * @return array
+	 */
+	public static function footerCmsNavigation(): array
+	{
+		return \Illuminate\Support\Facades\Cache::remember('footer_cms_navigation', now()->addMinutes(120), function () {
+			if (!class_exists(\App\Models\SeoLandingPage::class)) {
+				return [];
+			}
+
+			$silos = [
+				[
+					'key'     => 'use-case',
+					'heading' => 'Use Cases',
+					'url'     => url('use-case'),
+				],
+				[
+					'key'     => 'industry',
+					'heading' => 'Industries',
+					'url'     => url('industry'),
+				],
+				[
+					'key'     => 'garment',
+					'heading' => 'Garment',
+					'url'     => url('garment'),
+				],
+				[
+					'key'     => 'product',
+					'heading' => 'Products',
+					'url'     => url('product'),
+				],
+				[
+					'key'     => 'marketplace',
+					'heading' => 'Marketplaces',
+					'url'     => url('marketplace'),
+				],
+				[
+					'key'     => 'platform-ai-ads',
+					'heading' => 'Ad Platforms',
+					'url'     => url('platform-ai-ads'),
+				],
+			];
+
+			$sections = [];
+			foreach ($silos as $silo) {
+				$pages = \App\Models\SeoLandingPage::published()
+					->where('route_prefix', $silo['key'])
+					->where(function ($q) {
+						$q->where('page_type', 'solution')
+						  ->orWhereNull('page_type');
+					})
+					->where(function ($q) {
+						$q->whereNull('robots')
+						  ->orWhere('robots', 'not like', '%noindex%');
+					})
+					->orderBy('id', 'desc')
+					->take(3)
+					->get(['id', 'title', 'internal_name', 'slug', 'route_prefix']);
+
+				// Dynamic visibility rule: Only include section if at least 1 published page exists
+				if ($pages->isNotEmpty()) {
+					$sections[] = [
+						'key'     => $silo['key'],
+						'heading' => $silo['heading'],
+						'url'     => $silo['url'],
+						'pages'   => $pages,
+					];
+				}
+			}
+
+			return $sections;
+		});
+	}
+
 	public static function calculateSubscriptionDiscount($priceMonth, $planPrice)
 	{
 		return number_format(((($priceMonth * 12) - $planPrice) / ($priceMonth * 12) * 100), 0);

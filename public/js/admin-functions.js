@@ -81,12 +81,15 @@
 
 		var element = $(this);
 		var form = $(element).parents('form');
+		var confirmTitle = element.attr('data-confirm-title') || element.data('confirm-title') || delete_confirm;
+		var confirmText = element.attr('data-confirm-text') || element.data('confirm-text') || '';
 
 		element.blur();
 
 		swal(
 			{
-				title: delete_confirm,
+				title: confirmTitle,
+				text: confirmText,
 				type: "warning",
 				showLoaderOnConfirm: true,
 				showCancelButton: true,

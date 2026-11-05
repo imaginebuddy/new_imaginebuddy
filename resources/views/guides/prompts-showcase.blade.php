@@ -1,14 +1,17 @@
 @if (isset($prompts) && $prompts->count() > 0)
-  <section class="guide-prompts-showcase mb-5 mt-2" id="prompts-showcase" data-heading="Handpicked Prompts for Premium Product Imagery">
-    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
-      <div>
-        <span class="badge bg-custom-mint text-white rounded-pill px-3 py-1 mb-2 fw-semibold">Prompt Library</span>
-        <h2 class="h3 fw-bold mb-0" style="color: var(--guide-text-main);">Handpicked Prompts for Premium Product Imagery</h2>
+  <div class="guide-prompts-showcase mb-4 mt-2" data-heading="Handpicked Prompts for Premium Product Imagery">
+    @if (empty($hideShowcaseHeader))
+      <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+          <span class="badge bg-custom-mint text-white rounded-pill px-3 py-1 mb-2 fw-semibold">Prompt Library</span>
+          <h2 class="h3 fw-bold mb-0" style="color: var(--guide-text-main);">Handpicked Prompts for Premium Product Imagery</h2>
+        </div>
+        <small class="text-muted">Click any prompt card to view high-res photoshoot variations</small>
       </div>
-      <small class="text-muted">Click any prompt card to view high-res photoshoot variations</small>
-    </div>
+    @endif
 
-    <div class="row g-4">
+    <div class="cms-prompts-masonry-wrapper" id="cmsPromptsMasonryGrid">
+      <div class="cms-prompt-masonry-sizer"></div>
       @foreach ($prompts as $prompt)
         @php
           $stockImage = $prompt->stock ? ($prompt->stock->where('type', 'small')->first() ?: ($prompt->stock->where('type', 'medium')->first() ?: $prompt->stock->first())) : null;
@@ -43,7 +46,7 @@
             }
           }
         @endphp
-        <div class="col-md-6 col-lg-4">
+        <div class="cms-prompt-masonry-item">
           <div class="card rounded-4 overflow-hidden d-flex flex-column p-2 guide-prompt-card-wrapper prompt-card-item shadow-sm">
             
             <!-- 1. Top Image Section with Badges Overlay -->
@@ -163,5 +166,71 @@
         </div>
       @endforeach
     </div>
-  </section>
+  </div>
+
+  <script src="{{ asset('public/js/masonry.pkgd.min.js') }}"></script>
+  <script>
+    (function() {
+      function initPromptsMasonry() {
+        var grids = document.querySelectorAll('.cms-prompts-masonry-wrapper');
+        if (!grids.length || typeof Masonry === 'undefined') return;
+
+        grids.forEach(function(grid) {
+          var isMobile = window.innerWidth < 768;
+          var gutterVal = isMobile ? 0 : 24;
+
+          var msnry = new Masonry(grid, {
+            itemSelector: '.cms-prompt-masonry-item',
+            columnWidth: '.cms-prompt-masonry-sizer',
+            percentPosition: true,
+            gutter: gutterVal,
+            transitionDuration: '0.2s'
+          });
+
+          grid.classList.add('masonry-initialized');
+
+          // Trigger re-layout when images complete loading
+          var imgs = grid.querySelectorAll('img');
+          imgs.forEach(function(img) {
+            if (!img.complete) {
+              img.addEventListener('load', function() {
+                msnry.layout();
+              });
+            }
+          });
+
+          // Layout once all assets/window finish loading
+          window.addEventListener('load', function() {
+            msnry.layout();
+          });
+
+          // Handle carousel button clicks to adjust layout
+          grid.addEventListener('click', function(e) {
+            if (e.target.closest('.prompt-carousel-arrow') || e.target.closest('.prompt-carousel-dot')) {
+              setTimeout(function() {
+                msnry.layout();
+              }, 50);
+            }
+          });
+
+          // Responsive gutter and column re-layout on window resize
+          var resizeTimer;
+          window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+              var mobileNow = window.innerWidth < 768;
+              msnry.options.gutter = mobileNow ? 0 : 24;
+              msnry.layout();
+            }, 100);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPromptsMasonry);
+      } else {
+        initPromptsMasonry();
+      }
+    })();
+  </script>
 @endif

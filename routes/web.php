@@ -207,6 +207,19 @@ Route::get('blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])
 Route::get('guides/preview/{token}', [\App\Http\Controllers\SeoLandingPageController::class, 'preview'])->name('guides.preview');
 Route::get('guides/{slug}', [\App\Http\Controllers\SeoLandingPageController::class, 'show'])->name('guides.show');
 
+// Centralized CMS Verticals (Use Cases, Industries, Products, Garments, Marketplaces, Platform Ads)
+Route::get('{prefix}/preview/{token}', [\App\Http\Controllers\CmsPageController::class, 'preview'])
+    ->where('prefix', 'use-case|industry|product|garment|marketplace|platform-ai-ads')
+    ->name('cms.preview');
+
+Route::get('{prefix}/{slug}', [\App\Http\Controllers\CmsPageController::class, 'showDetail'])
+    ->where('prefix', 'use-case|industry|product|garment|marketplace|platform-ai-ads')
+    ->name('cms.detail');
+
+Route::get('{prefix}', [\App\Http\Controllers\CmsPageController::class, 'showHub'])
+    ->where('prefix', 'use-case|industry|product|garment|marketplace|platform-ai-ads')
+    ->name('cms.hub');
+
 /*
  |--------------------------------------------------------------------------
  | Newsletter & Double Opt-in Routes
@@ -806,6 +819,20 @@ Route::group(['middleware' => 'role'], function() {
 	Route::get('panel/admin/seo-pages/search/photoshoots', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'searchPhotoshoots']);
 	Route::post('panel/admin/seo-pages/{id}/items/attach', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'attachItem']);
 	Route::post('panel/admin/seo-pages/{pageId}/items/detach/{itemId}', [\App\Http\Controllers\AdminSeoLandingPageController::class, 'detachItem']);
+
+	// Centralized Page Manager (Listing Hubs, Solutions & CMS Silos)
+	Route::get('panel/admin/page-manager', [\App\Http\Controllers\AdminPageManagerController::class, 'index'])->name('admin.page_manager');
+	Route::get('panel/admin/page-manager/create', [\App\Http\Controllers\AdminPageManagerController::class, 'create'])->name('admin.page_manager.create');
+	Route::post('panel/admin/page-manager/create', [\App\Http\Controllers\AdminPageManagerController::class, 'store']);
+	Route::get('panel/admin/page-manager/edit/{id}', [\App\Http\Controllers\AdminPageManagerController::class, 'edit'])->name('admin.page_manager.edit');
+	Route::post('panel/admin/page-manager/update/{id}', [\App\Http\Controllers\AdminPageManagerController::class, 'update']);
+	Route::post('panel/admin/page-manager/delete/{id}', [\App\Http\Controllers\AdminPageManagerController::class, 'destroy']);
+	Route::post('panel/admin/page-manager/{id}/section/save', [\App\Http\Controllers\AdminPageManagerController::class, 'saveSection']);
+	Route::post('panel/admin/page-manager/{pageId}/section/delete/{sectionId}', [\App\Http\Controllers\AdminPageManagerController::class, 'deleteSection']);
+	Route::post('panel/admin/page-manager/{id}/sections/reorder', [\App\Http\Controllers\AdminPageManagerController::class, 'reorderSections']);
+	Route::post('panel/admin/page-manager/{id}/items/attach', [\App\Http\Controllers\AdminPageManagerController::class, 'attachItem']);
+	Route::post('panel/admin/page-manager/{pageId}/items/detach/{itemId}', [\App\Http\Controllers\AdminPageManagerController::class, 'detachItem']);
+	Route::get('panel/admin/page-manager/search/prompts', [\App\Http\Controllers\AdminPageManagerController::class, 'searchPrompts']);
 
 	// Hire Service Settings & Inquiries CRM
 	Route::get('panel/admin/hire/settings', [AdminHireController::class, 'settings'])->name('hire.settings');

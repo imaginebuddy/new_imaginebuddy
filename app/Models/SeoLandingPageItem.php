@@ -9,6 +9,8 @@ class SeoLandingPageItem extends Model
 {
     protected $table = 'seo_landing_page_items';
 
+    protected $touches = ['landingPage'];
+
     protected $fillable = [
         'landing_page_id',
         'section_id',

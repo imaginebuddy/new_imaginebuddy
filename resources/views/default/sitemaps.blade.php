@@ -152,11 +152,38 @@
         </url>
         @endforeach
 
-        @foreach (App\Models\SeoLandingPage::published()->where('robots', 'LIKE', '%index%')->get() as $guide)
+        {{-- 6 Vertical Silo CMS Hubs --}}
+        @php
+            $verticalHubs = ['use-case', 'industry', 'product', 'garment', 'marketplace', 'platform-ai-ads'];
+            $managedHubs = App\Models\SeoLandingPage::published()
+                ->where('page_type', 'hub')
+                ->pluck('route_prefix')
+                ->toArray();
+        @endphp
+        @foreach ($verticalHubs as $hub)
+            @if (!in_array($hub, $managedHubs))
+            <url>
+                <loc>{{ url($hub) }}</loc>
+                <lastmod>{{ $date }}</lastmod>
+                <priority>0.9</priority>
+                <changefreq>daily</changefreq>
+            </url>
+            @endif
+        @endforeach
+
+        {{-- Centralized Page Manager & SEO Landing Pages --}}
+        @foreach (App\Models\SeoLandingPage::published()
+            ->where(function ($q) {
+                $q->whereNull('robots')
+                  ->orWhere('robots', 'not like', '%noindex%');
+            })
+            ->orderBy('updated_at', 'desc')
+            ->get() as $landingPage)
         <url>
-            <loc>{{ url('guides', $guide->slug) }}</loc>
-            <lastmod>{{ $guide->updated_at ? Carbon\Carbon::parse($guide->updated_at)->format('Y-m-d') : $date }}</lastmod>
-            <priority>0.8</priority>
+            <loc>{{ $landingPage->public_url }}</loc>
+            <lastmod>{{ $landingPage->updated_at ? Carbon\Carbon::parse($landingPage->updated_at)->format('Y-m-d') : $date }}</lastmod>
+            <priority>{{ $landingPage->page_type === 'hub' ? '0.9' : '0.8' }}</priority>
+            <changefreq>{{ $landingPage->page_type === 'hub' ? 'daily' : 'weekly' }}</changefreq>
         </url>
         @endforeach
    

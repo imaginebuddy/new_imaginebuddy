@@ -1783,4 +1783,83 @@ dd ol > li {
 .pricing-faq-body li::marker {
   color: var(--color-default, #00d690);
 }
+
+/* ==========================================================================
+   Footer Programmatic Solutions Navigation (Centralized CMS Vertical Silos)
+   ========================================================================== */
+.footer-cms-nav {
+  position: relative;
+}
+
+.footer-cms-heading {
+  color: var(--color-default, #00d690) !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1.15rem;
+}
+
+.footer-cms-list {
+  list-style: none !important;
+  list-style-type: none !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  margin-bottom: 0.85rem !important;
+}
+
+.footer-cms-list li {
+  list-style: none !important;
+  list-style-type: none !important;
+  margin-bottom: 0.65rem !important;
+  line-height: 1.45;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+.footer-cms-list li::marker,
+.footer-cms-nav li::marker {
+  content: "" !important;
+  display: none !important;
+}
+
+.footer-cms-link {
+  color: #94a3b8 !important;
+  font-size: 0.875rem;
+  text-decoration: none !important;
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+}
+
+.footer-cms-link:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+  transform: translateX(2px);
+}
+
+.footer-cms-explore {
+  color: var(--color-default, #00d690) !important;
+  font-size: 0.825rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.footer-cms-explore:hover {
+  color: #00ffa3 !important;
+  text-decoration: none !important;
+  transform: translateX(3px);
+}
+
+.footer-cms-explore i {
+  transition: transform 0.2s ease-in-out;
+  font-size: 0.75rem;
+}
+
+.footer-cms-explore:hover i {
+  transform: translateX(2px);
+}
 </style>

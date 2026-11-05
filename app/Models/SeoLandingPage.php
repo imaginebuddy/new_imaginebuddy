@@ -15,6 +15,13 @@ class SeoLandingPage extends Model
     protected $fillable = [
         'user_id',
         'category_id',
+        'page_type',
+        'route_prefix',
+        'icon',
+        'header_badge',
+        'header_cta_text',
+        'header_cta_url',
+        'header_cta_subtext',
         'internal_name',
         'title',
         'slug',
@@ -22,6 +29,10 @@ class SeoLandingPage extends Model
         'excerpt',
         'featured_image',
         'featured_image_alt',
+        'before_image',
+        'after_image',
+        'before_label',
+        'after_label',
         'target_audience',
         'primary_keyword',
         'secondary_keywords',
@@ -51,6 +62,26 @@ class SeoLandingPage extends Model
         'enable_prompt_copying' => 'boolean',
         'views_count' => 'integer',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($page) {
+            \Illuminate\Support\Facades\Cache::forget('footer_cms_navigation');
+            if (class_exists(\App\Http\Controllers\SitemapController::class)) {
+                \App\Http\Controllers\SitemapController::clearCache();
+            }
+        });
+
+        static::deleted(function ($page) {
+            \Illuminate\Support\Facades\Cache::forget('footer_cms_navigation');
+            if (class_exists(\App\Http\Controllers\SitemapController::class)) {
+                \App\Http\Controllers\SitemapController::clearCache();
+            }
+        });
+    }
 
     /**
      * Author / Creator relationship.
@@ -116,6 +147,13 @@ class SeoLandingPage extends Model
     public function getFeaturedImageUrlAttribute(): string
     {
         if (!empty($this->featured_image)) {
+            if (filter_var($this->featured_image, FILTER_VALIDATE_URL)) {
+                return $this->featured_image;
+            }
+            $clean = ltrim(str_replace('public/', '', $this->featured_image), '/');
+            if (file_exists(public_path($clean))) {
+                return asset('public/' . $clean);
+            }
             $path = config('path.guides', 'uploads/guides/') . $this->featured_image;
             if (file_exists(public_path($path))) {
                 return url('public/' . $path);
@@ -128,10 +166,97 @@ class SeoLandingPage extends Model
     }
 
     /**
+     * Helper to get before image (Raw Snapshot) full URL or fallback.
+     */
+    public function getBeforeImageUrlAttribute(): string
+    {
+        if (!empty($this->before_image)) {
+            if (filter_var($this->before_image, FILTER_VALIDATE_URL)) {
+                return $this->before_image;
+            }
+            $clean = ltrim(str_replace('public/', '', $this->before_image), '/');
+            if (file_exists(public_path($clean))) {
+                return asset('public/' . $clean);
+            }
+            $path = config('path.guides', 'uploads/guides/') . $this->before_image;
+            if (file_exists(public_path($path))) {
+                return url('public/' . $path);
+            }
+            if (Storage::exists($path)) {
+                return Storage::url($path);
+            }
+        }
+        return asset('public/img/White-Oud-Perfume-01.webp');
+    }
+
+    /**
+     * Helper to get after image (Campaign Ready) full URL or fallback.
+     */
+    public function getAfterImageUrlAttribute(): string
+    {
+        $after = !empty($this->after_image) ? $this->after_image : $this->featured_image;
+        if (!empty($after)) {
+            if (filter_var($after, FILTER_VALIDATE_URL)) {
+                return $after;
+            }
+            $clean = ltrim(str_replace('public/', '', $after), '/');
+            if (file_exists(public_path($clean))) {
+                return asset('public/' . $clean);
+            }
+            $path = config('path.guides', 'uploads/guides/') . $after;
+            if (file_exists(public_path($path))) {
+                return url('public/' . $path);
+            }
+            if (Storage::exists($path)) {
+                return Storage::url($path);
+            }
+        }
+        return asset('public/img/premium-white-oud-perfume-ad-02.webp');
+    }
+
+    /**
+     * Determine if page has before/after slider data.
+     */
+    public function getHasBeforeAfterSliderAttribute(): bool
+    {
+        return !empty($this->before_image) || (!empty($this->after_image) && !empty($this->featured_image));
+    }
+
+    /**
+     * Scope query to hub pages.
+     */
+    public function scopeHubs($query)
+    {
+        return $query->where('page_type', 'hub');
+    }
+
+    /**
+     * Scope query to solution pages.
+     */
+    public function scopeSolutions($query)
+    {
+        return $query->where('page_type', 'solution');
+    }
+
+    /**
+     * Scope query by route prefix.
+     */
+    public function scopeByPrefix($query, ?string $prefix)
+    {
+        return $query->where('route_prefix', $prefix);
+    }
+
+    /**
      * Generate an absolute public URL.
      */
     public function getPublicUrlAttribute(): string
     {
+        if (!empty($this->route_prefix)) {
+            if ($this->page_type === 'hub') {
+                return url($this->route_prefix);
+            }
+            return url($this->route_prefix . '/' . $this->slug);
+        }
         return url('guides/' . $this->slug);
     }
 
@@ -140,6 +265,9 @@ class SeoLandingPage extends Model
      */
     public function getPreviewUrlAttribute(): string
     {
+        if (!empty($this->route_prefix)) {
+            return url($this->route_prefix . '/preview/' . $this->preview_token);
+        }
         return url('guides/preview/' . $this->preview_token);
     }
 }
