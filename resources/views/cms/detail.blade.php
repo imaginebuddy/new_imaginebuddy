@@ -109,23 +109,12 @@
         @break
 
       @case('prompt_grid')
-        @if (!empty($attachedPrompts) && $attachedPrompts->count() > 0 && View::exists('guides.prompts-showcase'))
-          <section class="cms-section" id="prompts-showcase">
-            <div class="container">
-              <div class="cms-section-header">
-                <span class="cms-eyebrow-badge mb-2">{{ $section->badge ?: 'PROMPT RECIPES' }}</span>
-                <h2 class="cms-section-title">{{ $section->heading ?: 'Connected Prompt Library' }}</h2>
-                @if (!empty($section->subheading))
-                  <p class="cms-section-sub">{{ $section->subheading }}</p>
-                @else
-                  <p class="cms-section-sub">Tested photoshoot recipes and visual prompts crafted specifically for {{ strtolower($page->title) }}.</p>
-                @endif
-              </div>
-              @include('guides.prompts-showcase', ['prompts' => $attachedPrompts, 'hideShowcaseHeader' => true])
-            </div>
-          </section>
-          @php $promptGridRendered = true; @endphp
-        @endif
+        @include('cms.sections.prompt-grid', [
+          'page' => $page,
+          'section' => $section,
+          'attachedPrompts' => $attachedPrompts ?? collect()
+        ])
+        @php $promptGridRendered = true; @endphp
         @break
 
       @case('testimonials')

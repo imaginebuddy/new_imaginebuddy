@@ -1299,8 +1299,12 @@ html {
               </div>
             @elseif ($section->type === 'prompt_grid')
               {{-- Explicit prompt grid section --}}
-              @if (!$promptsRendered && $prompts->count() > 0)
-                @include('guides.prompts-showcase', ['prompts' => $prompts])
+              @if ((!empty($section->cards) && count($section->cards) > 0) || (!$promptsRendered && $prompts->count() > 0))
+                @include('cms.sections.prompt-grid', [
+                  'page' => $page,
+                  'section' => $section,
+                  'attachedPrompts' => $prompts
+                ])
                 @php $promptsRendered = true; @endphp
               @endif
             @else

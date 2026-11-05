@@ -340,32 +340,70 @@
                               </div>
 
                               {{-- Visual Card / Step Media Manager for Alternating Rows & Card Sections --}}
-                              @if (!empty($sec->cards) && count($sec->cards) > 0)
+                              @php
+                                $isCardSection = in_array($sec->type, ['prompt_grid', 'problem_solution', 'role_grid', 'alternating_rows']) || (!empty($sec->cards) && count($sec->cards) > 0);
+                                $sectionCards = $sec->cards ?? [];
+                              @endphp
+
+                              @if ($isCardSection)
                                 <div class="col-12">
                                   <div class="card card-outline card-secondary border mb-2">
                                     <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
                                       <h6 class="fw-bold mb-0 text-dark">
-                                        <i class="bi bi-images text-primary me-1"></i> Step Cards & Visual Media
+                                        <i class="bi bi-grid-3x3-gap text-primary me-1"></i>
+                                        @if ($sec->type === 'prompt_grid')
+                                          Curated Prompt Showcase Cards
+                                        @elseif ($sec->type === 'problem_solution')
+                                          Value / Advantage Cards
+                                        @elseif ($sec->type === 'role_grid')
+                                          Role & Audience Cards
+                                        @else
+                                          Section Cards & Visual Media
+                                        @endif
                                       </h6>
-                                      <span class="badge bg-mint text-dark">{{ count($sec->cards) }} Steps</span>
+                                      <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-mint text-dark" id="cardCountBadge_{{ $sec->id }}">{{ count($sectionCards) }} Cards</span>
+                                        <button type="button" class="btn btn-xs btn-outline-primary btn-add-card" data-sec-id="{{ $sec->id }}" data-sec-type="{{ $sec->type }}">
+                                          <i class="bi bi-plus-lg me-1"></i>Add Card
+                                        </button>
+                                      </div>
                                     </div>
                                     <div class="card-body p-3">
-                                      <p class="small text-muted mb-3">Upload a custom illustration/screenshot for each step or enter an image URL. If left empty, a placeholder camera preview is displayed.</p>
+                                      <p class="small text-muted mb-3">
+                                        Edit titles, prompts/descriptions, badges, and upload custom images for each card. Edits automatically sync to the Structured JSON Data below.
+                                      </p>
                                       
-                                      <div class="row g-3">
-                                        @foreach ($sec->cards as $cIndex => $card)
-                                          <div class="col-md-6">
-                                            <div class="p-2 border rounded-3 bg-white h-100 shadow-xs">
+                                      <div class="row g-3 card-list-container" id="cardListContainer_{{ $sec->id }}">
+                                        @forelse ($sectionCards as $cIndex => $card)
+                                          <div class="col-md-6 card-item-wrapper" data-index="{{ $cIndex }}">
+                                            <div class="p-3 border rounded-3 bg-white h-100 shadow-xs position-relative">
                                               <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="badge bg-light text-dark border small fw-bold">{{ $card['badge'] ?? ('Step ' . ($cIndex + 1)) }}</span>
-                                                <small class="text-truncate text-muted fw-semibold" style="max-width: 170px;" title="{{ $card['title'] ?? '' }}">
-                                                  {{ $card['title'] ?? '' }}
-                                                </small>
+                                                <span class="badge bg-dark text-white small fw-bold card-index-label">Card #{{ $cIndex + 1 }}</span>
+                                                <button type="button" class="btn btn-xs btn-link text-danger p-0 text-decoration-none btn-remove-card" data-sec-id="{{ $sec->id }}" data-index="{{ $cIndex }}" title="Remove Card">
+                                                  <i class="bi bi-trash"></i> Remove
+                                                </button>
+                                              </div>
+
+                                              <div class="mb-2">
+                                                <label class="form-label small fw-bold mb-1">Badge</label>
+                                                <input type="text" name="cards[{{ $cIndex }}][badge]" class="form-control form-control-sm card-input-badge" data-sec-id="{{ $sec->id }}" data-index="{{ $cIndex }}" value="{{ $card['badge'] ?? '' }}" placeholder="e.g. Amazon Best Seller">
+                                              </div>
+
+                                              <div class="mb-2">
+                                                <label class="form-label small fw-bold mb-1">Title</label>
+                                                <input type="text" name="cards[{{ $cIndex }}][title]" class="form-control form-control-sm card-input-title" data-sec-id="{{ $sec->id }}" data-index="{{ $cIndex }}" value="{{ $card['title'] ?? '' }}" placeholder="Card Title">
+                                              </div>
+
+                                              <div class="mb-2">
+                                                <label class="form-label small fw-bold mb-1">
+                                                  {{ $sec->type === 'prompt_grid' ? 'Prompt Blueprint' : 'Description / Content' }}
+                                                </label>
+                                                <textarea name="cards[{{ $cIndex }}][prompt]" rows="3" class="form-control form-control-sm card-input-prompt" data-sec-id="{{ $sec->id }}" data-index="{{ $cIndex }}" placeholder="Enter prompt or description...">{{ $card['prompt'] ?? ($card['description'] ?? '') }}</textarea>
                                               </div>
                                               
                                               @if (!empty($card['image']))
                                                 <div class="mb-2 text-center p-2 bg-light rounded border">
-                                                  <img src="{{ $card['image'] }}" alt="Step Preview" class="img-fluid rounded" style="max-height: 90px; object-fit: cover;">
+                                                  <img src="{{ $card['image'] }}" alt="Card Preview" class="img-fluid rounded" style="max-height: 90px; object-fit: cover;">
                                                   <div class="form-check mt-1 d-flex justify-content-center">
                                                     <input class="form-check-input me-1" type="checkbox" name="remove_card_image[{{ $cIndex }}]" value="1" id="removeCardImg_{{ $sec->id }}_{{ $cIndex }}">
                                                     <label class="form-check-label text-danger small" for="removeCardImg_{{ $sec->id }}_{{ $cIndex }}">Remove Image</label>
@@ -378,11 +416,20 @@
                                               </label>
                                               <input type="file" name="card_images[{{ $cIndex }}]" class="form-control form-control-sm custom-file mb-2" accept="image/jpeg,image/png,image/webp,image/jpg">
                                               
-                                              <label class="form-label small text-muted mb-0">Or Image URL</label>
-                                              <input type="text" name="card_image_urls[{{ $cIndex }}]" class="form-control form-control-sm" placeholder="https://... or /public/img/..." value="{{ $card['image'] ?? '' }}">
+                                              <label class="form-label small text-muted mb-1">Or Image URL</label>
+                                              <input type="text" name="card_image_urls[{{ $cIndex }}]" class="form-control form-control-sm card-input-image" data-sec-id="{{ $sec->id }}" data-index="{{ $cIndex }}" placeholder="https://... or /public/img/..." value="{{ $card['image'] ?? '' }}">
+                                              <input type="hidden" name="card_image_urls_orig[{{ $cIndex }}]" value="{{ $card['image'] ?? '' }}">
                                             </div>
                                           </div>
-                                        @endforeach
+                                        @empty
+                                          <div class="col-12 text-center py-4 text-muted empty-cards-notice" id="emptyNotice_{{ $sec->id }}">
+                                            <i class="bi bi-inbox display-6 d-block mb-2 text-muted"></i>
+                                            <p class="mb-2">No structured cards defined yet for this section.</p>
+                                            <button type="button" class="btn btn-sm btn-outline-primary btn-add-card" data-sec-id="{{ $sec->id }}" data-sec-type="{{ $sec->type }}">
+                                              <i class="bi bi-plus-lg me-1"></i>Add First Card
+                                            </button>
+                                          </div>
+                                        @endforelse
                                       </div>
                                     </div>
                                   </div>
@@ -390,9 +437,21 @@
                               @endif
 
                               <div class="col-12">
-                                <label class="form-label fw-bold">Structured JSON Data (Advanced)</label>
-                                <textarea name="settings_json" rows="3" class="form-control font-monospace small" placeholder='{"cards": [...]}'>{{ json_encode($sec->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</textarea>
-                                <div class="form-text">Advanced: you can also configure raw JSON properties here.</div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                  <label class="form-label fw-bold m-0">Structured JSON Data (Advanced)</label>
+                                  <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success json-status-badge" id="jsonStatus_{{ $sec->id }}">
+                                      <i class="bi bi-check-circle me-1"></i>Valid JSON
+                                    </span>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-format-json" data-sec-id="{{ $sec->id }}">
+                                      <i class="bi bi-magic me-1"></i>Beautify JSON
+                                    </button>
+                                  </div>
+                                </div>
+                                <textarea name="settings_json" id="settingsJson_{{ $sec->id }}" rows="10" class="form-control font-monospace small settings-json-editor" style="font-size: 13px; line-height: 1.45; tab-size: 2;" placeholder='{"cards": [...]}'>{{ json_encode($sec->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</textarea>
+                                <div class="form-text small text-muted">
+                                  You can configure and customize any raw JSON attributes directly here. Changes to cards above automatically update this JSON, and direct edits here are saved to the database.
+                                </div>
                               </div>
                               <div class="col-12">
                                 <div class="form-check form-switch">
@@ -590,4 +649,296 @@
     </form>
   </div>
 </div>
+@endsection
+
+@section('javascript')
+<script>
+(function() {
+  // Live JSON validation helper
+  function validateJsonTextarea(textarea) {
+    if (!textarea) return true;
+    var secId = textarea.id.replace('settingsJson_', '');
+    var statusBadge = document.getElementById('jsonStatus_' + secId);
+    var val = textarea.value.trim();
+
+    if (!val) {
+      if (statusBadge) {
+        statusBadge.className = 'badge bg-secondary json-status-badge';
+        statusBadge.innerHTML = '<i class="bi bi-dash-circle me-1"></i>Empty';
+      }
+      textarea.classList.remove('is-invalid');
+      return true;
+    }
+
+    try {
+      // Normalize curly quotes and trailing commas
+      var cleaned = val.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+      cleaned = cleaned.replace(/,\s*([\]}])/g, '$1');
+      JSON.parse(cleaned);
+
+      if (statusBadge) {
+        statusBadge.className = 'badge bg-success json-status-badge';
+        statusBadge.innerHTML = '<i class="bi bi-check-circle me-1"></i>Valid JSON';
+      }
+      textarea.classList.remove('is-invalid');
+      return true;
+    } catch (e) {
+      if (statusBadge) {
+        statusBadge.className = 'badge bg-danger json-status-badge';
+        statusBadge.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Syntax Error';
+        statusBadge.title = e.message;
+      }
+      textarea.classList.add('is-invalid');
+      return false;
+    }
+  }
+
+  // Parse JSON helper with fault-tolerance
+  function parseSettingsJson(secId) {
+    var textarea = document.getElementById('settingsJson_' + secId);
+    if (!textarea) return { cards: [] };
+    var val = textarea.value.trim();
+    if (!val) return { cards: [] };
+
+    try {
+      var cleaned = val.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+      cleaned = cleaned.replace(/,\s*([\]}])/g, '$1');
+      var parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed)) {
+        return { cards: parsed };
+      }
+      if (!parsed.cards || !Array.isArray(parsed.cards)) {
+        parsed.cards = [];
+      }
+      return parsed;
+    } catch (e) {
+      return null; // Signals invalid JSON
+    }
+  }
+
+  // Write JSON back to textarea and validate
+  function writeSettingsJson(secId, obj) {
+    var textarea = document.getElementById('settingsJson_' + secId);
+    if (!textarea) return;
+    textarea.value = JSON.stringify(obj, null, 2);
+    validateJsonTextarea(textarea);
+  }
+
+  // Bind live validation to all settings JSON textareas
+  $(document).on('input paste change', '.settings-json-editor', function() {
+    validateJsonTextarea(this);
+  });
+
+  // Modal shown: validate immediately
+  $('.modal').on('shown.bs.modal', function() {
+    var textarea = this.querySelector('.settings-json-editor');
+    if (textarea) {
+      validateJsonTextarea(textarea);
+    }
+  });
+
+  // Beautify JSON button
+  $(document).on('click', '.btn-format-json', function() {
+    var secId = $(this).data('sec-id');
+    var textarea = document.getElementById('settingsJson_' + secId);
+    if (!textarea) return;
+    var val = textarea.value.trim();
+    if (!val) return;
+
+    try {
+      var cleaned = val.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+      cleaned = cleaned.replace(/,\s*([\]}])/g, '$1');
+      var parsed = JSON.parse(cleaned);
+      textarea.value = JSON.stringify(parsed, null, 2);
+      validateJsonTextarea(textarea);
+    } catch (e) {
+      alert('Unable to format invalid JSON: ' + e.message);
+    }
+  });
+
+  // Sync visual card inputs directly into Structured JSON
+  $(document).on('input change', '.card-input-badge, .card-input-title, .card-input-prompt, .card-input-image', function() {
+    var secId = $(this).data('sec-id');
+    var index = parseInt($(this).data('index'), 10);
+    var obj = parseSettingsJson(secId);
+    if (!obj) return; // Do not overwrite if user has invalid manual JSON syntax
+
+    while (obj.cards.length <= index) {
+      obj.cards.push({});
+    }
+
+    var wrapper = $(this).closest('.card-item-wrapper');
+    var badge = wrapper.find('.card-input-badge').val() || '';
+    var title = wrapper.find('.card-input-title').val() || '';
+    var prompt = wrapper.find('.card-input-prompt').val() || '';
+    var image = wrapper.find('.card-input-image').val() || '';
+
+    obj.cards[index].badge = badge;
+    obj.cards[index].title = title;
+    obj.cards[index].prompt = prompt;
+    if (obj.cards[index].description !== undefined || !obj.cards[index].prompt) {
+      obj.cards[index].description = prompt;
+    }
+    obj.cards[index].image = image;
+
+    writeSettingsJson(secId, obj);
+  });
+
+  // Add Card dynamically
+  $(document).on('click', '.btn-add-card', function() {
+    var secId = $(this).data('sec-id');
+    var secType = $(this).data('sec-type') || 'prompt_grid';
+    var container = document.getElementById('cardListContainer_' + secId);
+    var emptyNotice = document.getElementById('emptyNotice_' + secId);
+    var countBadge = document.getElementById('cardCountBadge_' + secId);
+
+    var obj = parseSettingsJson(secId);
+    if (!obj) {
+      alert('Please fix JSON syntax errors in the Structured JSON box below before adding new cards.');
+      return;
+    }
+
+    var newIndex = obj.cards.length;
+    var defaultTitle = secType === 'prompt_grid' ? 'Commercial Studio Concept' : 'Key Advantage ' + (newIndex + 1);
+    var defaultBadge = secType === 'prompt_grid' ? 'Amazon Listing' : 'FEATURE';
+    var defaultPrompt = secType === 'prompt_grid' 
+      ? 'Commercial product photography blueprint with balanced studio lighting, crisp highlights, and marketplace-compliant aesthetic.' 
+      : 'Highlight high-impact product performance or visual capability.';
+
+    var newCard = {
+      badge: defaultBadge,
+      title: defaultTitle,
+      prompt: defaultPrompt,
+      description: defaultPrompt,
+      image: '',
+      aspect_ratio: '1 / 1'
+    };
+
+    obj.cards.push(newCard);
+    writeSettingsJson(secId, obj);
+
+    if (emptyNotice) {
+      emptyNotice.style.display = 'none';
+    }
+
+    if (countBadge) {
+      countBadge.textContent = obj.cards.length + ' Cards';
+    }
+
+    // Append card HTML
+    var cardHtml = '<div class="col-md-6 card-item-wrapper" data-index="' + newIndex + '">' +
+      '<div class="p-3 border rounded-3 bg-white h-100 shadow-xs position-relative">' +
+        '<div class="d-flex align-items-center justify-content-between mb-2">' +
+          '<span class="badge bg-dark text-white small fw-bold card-index-label">Card #' + (newIndex + 1) + '</span>' +
+          '<button type="button" class="btn btn-xs btn-link text-danger p-0 text-decoration-none btn-remove-card" data-sec-id="' + secId + '" data-index="' + newIndex + '" title="Remove Card">' +
+            '<i class="bi bi-trash"></i> Remove' +
+          '</button>' +
+        '</div>' +
+        '<div class="mb-2">' +
+          '<label class="form-label small fw-bold mb-1">Badge</label>' +
+          '<input type="text" name="cards[' + newIndex + '][badge]" class="form-control form-control-sm card-input-badge" data-sec-id="' + secId + '" data-index="' + newIndex + '" value="' + defaultBadge + '" placeholder="e.g. Amazon Best Seller">' +
+        '</div>' +
+        '<div class="mb-2">' +
+          '<label class="form-label small fw-bold mb-1">Title</label>' +
+          '<input type="text" name="cards[' + newIndex + '][title]" class="form-control form-control-sm card-input-title" data-sec-id="' + secId + '" data-index="' + newIndex + '" value="' + defaultTitle + '" placeholder="Card Title">' +
+        '</div>' +
+        '<div class="mb-2">' +
+          '<label class="form-label small fw-bold mb-1">' + (secType === 'prompt_grid' ? 'Prompt Blueprint' : 'Description / Content') + '</label>' +
+          '<textarea name="cards[' + newIndex + '][prompt]" rows="3" class="form-control form-control-sm card-input-prompt" data-sec-id="' + secId + '" data-index="' + newIndex + '" placeholder="Enter prompt or description...">' + defaultPrompt + '</textarea>' +
+        '</div>' +
+        '<label class="form-label small fw-bold mb-1"><i class="bi bi-upload me-1"></i> Upload Image File</label>' +
+        '<input type="file" name="card_images[' + newIndex + ']" class="form-control form-control-sm custom-file mb-2" accept="image/jpeg,image/png,image/webp,image/jpg">' +
+        '<label class="form-label small text-muted mb-1">Or Image URL</label>' +
+        '<input type="text" name="card_image_urls[' + newIndex + ']" class="form-control form-control-sm card-input-image" data-sec-id="' + secId + '" data-index="' + newIndex + '" placeholder="https://... or /public/img/..." value="">' +
+        '<input type="hidden" name="card_image_urls_orig[' + newIndex + ']" value="">' +
+      '</div>' +
+    '</div>';
+
+    if (container) {
+      container.insertAdjacentHTML('beforeend', cardHtml);
+    }
+  });
+
+  // Remove Card dynamically
+  $(document).on('click', '.btn-remove-card', function() {
+    var secId = $(this).data('sec-id');
+    var index = parseInt($(this).data('index'), 10);
+    var wrapper = $(this).closest('.card-item-wrapper');
+    var container = document.getElementById('cardListContainer_' + secId);
+    var countBadge = document.getElementById('cardCountBadge_' + secId);
+    var emptyNotice = document.getElementById('emptyNotice_' + secId);
+
+    var obj = parseSettingsJson(secId);
+    if (!obj) {
+      alert('Please fix JSON syntax errors before removing cards.');
+      return;
+    }
+
+    if (index >= 0 && index < obj.cards.length) {
+      obj.cards.splice(index, 1);
+      writeSettingsJson(secId, obj);
+    }
+
+    wrapper.remove();
+
+    // Re-index remaining cards in the DOM
+    if (container) {
+      var remaining = container.querySelectorAll('.card-item-wrapper');
+      remaining.forEach(function(el, newIdx) {
+        el.setAttribute('data-index', newIdx);
+        var label = el.querySelector('.card-index-label');
+        if (label) label.textContent = 'Card #' + (newIdx + 1);
+
+        var removeBtn = el.querySelector('.btn-remove-card');
+        if (removeBtn) removeBtn.setAttribute('data-index', newIdx);
+
+        el.querySelectorAll('[data-index]').forEach(function(inp) {
+          inp.setAttribute('data-index', newIdx);
+        });
+
+        // Update form input names
+        var badgeInp = el.querySelector('.card-input-badge');
+        if (badgeInp) badgeInp.setAttribute('name', 'cards[' + newIdx + '][badge]');
+
+        var titleInp = el.querySelector('.card-input-title');
+        if (titleInp) titleInp.setAttribute('name', 'cards[' + newIdx + '][title]');
+
+        var promptInp = el.querySelector('.card-input-prompt');
+        if (promptInp) promptInp.setAttribute('name', 'cards[' + newIdx + '][prompt]');
+
+        var fileInp = el.querySelector('input[type="file"]');
+        if (fileInp) fileInp.setAttribute('name', 'card_images[' + newIdx + ']');
+
+        var urlInp = el.querySelector('.card-input-image');
+        if (urlInp) urlInp.setAttribute('name', 'card_image_urls[' + newIdx + ']');
+
+        var origInp = el.querySelector('input[name^="card_image_urls_orig"]');
+        if (origInp) origInp.setAttribute('name', 'card_image_urls_orig[' + newIdx + ']');
+      });
+
+      if (countBadge) {
+        countBadge.textContent = remaining.length + ' Cards';
+      }
+
+      if (remaining.length === 0 && emptyNotice) {
+        emptyNotice.style.display = 'block';
+      }
+    }
+  });
+
+  // Modal form submit guard: prevent saving with broken JSON
+  $('form[action*="/section/save"]').on('submit', function(e) {
+    var textarea = this.querySelector('.settings-json-editor');
+    if (textarea) {
+      var isValid = validateJsonTextarea(textarea);
+      if (!isValid) {
+        e.preventDefault();
+        alert('Cannot save section: The Structured JSON Data contains syntax errors. Please correct the JSON or click "Beautify JSON" to check for errors.');
+        textarea.focus();
+        return false;
+      }
+    }
+  });
+})();
+</script>
 @endsection

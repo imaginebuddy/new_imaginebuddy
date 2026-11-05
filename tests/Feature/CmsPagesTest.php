@@ -410,6 +410,35 @@ class CmsPagesTest extends TestCase
      */
     public function test_footer_renders_cms_navigation_sections_dynamically(): void
     {
+        $admin = \App\Models\User::first();
+        $adminId = $admin ? $admin->id : 1;
+
+        \App\Models\SeoLandingPage::firstOrCreate(
+            ['slug' => 'test-use-case-photography'],
+            [
+                'title' => 'Test Use Case Photography',
+                'route_prefix' => 'use-case',
+                'page_type' => 'solution',
+                'status' => 'published',
+                'published_at' => now(),
+                'preview_token' => \Illuminate\Support\Str::random(32),
+                'user_id' => $adminId,
+            ]
+        );
+
+        \App\Models\SeoLandingPage::firstOrCreate(
+            ['slug' => 'test-industry-photography'],
+            [
+                'title' => 'Test Industry Photography',
+                'route_prefix' => 'industry',
+                'page_type' => 'solution',
+                'status' => 'published',
+                'published_at' => now(),
+                'preview_token' => \Illuminate\Support\Str::random(32),
+                'user_id' => $adminId,
+            ]
+        );
+
         \Illuminate\Support\Facades\Cache::forget('footer_cms_navigation');
 
         $response = $this->get('/');

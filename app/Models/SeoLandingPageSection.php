@@ -63,12 +63,18 @@ class SeoLandingPageSection extends Model
     }
 
     /**
-     * Structured cards (for benefit grid, persona grid, feature blocks).
+     * Structured cards (for prompt grid, benefit grid, persona grid, feature blocks).
      */
     public function getCardsAttribute(): array
     {
         $settings = $this->settings_data;
-        return isset($settings['cards']) && is_array($settings['cards']) ? $settings['cards'] : [];
+        if (isset($settings['cards']) && is_array($settings['cards'])) {
+            return $settings['cards'];
+        }
+        if (!empty($settings) && array_is_list($settings)) {
+            return $settings;
+        }
+        return [];
     }
 
     /**
@@ -77,7 +83,13 @@ class SeoLandingPageSection extends Model
     public function getStepsAttribute(): array
     {
         $settings = $this->settings_data;
-        return isset($settings['steps']) && is_array($settings['steps']) ? $settings['steps'] : [];
+        if (isset($settings['steps']) && is_array($settings['steps'])) {
+            return $settings['steps'];
+        }
+        if (!empty($settings) && array_is_list($settings)) {
+            return $settings;
+        }
+        return [];
     }
 
     /**
@@ -86,7 +98,13 @@ class SeoLandingPageSection extends Model
     public function getSpecsAttribute(): array
     {
         $settings = $this->settings_data;
-        return isset($settings['specs']) && is_array($settings['specs']) ? $settings['specs'] : [];
+        if (isset($settings['specs']) && is_array($settings['specs'])) {
+            return $settings['specs'];
+        }
+        if (!empty($settings) && array_is_list($settings)) {
+            return $settings;
+        }
+        return [];
     }
 
     /**
@@ -95,7 +113,13 @@ class SeoLandingPageSection extends Model
     public function getStatsAttribute(): array
     {
         $settings = $this->settings_data;
-        return isset($settings['stats']) && is_array($settings['stats']) ? $settings['stats'] : [];
+        if (isset($settings['stats']) && is_array($settings['stats'])) {
+            return $settings['stats'];
+        }
+        if (!empty($settings) && array_is_list($settings)) {
+            return $settings;
+        }
+        return [];
     }
 
     /**
@@ -104,6 +128,12 @@ class SeoLandingPageSection extends Model
     public function getFaqsAttribute(): array
     {
         $settings = $this->settings_data;
-        return isset($settings['faqs']) && is_array($settings['faqs']) ? $settings['faqs'] : [];
+        if (isset($settings['faqs']) && is_array($settings['faqs'])) {
+            return $settings['faqs'];
+        }
+        if (!empty($settings) && array_is_list($settings)) {
+            return $settings;
+        }
+        return [];
     }
 }

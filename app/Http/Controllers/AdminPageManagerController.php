@@ -667,14 +667,73 @@ class AdminPageManagerController extends Controller
 
         // Structured settings handling (cards, faqs, specs, stats)
         $settings = $section->settings ?? [];
-        if ($request->has('settings_json')) {
-            $decoded = json_decode($request->settings_json, true);
-            if (is_array($decoded)) {
+        if ($request->filled('settings_json')) {
+            $rawJson = trim($request->settings_json);
+
+            // Strip UTF-8 BOM if present
+            if (substr($rawJson, 0, 3) === "\xEF\xBB\xBF") {
+                $rawJson = substr($rawJson, 3);
+            }
+
+            // Normalize curly / smart quotes to standard ASCII quotes
+            $normalizedJson = str_replace(
+                ["\u{201C}", "\u{201D}", "\u{2018}", "\u{2019}", '“', '”', '‘', '’'],
+                ['"', '"', "'", "'", '"', '"', "'", "'"],
+                $rawJson
+            );
+
+            // Strip trailing commas before closing braces/brackets
+            $cleanedJson = preg_replace('/,\s*([\]}])/m', '$1', $normalizedJson);
+
+            $decoded = json_decode($cleanedJson, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $settings = $decoded;
+            } else {
+                $decodedRaw = json_decode($rawJson, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRaw)) {
+                    $settings = $decodedRaw;
+                } else {
+                    return redirect()->back()
+                        ->withErrors(['settings_json' => 'Invalid JSON in Structured JSON Data: ' . json_last_error_msg()])
+                        ->withInput()
+                        ->with('error_message', 'Could not save section: The Structured JSON Data contains syntax errors (' . json_last_error_msg() . '). Please verify and try again.');
+                }
+            }
+
+            // Auto-wrap bare lists into proper structured root keys if user pasted a raw array of items
+            if (is_array($settings) && array_is_list($settings) && !empty($settings)) {
+                if (in_array($section->type, ['prompt_grid', 'problem_solution', 'role_grid', 'alternating_rows'])) {
+                    $settings = ['cards' => $settings];
+                } elseif ($section->type === 'faq_accordion') {
+                    $settings = ['faqs' => $settings];
+                } elseif ($section->type === 'metrics_counter') {
+                    $settings = ['stats' => $settings];
+                } elseif ($section->type === 'specs_table') {
+                    $settings = ['specs' => $settings];
+                } else {
+                    $settings = ['cards' => $settings];
+                }
+            }
+        } elseif ($request->has('settings_json') && trim($request->settings_json) === '') {
+            $settings = [];
+        }
+
+        // Support direct card form inputs if provided (merges with settings['cards'] to preserve any other properties)
+        if ($request->has('cards') && is_array($request->cards)) {
+            if (!isset($settings['cards']) || !is_array($settings['cards'])) {
+                $settings['cards'] = [];
+            }
+            foreach ($request->cards as $idx => $cardInput) {
+                if (!isset($settings['cards'][$idx])) {
+                    $settings['cards'][$idx] = [];
+                }
+                foreach ($cardInput as $key => $val) {
+                    $settings['cards'][$idx][$key] = $val;
+                }
             }
         }
 
-        // Handle step / card images for alternating_rows and card sections
+        // Handle step / card images for alternating_rows, prompt_grid, and card sections
         if (isset($settings['cards']) && is_array($settings['cards'])) {
             $destPath = public_path('uploads/guides');
             if (!File::exists($destPath)) {
@@ -690,7 +749,7 @@ class AdminPageManagerController extends Controller
                 }
             }
 
-            // Upload card image file
+            // Upload card image file (new file upload takes priority)
             if ($request->hasFile('card_images')) {
                 foreach ($request->file('card_images') as $idx => $file) {
                     if ($file && $file->isValid() && isset($settings['cards'][$idx])) {
@@ -701,18 +760,42 @@ class AdminPageManagerController extends Controller
                 }
             }
 
-            // Or direct URL input
-            if ($request->has('card_image_urls')) {
+            // Direct URL input: Only set if user changed the input or if JSON card had no image
+            if ($request->has('card_image_urls') && is_array($request->card_image_urls)) {
+                $origUrls = $request->input('card_image_urls_orig', []);
                 foreach ($request->card_image_urls as $idx => $url) {
-                    if (!empty($url) && isset($settings['cards'][$idx]) && !$request->hasFile('card_images.' . $idx)) {
-                        $settings['cards'][$idx]['image'] = $url;
+                    $url = trim($url);
+                    if (isset($settings['cards'][$idx])) {
+                        $origUrl = isset($origUrls[$idx]) ? trim($origUrls[$idx]) : null;
+                        if ($origUrl !== null && $url !== $origUrl) {
+                            // User intentionally changed the URL input in the form
+                            $settings['cards'][$idx]['image'] = $url;
+                        } elseif (!empty($url) && empty($settings['cards'][$idx]['image'])) {
+                            // Default to form URL if JSON card image was empty
+                            $settings['cards'][$idx]['image'] = $url;
+                        }
                     }
                 }
             }
         }
 
+        // Normalize metrics counter if applicable
+        if ($section->type === 'metrics_counter' && !empty($settings['stats']) && is_array($settings['stats'])) {
+            foreach ($settings['stats'] as &$st) {
+                $num = $st['number'] ?? ($st['value'] ?? '10x');
+                $st['number'] = $num;
+                $st['value'] = $num;
+            }
+        }
+
         $section->settings = $settings;
         $section->save();
+
+        // Clear cache
+        \Illuminate\Support\Facades\Cache::forget('footer_cms_navigation');
+        if (class_exists(\App\Http\Controllers\SitemapController::class)) {
+            \App\Http\Controllers\SitemapController::clearCache();
+        }
 
         return redirect()->back()->with('success_message', 'Section saved successfully.');
     }
