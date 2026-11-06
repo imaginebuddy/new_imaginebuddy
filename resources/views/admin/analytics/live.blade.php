@@ -15,9 +15,23 @@
           </div>
           <h2 class="display-5 fw-bold mb-0">
             <span id="liveTotalCount">{{ $activeTotal }}</span>
-            <small class="fs-5 text-white-50 fw-normal">Total Visitors in Last 5m</small>
+            <small class="fs-5 text-white-50 fw-normal" id="liveWindowLabel">Total Visitors in Last {{ $window ?? 5 }}m</small>
           </h2>
-          <small class="text-white-50">Active within the last 5 minutes &bull; Auto-refreshes every 10 seconds</small>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <small class="text-white-50">Active Window:</small>
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn btn-sm {{ ($window ?? 5) == 5 ? 'btn-light' : 'btn-outline-light' }}" id="btnWindow5" onclick="setLiveWindow(5)">
+                Last 5m
+              </button>
+              <button type="button" class="btn btn-sm {{ ($window ?? 5) == 15 ? 'btn-light' : 'btn-outline-light' }}" id="btnWindow15" onclick="setLiveWindow(15)">
+                Last 15m
+              </button>
+              <button type="button" class="btn btn-sm {{ ($window ?? 5) == 30 ? 'btn-light' : 'btn-outline-light' }}" id="btnWindow30" onclick="setLiveWindow(30)">
+                Last 30m (Matches GA4)
+              </button>
+            </div>
+            <small class="text-white-50 ms-2">&bull; Auto-refreshes every 10s</small>
+          </div>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
@@ -158,7 +172,16 @@
 @section('javascript')
 <script>
 var currentLiveFilter = 'all';
+var currentLiveWindow = {{ $window ?? 5 }};
 var cachedLiveSessions = [];
+
+function setLiveWindow(win) {
+  currentLiveWindow = win;
+  document.getElementById('btnWindow5').className = 'btn btn-sm ' + (win === 5 ? 'btn-light' : 'btn-outline-light');
+  document.getElementById('btnWindow15').className = 'btn btn-sm ' + (win === 15 ? 'btn-light' : 'btn-outline-light');
+  document.getElementById('btnWindow30').className = 'btn btn-sm ' + (win === 30 ? 'btn-light' : 'btn-outline-light');
+  fetchLiveData();
+}
 
 function setLiveFilter(filterType) {
   currentLiveFilter = filterType;
@@ -229,7 +252,7 @@ function fetchLiveData() {
   var icon = document.getElementById('refreshIcon');
   if (icon) icon.classList.add('spin-icon');
 
-  fetch('{{ url("panel/admin/analytics/live-data") }}')
+  fetch('{{ url("panel/admin/analytics/live-data") }}?window=' + currentLiveWindow)
     .then(response => response.json())
     .then(data => {
       if (icon) icon.classList.remove('spin-icon');
@@ -237,6 +260,10 @@ function fetchLiveData() {
       document.getElementById('liveHumansCount').textContent = data.humans;
       document.getElementById('liveCrawlersCount').textContent = data.crawlers;
       document.getElementById('liveRegisteredCount').textContent = data.registered;
+
+      if (document.getElementById('liveWindowLabel')) {
+        document.getElementById('liveWindowLabel').textContent = 'Total Visitors in Last ' + (data.window || currentLiveWindow) + 'm';
+      }
 
       document.getElementById('badgeFilterAll').textContent = data.total;
       document.getElementById('badgeFilterHumans').textContent = data.humans;

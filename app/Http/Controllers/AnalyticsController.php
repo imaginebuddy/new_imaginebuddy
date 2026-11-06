@@ -236,7 +236,11 @@ class AnalyticsController extends Controller
      */
     public function live(Request $request)
     {
-        $threshold = Carbon::now()->subMinutes(5);
+        $window = (int) $request->get('window', 5);
+        if (!in_array($window, [5, 15, 30])) {
+            $window = 5;
+        }
+        $threshold = Carbon::now()->subMinutes($window);
 
         // Get latest session id for each distinct user or visitor
         $latestSessionIds = AnalyticsSession::where('is_bot', 0)
@@ -269,6 +273,7 @@ class AnalyticsController extends Controller
             'activeCrawlers' => $activeCrawlers,
             'activeRegistered' => $activeRegistered,
             'activeAnonymous' => $activeAnonymous,
+            'window' => $window,
         ]);
     }
 
@@ -277,7 +282,11 @@ class AnalyticsController extends Controller
      */
     public function liveData(Request $request)
     {
-        $threshold = Carbon::now()->subMinutes(5);
+        $window = (int) $request->get('window', 5);
+        if (!in_array($window, [5, 15, 30])) {
+            $window = 5;
+        }
+        $threshold = Carbon::now()->subMinutes($window);
 
         $latestSessionIds = AnalyticsSession::where('is_bot', 0)
             ->where('last_activity_at', '>=', $threshold)
@@ -319,6 +328,7 @@ class AnalyticsController extends Controller
             'crawlers' => $crawlersCount,
             'registered' => $sessions->where('is_logged_in', true)->count(),
             'anonymous' => $sessions->where('is_logged_in', false)->count(),
+            'window' => $window,
             'sessions' => $sessions->values(),
         ]);
     }
@@ -667,15 +677,26 @@ class AnalyticsController extends Controller
             if ($session) {
                 $now = Carbon::now();
                 $session->last_activity_at = $now;
+
+                // Executing client-side JavaScript is irrefutable proof of a real browser (not a bot/crawler)
+                $session->is_bot = 0;
+
                 if ($session->started_at) {
-                    $session->duration_seconds = max(0, $now->diffInSeconds($session->started_at));
+                    $diff = $now->diffInSeconds($session->started_at);
+                    $session->duration_seconds = max(3, $diff);
+                } else {
+                    $session->duration_seconds = max(3, (int)$session->duration_seconds);
                 }
-                if ($path = $request->input('path')) {
+
+                $path = $request->input('path') ?: ($request->json('path') ?? null);
+                if ($path) {
                     $session->exit_page = Str::limit($path, 255, '');
                 }
-                if ($session->duration_seconds >= 30) {
+
+                if ($session->duration_seconds >= 15 || $session->page_views_count >= 2) {
                     $session->is_engaged = true;
                 }
+
                 $session->save();
             }
 

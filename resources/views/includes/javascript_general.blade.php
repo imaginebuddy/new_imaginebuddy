@@ -404,19 +404,70 @@ $(window).on('scroll resize', function() {
 });
 @endif
 
-// Analytics Heartbeat Ping
+// Real Human Analytics Heartbeat & Verification Engine
 (function() {
-  var pingInterval = 45000;
-  setInterval(function() {
-    if (document.visibilityState === 'visible') {
+  var pingUrl = URL_BASE + '/analytics/ping';
+  var csrfToken = '{{ csrf_token() }}';
+
+  function sendAnalyticsPing() {
+    var payload = { _token: csrfToken, path: window.location.pathname };
+    if (typeof $ !== 'undefined' && $.ajax) {
       $.ajax({
-        url: URL_BASE + '/analytics/ping',
+        url: pingUrl,
         type: 'POST',
-        data: { _token: '{{ csrf_token() }}', path: window.location.pathname },
+        data: payload,
         dataType: 'json'
       });
+    } else if (window.fetch) {
+      fetch(pingUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify(payload)
+      }).catch(function() {});
+    }
+  }
+
+  function sendExitBeacon() {
+    var payload = JSON.stringify({ _token: csrfToken, path: window.location.pathname });
+    if (navigator.sendBeacon) {
+      var blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(pingUrl, blob);
+    } else if (window.fetch) {
+      fetch(pingUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).catch(function() {});
+    }
+  }
+
+  // 1. Quick initial ping after 3 seconds:
+  // Bots/crawlers never execute JavaScript. Any visitor whose browser fires this is instantly verified as a Real Human.
+  setTimeout(function() {
+    if (document.visibilityState === 'visible') {
+      sendAnalyticsPing();
+    }
+  }, 3000);
+
+  // 2. Periodic heartbeat every 25 seconds while active
+  var pingInterval = 25000;
+  setInterval(function() {
+    if (document.visibilityState === 'visible') {
+      sendAnalyticsPing();
     }
   }, pingInterval);
+
+  // 3. Tab switch or page exit: send final exit beacon so dwell time is captured even on single-page bounce
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+      sendExitBeacon();
+    } else if (document.visibilityState === 'visible') {
+      sendAnalyticsPing();
+    }
+  });
+
+  window.addEventListener('pagehide', sendExitBeacon);
 })();
 
 // Prompt Card Image Carousel Navigation
