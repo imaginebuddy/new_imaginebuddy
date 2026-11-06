@@ -10,9 +10,9 @@
         <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
           <i class="bi bi-stars text-warning fs-2"></i>
         </div>
-        <div class="h4 fw-bold text-dark mb-2" id="authCopyModalLabel">Sign Up to View & Copy This Prompt</div>
+        <div class="h4 fw-bold text-dark mb-2" id="authCopyModalLabel">Unlock 5 Free Prompt Copies Every Day</div>
         <p class="text-secondary small mb-4 px-2" style="line-height: 1.6;">
-          Join {{ $settings->title ?? 'ImagineBuddy' }} for free to view and copy full prompts, unlock <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} free prompt {{ (isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 1) ? 'copy' : 'copies' }} daily</strong>, and discover thousands of top-tier AI prompts.
+          You've used your 3 free prompt copies for this month. Create a free account to unlock <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 5) }} free prompt {{ (isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 1) ? 'copy' : 'copies' }} every day</strong>, studio camera parameters, and thousands of commercial AI concepts.
         </p>
 
         @php

@@ -93,6 +93,9 @@ class LoginController extends Controller
 
 			if ($this->auth->user()->status == 'active') {
         \App\Services\AnalyticsService::stitchUser($this->auth->user()->id);
+        if (class_exists('\App\Services\AnalyticsService')) {
+          \App\Services\AnalyticsService::logEvent('user_login', request()->fullUrl(), null, ['login_type' => $login_type]);
+        }
 
         // Check Two step authentication
         if ($this->auth->user()->two_factor_auth == 'yes') {

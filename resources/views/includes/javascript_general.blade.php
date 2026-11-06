@@ -83,7 +83,7 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
   @guest
     $.post(URL_BASE + '/analytics/event', { _token: '{{ csrf_token() }}', event: 'prompt_copy_attempt', image_id: id });
 
-    // Store target ID and update auth modal return URLs
+    // Store target ID and update auth modal return URLs in case quota is exhausted
     if (id) {
       sessionStorage.setItem('pending_autocopy_id', id);
       try {
@@ -94,16 +94,6 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
         $('#authCopyRegisterBtn').attr('href', URL_BASE + '/register?return=' + encodeURIComponent(returnUrl));
         $('#authCopyLoginBtn').attr('href', URL_BASE + '/login?return=' + encodeURIComponent(returnUrl));
       } catch (err) {}
-    }
-
-    if ($('#authCopyModal').length > 0) {
-      var authModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('authCopyModal'));
-      authModal.show();
-      return false;
-    } else {
-      var currentTarget = window.location.href;
-      window.location.href = URL_BASE + '/login?return=' + encodeURIComponent(currentTarget);
-      return false;
     }
   @endguest
 
@@ -128,6 +118,26 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
         }
         if (response.total_copies !== undefined) {
           $('.total-copies-stat').text(response.total_copies);
+        }
+
+        // Dynamically unblur and reveal prompt on successful copy for guest
+        if ($('#guestPromptText').length > 0 && promptText) {
+          $('#guestPromptText').html('<span class="text-dark">' + $('<div>').text(promptText).html() + '</span>');
+          $('#guestBlurFade').remove();
+        }
+
+        // When anonymous visitor reaches 0 remaining copies, transition actions to registration modal trigger
+        if (response.is_anonymous && response.remaining_copies === 0) {
+          var benefit = response.daily_limit || 5;
+          setTimeout(function() {
+            if ($('#guestActionContainer').length > 0) {
+              $('#guestActionContainer').html(
+                '<button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#authCopyModal">' +
+                '<i class="bi bi-lock-fill text-warning"></i> Monthly Limit Reached (3/3 Used) — Sign Up Free for ' + benefit + ' Daily Copies</button>' +
+                '<div class="text-center text-muted small mt-1"><i class="bi bi-stars text-warning me-1"></i> You\'ve used all 3 free monthly prompt copies. <a href="' + URL_BASE + '/register" class="text-decoration-underline text-reset fw-bold">Sign up free</a> to get <strong>' + benefit + ' prompt copies every day</strong>.</div>'
+              );
+            }
+          }, 3200);
         }
 
         var applyCopiedState = function() {
@@ -330,7 +340,8 @@ $(document).ready(function() {
   }
 });
 @endif
-@else
+@endguest
+
 $(document).ready(function() {
   var urlParams = new URLSearchParams(window.location.search);
   var autocopyParam = urlParams.get('autocopy_id') || urlParams.get('autocopy');
@@ -366,7 +377,6 @@ $(document).ready(function() {
     }
   }
 });
-@endguest
 
 $(document).on('click', '.btn-share-prompt', function(e) {
   e.preventDefault();

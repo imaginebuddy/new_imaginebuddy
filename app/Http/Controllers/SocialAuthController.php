@@ -52,6 +52,7 @@ class SocialAuthController extends Controller
 
           if (class_exists('\App\Services\AnalyticsService')) {
             \App\Services\AnalyticsService::stitchUser($user->id);
+            \App\Services\AnalyticsService::logEvent('user_login_social', request()->fullUrl(), null, ['provider' => $provider]);
           }
 
       } catch (\Exception $e) {
@@ -124,6 +125,7 @@ class SocialAuthController extends Controller
 
             if (class_exists('\App\Services\AnalyticsService')) {
                 \App\Services\AnalyticsService::stitchUser($user->id);
+                \App\Services\AnalyticsService::logEvent('user_login_social', request()->fullUrl(), null, ['provider' => 'google_onetap']);
             }
 
             return response()->json([

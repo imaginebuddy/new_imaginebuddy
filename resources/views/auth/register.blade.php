@@ -63,6 +63,9 @@
                   @endif
 
               <h3 class="login-title">{{ trans('auth.sign_up') }}</h3>
+              <div class="alert alert-light border shadow-sm text-center py-2 px-3 mb-3 small rounded-3">
+                <i class="bi bi-stars text-warning me-1"></i> Free account includes <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : ($settings->daily_limit_prompts ?? 5) }} free prompt copies every day</strong>
+              </div>
 
               <form action="{{ url('register') }}" method="post" id="signup_form">
 
@@ -71,17 +74,17 @@
                 <div class="row">
 
                   <div class="col-md-6">
-                   <div class="form-floating mb-3">
-                    <input type="text" required class="form-control" id="inputname" value="{{ old('username') }}" name="username" placeholder="{{ trans('auth.username') }}" autocomplete="off">
-                    <label for="inputname">{{ trans('auth.username') }}</label>
-                  </div>
-                  </div>
-
-                  <div class="col-md-6">
                     <div class="form-floating mb-3">
                      <input type="email" required class="form-control" id="inputemail" value="{{old('email')}}" name="email" placeholder="{{ trans('auth.email') }}" autocomplete="off">
                      <label for="inputemail">{{ trans('auth.email') }}</label>
                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                   <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="inputname" value="{{ old('username') }}" name="username" placeholder="{{ trans('auth.username') }} (Optional)" autocomplete="off">
+                    <label for="inputname">{{ trans('auth.username') }} <span class="text-muted small">(Optional)</span></label>
+                  </div>
                   </div>
 
                </div><!-- row -->
@@ -96,8 +99,8 @@
               </div>
 
               <div class="form-floating mb-3">
-               <input type="password" minlength="8" required class="form-control showHideInput" id="inputepassword2" name="password_confirmation" placeholder="{{ trans('auth.confirm_password') }}">
-               <label for="inputepassword2">{{ trans('auth.confirm_password') }}</label>
+               <input type="password" minlength="8" class="form-control showHideInput" id="inputepassword2" name="password_confirmation" placeholder="{{ trans('auth.confirm_password') }} (Optional)">
+               <label for="inputepassword2">{{ trans('auth.confirm_password') }} <span class="text-muted small">(Optional)</span></label>
              </div>
 
               <div class="form-check mb-3">

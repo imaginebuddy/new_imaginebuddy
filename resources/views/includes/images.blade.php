@@ -51,17 +51,17 @@
 				<!-- 1. Top Image Section with Badges Overlay -->
 				<div class="position-relative overflow-hidden w-100 rounded-4 prompt-card-media-wrapper" style="{{$background}} {{$aspectRatioStyle}}">
 					<!-- Top Badges Overlay -->
-					<div class="prompt-card-top-bar d-flex justify-content-between align-items-center position-absolute top-0 start-0 w-100 p-3" style="z-index: 15; pointer-events: none;">
+					<div class="prompt-card-top-bar d-flex justify-content-between align-items-center position-absolute top-0 start-0 w-100 p-2.5 p-sm-3" style="z-index: 15; pointer-events: none;">
 						<!-- Top Left Badges: Free Tag + Category/Model -->
-						<div class="d-inline-flex align-items-center gap-2 flex-wrap" style="pointer-events: auto; max-width: calc(100% - 48px);">
+						<div class="d-inline-flex align-items-center gap-1.5 flex-wrap" style="pointer-events: auto; max-width: calc(100% - 44px);">
 							@if ($image->item_for_sale == 'free')
 								<span class="badge prompt-free-badge rounded-pill shadow-sm d-inline-flex align-items-center">
 									Free
 								</span>
 							@endif
 
-							<!-- Dark Translucent Badge: Category/Model -->
-							<span class="badge text-white fw-medium rounded-pill px-3 py-2 shadow-sm text-capitalize d-inline-flex align-items-center gap-1" style="font-size: 12px; background-color: rgba(24, 43, 23, 0.85); backdrop-filter: blur(8px);">
+							<!-- Translucent Glass Badge: Category/Model -->
+							<span class="badge prompt-glass-badge rounded-pill px-2.5 py-1 text-capitalize d-inline-flex align-items-center gap-1">
 								@if ($image->item_for_sale == 'sale')
 									<i class="fa fa-crown text-warning me-1" title="Premium Prompt"></i>
 								@endif
@@ -76,9 +76,9 @@
 						</div>
 
 						<!-- Top Right White Circle: Heart Icon + Count -->
-						<div class="prompt-badge-circle fw-bold rounded-circle shadow-sm d-flex flex-column align-items-center justify-content-center" style="pointer-events: auto; width: 36px; height: 36px;">
-							<i class="bi bi-heart text-danger" style="font-size: 13px; line-height: 1;"></i>
-							<span class="small lh-1 prompt-badge-circle-text" style="font-size: 10px; font-weight: 700; margin-top: 1px;">{{ Helper::formatNumber($image->likes()->count() ?: $image->copies_count) }}</span>
+						<div class="prompt-badge-circle fw-bold rounded-circle shadow-sm d-flex flex-column align-items-center justify-content-center" style="pointer-events: auto; width: 34px; height: 34px;">
+							<i class="bi bi-heart text-danger" style="font-size: 12px; line-height: 1;"></i>
+							<span class="small lh-1 prompt-badge-circle-text" style="font-size: 9.5px; font-weight: 700; margin-top: 1px;">{{ Helper::formatNumber($image->likes()->count() ?: $image->copies_count) }}</span>
 						</div>
 					</div>
 

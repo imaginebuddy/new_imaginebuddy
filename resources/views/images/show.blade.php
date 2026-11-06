@@ -530,37 +530,66 @@
                     <span>Daily copies remaining: <strong class="text-dark remaining-copies-count">{{ auth()->user()->remainingDailyPromptCopies() }}</strong> / <span class="total-copies-limit">{{ auth()->user()->totalDailyPromptLimit() == 0 ? '∞' : auth()->user()->totalDailyPromptLimit() }}</span></span>
                   </div>
                 @endauth
+
+                @guest
+                  @php
+                    $anonQuota = app(\App\Services\AnonymousQuotaService::class);
+                    $anonRemaining = $anonQuota->remainingCopies();
+                    $anonDailyBenefit = isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : ($settings->daily_limit_prompts ?? 5);
+                  @endphp
+                  <div class="small text-muted d-inline-flex align-items-center gap-1 flex-wrap">
+                    <i class="bi bi-stars text-warning"></i>
+                    <span>Free monthly copies: <strong class="text-dark remaining-copies-count">{{ $anonRemaining }}</strong> / <span class="total-copies-limit">3</span></span>
+                    <span class="mx-1 d-none d-sm-inline">&bull;</span>
+                    <a href="{{ url('register') }}" class="text-decoration-underline text-reset fw-semibold">Sign up free for {{ $anonDailyBenefit }} copies daily</a>
+                  </div>
+                @endguest
               </div>
             </div>
           @else
             @if ($response->item_for_sale != 'sale')
               @php
+                $anonQuota = app(\App\Services\AnonymousQuotaService::class);
+                $anonRemaining = $anonQuota->remainingCopies();
+                $anonDailyBenefit = isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : ($settings->daily_limit_prompts ?? 5);
+
                 $rawPrompt = trim($response->prompt ?: $response->title);
                 $words = preg_split('/\s+/', $rawPrompt);
                 $totalWords = count($words);
-                $halfCount = max(6, (int) ceil($totalWords * 0.5));
+                $halfCount = max(6, (int) ceil($totalWords * 0.4));
                 $visibleHalf = implode(' ', array_slice($words, 0, $halfCount));
                 $remainingHalf = ($totalWords > $halfCount) ? implode(' ', array_slice($words, $halfCount)) : '';
               @endphp
-              <div class="p-4 prompt-inner-content-box position-relative mb-4 overflow-hidden rounded-4" style="min-height: 120px; cursor: pointer; border: 1.5px dashed #cbd5e1; background-color: #f8fafc;" data-bs-toggle="modal" data-bs-target="#authCopyModal">
-                <div class="text-secondary font-monospace title-custom mb-0" style="font-size: 0.95rem; line-height: 1.75; user-select: text;">
+              <div class="p-4 prompt-inner-content-box position-relative mb-4 overflow-hidden rounded-4" id="guestPromptBox" style="min-height: 120px; border: 1.5px dashed #cbd5e1; background-color: #f8fafc;" @if ($anonRemaining <= 0) data-bs-toggle="modal" data-bs-target="#authCopyModal" style="cursor: pointer;" @endif>
+                <div class="text-secondary font-monospace title-custom mb-0" id="guestPromptText" style="font-size: 0.95rem; line-height: 1.75; user-select: text;">
                   <span class="text-dark">{{ $visibleHalf }}</span>
                   @if ($remainingHalf)
-                    <span class="d-inline text-muted" style="filter: blur(5px); opacity: 0.5; user-select: none;"> {{ $remainingHalf }}</span>
+                    <span class="d-inline text-muted" id="guestBlurredPart" style="filter: blur(5.5px); opacity: 0.45; user-select: none;"> {{ $remainingHalf }}</span>
                   @endif
                 </div>
 
-                <div class="position-absolute bottom-0 start-0 w-100" style="height: 60px; background: linear-gradient(to top, rgba(248,250,252,1) 30%, rgba(248,250,252,0.6) 70%, transparent 100%); pointer-events: none;"></div>
+                <div class="position-absolute bottom-0 start-0 w-100" id="guestBlurFade" style="height: 60px; background: linear-gradient(to top, rgba(248,250,252,1) 30%, rgba(248,250,252,0.6) 70%, transparent 100%); pointer-events: none;"></div>
               </div>
 
-              <div class="d-flex flex-column gap-2">
-                <button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#authCopyModal">
-                  <i class="bi bi-unlock-fill text-warning"></i> Sign Up to View & Copy Full Prompt (Free)
-                </button>
-                <div class="text-center text-muted small mt-1">
-                  <i class="bi bi-stars text-warning me-1"></i> Free sign up gives you <strong>{{ isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 0 ? strtolower(trans('admin.unlimited')) : (isset($settings->daily_limit_prompts) ? $settings->daily_limit_prompts : 10) }} free prompt {{ (isset($settings->daily_limit_prompts) && $settings->daily_limit_prompts == 1) ? 'copy' : 'copies' }} daily</strong>
+              @if ($anonRemaining > 0)
+                <div class="d-flex flex-column gap-2" id="guestActionContainer">
+                  <button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2 btn-copy-prompt" data-id="{{ $response->id }}">
+                    <i class="bi bi-copy"></i> Copy Full Prompt ({{ $anonRemaining }} of 3 Free Monthly Copies Left)
+                  </button>
+                  <div class="text-center text-muted small mt-1">
+                    <i class="bi bi-stars text-warning me-1"></i> Sign up free to unlock <strong>{{ $anonDailyBenefit }} prompt copies every day</strong>
+                  </div>
                 </div>
-              </div>
+              @else
+                <div class="d-flex flex-column gap-2">
+                  <button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#authCopyModal">
+                    <i class="bi bi-lock-fill text-warning"></i> Monthly Limit Reached (3/3 Used) — Sign Up Free for {{ $anonDailyBenefit }} Daily Copies
+                  </button>
+                  <div class="text-center text-muted small mt-1">
+                    <i class="bi bi-stars text-warning me-1"></i> You've used all 3 free monthly prompt copies. <a href="{{ url('register') }}" class="text-decoration-underline text-reset fw-bold">Sign up free</a> to get <strong>{{ $anonDailyBenefit }} prompt copies every day</strong>.
+                  </div>
+                </div>
+              @endif
             @else
               <div class="p-4 prompt-inner-content-box position-relative mb-4 text-center overflow-hidden" style="min-height: 140px;">
                 <p class="mb-0 text-secondary font-monospace title-custom" style="filter: blur(6px); user-select: none;">

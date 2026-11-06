@@ -887,9 +887,52 @@ var thanks = "{{ __('misc.thanks') }}";
   background-color: #ffffff !important;
 }
 
+.prompt-card-top-bar {
+  opacity: 0.88;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.prompt-card-item:hover .prompt-card-top-bar,
+.guide-prompt-card-wrapper:hover .prompt-card-top-bar {
+  opacity: 1;
+}
+
+.prompt-glass-badge {
+  font-size: 11px;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  background-color: rgba(15, 23, 42, 0.42) !important;
+  backdrop-filter: blur(10px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45) !important;
+  letter-spacing: 0.2px !important;
+  line-height: 1.2 !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.prompt-card-item:hover .prompt-glass-badge,
+.guide-prompt-card-wrapper:hover .prompt-glass-badge,
+.photoshoot-card:hover .prompt-glass-badge,
+.lookbook-hero-preview:hover .prompt-glass-badge {
+  background-color: rgba(15, 23, 42, 0.65) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
 .prompt-badge-circle {
-  background-color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   color: #1e293b !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.prompt-badge-circle:hover {
+  background-color: #ffffff !important;
+  transform: scale(1.05);
 }
 
 .prompt-badge-circle-text {
@@ -897,16 +940,18 @@ var thanks = "{{ __('misc.thanks') }}";
 }
 
 .prompt-free-badge {
-  background-color: #00b87c !important;
+  background-color: rgba(0, 184, 124, 0.88) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
   letter-spacing: 0.5px !important;
-  padding: 5px 11px !important;
+  padding: 4px 9px !important;
   line-height: 1.2 !important;
-  box-shadow: 0 2px 8px rgba(0, 184, 124, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 184, 124, 0.35) !important;
   text-transform: uppercase !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 .prompt-card-title,

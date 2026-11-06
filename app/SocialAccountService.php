@@ -134,6 +134,13 @@ class SocialAccountService
         }
       }
 
+      // Dispatch Day 0 Welcome Email for newly registered OAuth user
+      try {
+        $user->notify(new \App\Notifications\WelcomeNewUserNotification());
+      } catch (\Throwable $e) {
+        \Log::warning('Could not dispatch welcome notification on social auth: ' . $e->getMessage());
+      }
+
       return $user;
     }
 }

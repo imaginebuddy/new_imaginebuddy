@@ -89,6 +89,11 @@ class RegisterController extends Controller
      	$settings = AdminSettings::first();
 
 		if ($settings->registration_active == '1')	{
+			if (class_exists('\App\Services\AnalyticsService')) {
+				\App\Services\AnalyticsService::logEvent('register_page_view', request()->fullUrl(), null, [
+					'referrer' => request()->header('referer')
+				]);
+			}
 			return view('auth.register');
 		} else {
 			return redirect('/');
@@ -169,6 +174,27 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $settings = AdminSettings::first();
+
+        // Auto-generate username from email if not explicitly provided
+        if (!$request->filled('username') && $request->filled('email')) {
+            $emailParts = explode('@', $request->input('email'));
+            $base = preg_replace('/[^a-zA-Z0-9]/', '', $emailParts[0]);
+            $base = substr($base, 0, 9);
+            if (strlen($base) < 3) {
+                $base = 'user' . strtolower(Helper::strRandom(3));
+            }
+            $cleanUsername = $base . '_' . strtolower(Helper::strRandom(4));
+            while (User::whereUsername($cleanUsername)->exists() || \App\Models\Pages::whereSlug($cleanUsername)->exists()) {
+                $cleanUsername = $base . '_' . strtolower(Helper::strRandom(4));
+            }
+            $request->merge(['username' => $cleanUsername]);
+        }
+
+        // Auto-populate password confirmation if single password field is submitted
+        if (!$request->filled('password_confirmation') && $request->filled('password')) {
+            $request->merge(['password_confirmation' => $request->input('password')]);
+        }
+
         $this->validator($request->all())->validate();
 
         event(new Registered($user = $this->create($request->all())));
@@ -198,6 +224,13 @@ class RegisterController extends Controller
 
         } else {
             $this->guard()->login($user);
+
+            try {
+                $user->notify(new \App\Notifications\WelcomeNewUserNotification());
+            } catch (\Throwable $e) {
+                \Log::warning('Could not dispatch welcome notification on register: ' . $e->getMessage());
+            }
+
             $urlReturn = $request->input('_url');
             if (isset($urlReturn) && url()->isValidUrl($urlReturn) && Helper::checkSourceURL($urlReturn)) {
               return redirect($urlReturn);

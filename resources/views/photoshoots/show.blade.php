@@ -144,7 +144,7 @@
                     @if ($hSrc0)
                       <a href="{{ $hImg0 ? url('prompt', $hImg0->slug) : '#prompts-grid' }}" class="d-block w-100 h-100 position-relative">
                         <img class="img-collection" src="{{ $hSrc0 }}" alt="{{ $photoshoot->title }} - Primary Shot" loading="eager">
-                        <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-1 position-absolute top-0 start-0 m-2 text-uppercase fw-semibold shadow-xs" style="font-size: 0.65rem; backdrop-filter: blur(4px);">
+                        <span class="badge prompt-glass-badge rounded-pill px-2 py-1 position-absolute top-0 start-0 m-2 text-uppercase fw-semibold shadow-xs" style="font-size: 0.65rem;">
                           Hero Packshot
                         </span>
                       </a>
@@ -156,7 +156,7 @@
                       @if ($hSrc1)
                         <a href="{{ $hImg1 ? url('prompt', $hImg1->slug) : '#prompts-grid' }}" class="d-block w-100 h-100 position-relative">
                           <img class="img-collection" src="{{ $hSrc1 }}" alt="{{ $photoshoot->title }} - Angle 2" loading="eager">
-                          <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-1 position-absolute top-0 start-0 m-2 text-uppercase fw-semibold shadow-xs" style="font-size: 0.65rem; backdrop-filter: blur(4px);">
+                          <span class="badge prompt-glass-badge rounded-pill px-2 py-1 position-absolute top-0 start-0 m-2 text-uppercase fw-semibold shadow-xs" style="font-size: 0.65rem;">
                             Angle 2
                           </span>
                         </a>
@@ -167,7 +167,7 @@
                       @if ($hSrc2)
                         <a href="{{ $hImg2 ? url('prompt', $hImg2->slug) : '#prompts-grid' }}" class="d-block w-100 h-100 position-relative">
                           <img class="img-collection" src="{{ $hSrc2 }}" alt="{{ $photoshoot->title }} - Angle 3" loading="eager">
-                          <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-1 position-absolute top-0 start-0 m-2 text-uppercase fw-semibold shadow-xs" style="font-size: 0.65rem; backdrop-filter: blur(4px);">
+                          <span class="badge prompt-glass-badge rounded-pill px-2 py-1 position-absolute top-0 start-0 m-2 text-uppercase fw-semibold shadow-xs" style="font-size: 0.65rem;">
                             Angle 3
                           </span>
                         </a>

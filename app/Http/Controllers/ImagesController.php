@@ -1093,15 +1093,82 @@ class ImagesController extends Controller
 
 	public function copyPrompt(Request $request, $id)
 	{
+		$image = Images::findOrFail($id);
+
+		// Handle Anonymous (Non-Logged-In) Visitors
 		if (!auth()->check()) {
+			// 1. Premium prompt check: premium prompts require a subscription
+			if ($image->item_for_sale == 'sale') {
+				return response()->json([
+					'success' => false,
+					'message' => __('misc.premium_prompt_requires_subscription') ?: 'Upgrade your plan to copy premium prompts.',
+					'require_subscription' => true,
+					'require_login' => true,
+				], 403);
+			}
+
+			// 2. Anonymous Quota Check (Hard-set 3 copies per calendar month)
+			$quotaService = app(\App\Services\AnonymousQuotaService::class);
+			$monthlyLimit = \App\Services\AnonymousQuotaService::MONTHLY_LIMIT; // 3
+			$used = $quotaService->getMonthlyUsed();
+			$dailyFreeLimit = $this->settings->daily_limit_prompts ?? 5;
+
+			if ($used >= $monthlyLimit) {
+				if (class_exists('\App\Services\AnalyticsService')) {
+					\App\Services\AnalyticsService::logEvent('prompt_copy_anon_exhausted', request()->fullUrl(), $image->id, [
+						'monthly_used' => $used,
+						'monthly_limit' => $monthlyLimit,
+					]);
+				}
+
+				return response()->json([
+					'success' => false,
+					'title' => "Monthly Free Limit Reached ($used/$monthlyLimit Used)",
+					'message' => "You have used all $monthlyLimit of your free prompt copies for this month. Create a free account to unlock $dailyFreeLimit free prompt copies every day!",
+					'limit_reached' => true,
+					'require_registration' => true,
+					'require_login' => true,
+					'copies_used' => $used,
+					'total_limit' => $monthlyLimit,
+					'daily_limit' => $dailyFreeLimit,
+					'is_anonymous' => true,
+				], 403);
+			}
+
+			// 3. Debounced copy check (within 10 seconds for same image by same visitor)
+			if (!$quotaService->isDebouncedDuplicate($image->id)) {
+				$quotaService->recordCopy($image->id);
+				$image->increment('copies_count');
+
+				// Log analytics event
+				if (class_exists('\App\Services\AnalyticsService')) {
+					\App\Services\AnalyticsService::logEvent('prompt_copy_anonymous', request()->fullUrl(), $image->id, [
+						'prompt_title' => $image->title,
+						'ai_model' => $image->ai_model,
+						'tier' => $image->item_for_sale,
+						'monthly_used' => $used + 1,
+						'monthly_limit' => $monthlyLimit,
+					]);
+				}
+			}
+
+			$remaining = max(0, $monthlyLimit - ($used + 1));
+
 			return response()->json([
-				'success' => false,
-				'message' => __('misc.login_to_copy_prompt') ?: 'Please log in to copy this prompt.',
-				'require_login' => true
-			], 401);
+				'success' => true,
+				'prompt' => $image->prompt ?: $image->title,
+				'remaining_copies' => $remaining,
+				'total_limit' => $monthlyLimit,
+				'copies_used' => $used + 1,
+				'total_copies' => $image->totalPromptCopies(),
+				'is_anonymous' => true,
+				'daily_limit' => $dailyFreeLimit,
+				'message' => $remaining > 0
+					? "Prompt copied! ($remaining free monthly copies left. Sign up free for $dailyFreeLimit copies daily)"
+					: "Prompt copied! (Last free monthly copy used. Create a free account for $dailyFreeLimit copies every day)"
+			]);
 		}
 
-		$image = Images::findOrFail($id);
 		$user = auth()->user();
 
 		if (!$user->canCopyPrompt($image)) {

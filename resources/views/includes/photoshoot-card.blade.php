@@ -53,23 +53,22 @@
           </div>
         </div><!-- grid-collection -->
       </div><!-- wrap-collection -->
-
-      <div class="position-absolute top-0 end-0 m-3" style="z-index: 5;">
-        <span class="badge bg-dark text-white rounded-pill px-3 py-2 fw-semibold shadow-sm" style="background-color: rgba(0,0,0,0.75) !important; font-size: 0.78rem;">
-          <i class="bi bi-images me-1 text-mint"></i> {{ $promptCount }} {{ str_plural('Prompt', $promptCount) }}
-        </span>
-      </div>
     </a>
 
     <div class="card-body p-4 d-flex flex-column justify-content-between">
       <div>
-        @if ($categoryObj)
-          <div class="mb-2">
+        <div class="mb-2 d-flex align-items-center flex-wrap gap-2">
+          @if ($categoryObj)
             <a href="{{ url('photoshoots') }}?category={{ $categoryObj->slug }}" class="badge bg-subtle-custom text-secondary border border-custom text-decoration-none rounded-pill px-3 py-1 fw-normal" style="font-size: 0.78rem;">
               {{ $categoryObj->name }}
             </a>
-          </div>
-        @endif
+          @endif
+
+          <span class="badge bg-subtle-custom text-secondary border border-custom rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style="font-size: 0.78rem; gap: 5px;">
+            <i class="bi bi-images text-mint" style="font-size: 11px;"></i>
+            <span>{{ $promptCount }} {{ str_plural('Prompt', $promptCount) }}</span>
+          </span>
+        </div>
 
         <h2 class="fw-bold mb-2 photoshoot-card-title text-break h5" style="line-height: 1.35;">
           <a href="{{ url('photoshoots', $photoshoot->slug) }}" class="text-dark title-custom text-decoration-none photoshoot-title">

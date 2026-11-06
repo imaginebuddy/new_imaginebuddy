@@ -114,9 +114,17 @@
             </ul><!-- End Nav -->
 
                 @guest
-                  <a class="btn btn-custom ms-2 animate-up-2 d-none d-lg-block" href="{{ url('login') }}">
-                  <strong>{{ __('auth.login') }}</strong>
-                  </a>
+                  @php
+                    $dailyFreeLimit = $settings->daily_limit_prompts ?? 5;
+                  @endphp
+                  <div class="d-none d-lg-flex align-items-center ms-auto flex-shrink-0">
+                    <a class="nav-link link-dark px-3 fw-semibold text-nowrap" href="{{ url('login') }}">
+                      {{ __('auth.login') }}
+                    </a>
+                    <a class="btn btn-custom btn-sm rounded-pill px-3 py-2 ms-1 animate-up-2 text-nowrap fw-bold shadow-sm" href="{{ url('register') }}" style="white-space: nowrap; flex-shrink: 0; line-height: 1.2;">
+                      Get {{ $dailyFreeLimit }} Free Prompts Daily
+                    </a>
+                  </div>
                 @endguest
 
 
@@ -248,9 +256,15 @@
             </div>
 
           @guest
+            @php
+              $dailyFreeLimit = $settings->daily_limit_prompts ?? 5;
+            @endphp
             <li class="p-3 w-100">
-              <a href="{{ url('login') }}" class="btn btn-custom d-block w-100 animate-up-2" title="{{ __('auth.login') }}">
-                <strong>{{ __('auth.login') }}</strong>
+              <a href="{{ url('register') }}" class="btn btn-custom d-block w-100 py-2.5 fw-bold mb-2 shadow-sm animate-up-2">
+                <i class="bi bi-stars text-warning me-1"></i> Get {{ $dailyFreeLimit }} Free Prompts Daily
+              </a>
+              <a href="{{ url('login') }}" class="btn btn-outline-dark d-block w-100 py-2 fw-semibold" title="{{ __('auth.login') }}">
+                {{ __('auth.login') }}
               </a>
             </li>
           @endguest

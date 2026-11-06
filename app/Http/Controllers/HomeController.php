@@ -118,6 +118,17 @@ class HomeController extends Controller
 
         Auth::loginUsingId($user->id);
 
+        if (class_exists('\App\Services\AnalyticsService')) {
+          \App\Services\AnalyticsService::stitchUser($user->id);
+          \App\Services\AnalyticsService::logEvent('email_verify_success', request()->fullUrl(), null, ['user_id' => $user->id]);
+        }
+
+        try {
+          $user->notify(new \App\Notifications\WelcomeNewUserNotification());
+        } catch (\Throwable $e) {
+          \Log::warning('Could not dispatch welcome notification on verify: ' . $e->getMessage());
+        }
+
         return redirect('/')
           ->with([
             'success_verify' => true,
