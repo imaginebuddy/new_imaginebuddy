@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SeoLandingPage;
+use App\Models\WebsitePageSetting;
 use App\Models\Categories;
 use App\Models\Testimonial;
 use App\Helper;
@@ -82,7 +83,11 @@ class CmsPageController extends Controller
 
         $config = $this->verticalConfigs[$prefix];
 
-        // Check if there is an explicit admin-managed Hub record
+        // Retrieve centralized website page setting for this hub
+        $settingKey = str_replace('-', '_', $prefix);
+        $pageSetting = WebsitePageSetting::getByKey($settingKey);
+
+        // Check if there is an explicit admin-managed Hub record (legacy or fallback)
         $hubRecord = SeoLandingPage::where('page_type', 'hub')
             ->where('route_prefix', $prefix)
             ->first();
@@ -108,11 +113,34 @@ class CmsPageController extends Controller
             ];
         }
 
-        $title = $hubRecord?->title ?: $config['title'];
-        $subtitle = $hubRecord?->excerpt ?: $config['subtitle'];
-        $badge = $hubRecord?->header_badge ?: $config['badge'];
-        $metaTitle = $hubRecord?->meta_title ?: $config['meta_title'];
-        $metaDescription = $hubRecord?->meta_description ?: $config['meta_description'];
+        // Hero Content
+        $title = $pageSetting->page_title ?: ($hubRecord?->title ?: $config['title']);
+        $subtitle = $pageSetting->subtitle ?: ($hubRecord?->excerpt ?: $config['subtitle']);
+        $badge = $pageSetting->getExtra('hero_badge', $hubRecord?->header_badge ?: $config['badge']);
+        $heroCtaText = $pageSetting->getExtra('hero_cta_text', 'Explore Solutions');
+        $heroCtaUrl = $pageSetting->getExtra('hero_cta_url', '#catalog');
+
+        // Catalog Grid Content
+        $gridBadge = $pageSetting->getExtra('grid_badge', 'CATALOG');
+        $gridHeading = $pageSetting->getExtra('grid_heading', 'All ' . $config['plural']);
+        $gridSubheading = $pageSetting->getExtra('grid_subheading', 'Browse specialized ' . strtolower($config['name']) . ' workflows and production-ready photography guides.');
+
+        // Social Proof Content
+        $socialProofBadge = $pageSetting->getExtra('social_proof_badge', 'TRUSTED BY 500+ D2C BRANDS & AGENCIES');
+
+        // Bottom CTA Banner Content
+        $ctaBadge = $pageSetting->getExtra('cta_badge', 'GET STARTED');
+        $ctaHeading = $pageSetting->getExtra('cta_heading', 'Scale Your Product Visuals with AI');
+        $ctaSubheading = $pageSetting->getExtra('cta_subheading', 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.');
+        $ctaBtnText = $pageSetting->getExtra('cta_btn_text', 'Create Free Account');
+        $ctaBtnUrl = $pageSetting->getExtra('cta_btn_url', url('register'));
+        $ctaSecondaryBtnText = $pageSetting->getExtra('cta_secondary_btn_text', 'View Pricing Plans');
+        $ctaSecondaryBtnUrl = $pageSetting->getExtra('cta_secondary_btn_url', url('pricing'));
+
+        // SEO Metadata
+        $metaTitle = $pageSetting->seo_title ?: ($hubRecord?->meta_title ?: $config['meta_title']);
+        $metaDescription = $pageSetting->meta_description ?: ($hubRecord?->meta_description ?: $config['meta_description']);
+        $metaKeywords = $pageSetting->meta_keywords ?: ($hubRecord?->meta_keywords ?? '');
 
         // Inject SEO into the application service
         if (class_exists(Helper::class) && method_exists(Helper::class, 'seo')) {
@@ -126,12 +154,24 @@ class CmsPageController extends Controller
             'title' => $title,
             'subtitle' => $subtitle,
             'badge' => $badge,
+            'heroCtaText' => $heroCtaText,
+            'heroCtaUrl' => $heroCtaUrl,
+            'gridBadge' => $gridBadge,
+            'gridHeading' => $gridHeading,
+            'gridSubheading' => $gridSubheading,
+            'socialProofBadge' => $socialProofBadge,
+            'ctaBadge' => $ctaBadge,
+            'ctaHeading' => $ctaHeading,
+            'ctaSubheading' => $ctaSubheading,
+            'ctaBtnText' => $ctaBtnText,
+            'ctaBtnUrl' => $ctaBtnUrl,
+            'ctaSecondaryBtnText' => $ctaSecondaryBtnText,
+            'ctaSecondaryBtnUrl' => $ctaSecondaryBtnUrl,
             'metaTitle' => $metaTitle,
             'metaDescription' => $metaDescription,
+            'metaKeywords' => $metaKeywords,
             'filterPills' => $filterPills,
             'items' => $items,
-            'gridHeading' => 'All ' . $config['plural'],
-            'gridSubheading' => 'Browse specialized ' . strtolower($config['name']) . ' workflows and production-ready photography guides.',
         ]);
     }
 

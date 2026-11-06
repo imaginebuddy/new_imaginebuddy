@@ -20,9 +20,15 @@
           <a href="{{ $ctaUrl ?? url('register') }}" class="btn-cms-primary">
             {{ $ctaText ?? 'Start Free Trial' }} <i class="bi bi-arrow-right"></i>
           </a>
-          <a href="{{ url('pricing') }}" class="btn-cms-secondary" style="border-color: rgba(255,255,255,0.25); color: #ffffff !important;">
-            View Pricing Plans <i class="bi bi-tag"></i>
-          </a>
+          @php
+            $secText = $ctaSecondaryText ?? ($secondaryCtaText ?? 'View Pricing Plans');
+            $secUrl = $ctaSecondaryUrl ?? ($secondaryCtaUrl ?? url('pricing'));
+          @endphp
+          @if (!empty($secText))
+            <a href="{{ $secUrl }}" class="btn-cms-secondary" style="border-color: rgba(255,255,255,0.25); color: #ffffff !important;">
+              {{ $secText }} <i class="bi bi-tag"></i>
+            </a>
+          @endif
         </div>
       </div>
     </div>

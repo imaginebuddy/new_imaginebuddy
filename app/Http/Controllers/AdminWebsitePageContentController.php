@@ -49,6 +49,12 @@ class AdminWebsitePageContentController extends Controller
             'most_downloads',
             'most_copied',
             'pricing',
+            'marketplace',
+            'use_case',
+            'industry',
+            'product',
+            'garment',
+            'platform_ai_ads',
         ];
 
         $pages = [];
@@ -124,6 +130,8 @@ class AdminWebsitePageContentController extends Controller
     {
         $this->checkPermission();
 
+        $key = str_replace('-', '_', $key);
+
         $allowedKeys = [
             'ai_models',
             'photoshoots',
@@ -135,6 +143,12 @@ class AdminWebsitePageContentController extends Controller
             'most_downloads',
             'most_copied',
             'pricing',
+            'marketplace',
+            'use_case',
+            'industry',
+            'product',
+            'garment',
+            'platform_ai_ads',
         ];
 
         if (!in_array($key, $allowedKeys)) {

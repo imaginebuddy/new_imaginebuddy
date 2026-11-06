@@ -88,6 +88,36 @@
                                 <i class="bi bi-briefcase me-1"></i> 12. Hire Page
                             </button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @if($activeTab === 'marketplace') active @endif" id="tab-marketplace-tab" data-bs-toggle="pill" data-bs-target="#tab-marketplace" type="button" role="tab">
+                                <i class="bi bi-shop me-1"></i> 13. Marketplace
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @if($activeTab === 'use_case' || $activeTab === 'use-case') active @endif" id="tab-use-case-tab" data-bs-toggle="pill" data-bs-target="#tab-use-case" type="button" role="tab">
+                                <i class="bi bi-bullseye me-1"></i> 14. Use Case
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @if($activeTab === 'industry') active @endif" id="tab-industry-tab" data-bs-toggle="pill" data-bs-target="#tab-industry" type="button" role="tab">
+                                <i class="bi bi-building me-1"></i> 15. Industry
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @if($activeTab === 'product') active @endif" id="tab-product-tab" data-bs-toggle="pill" data-bs-target="#tab-product" type="button" role="tab">
+                                <i class="bi bi-box-seam me-1"></i> 16. Product
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @if($activeTab === 'garment') active @endif" id="tab-garment-tab" data-bs-toggle="pill" data-bs-target="#tab-garment" type="button" role="tab">
+                                <i class="bi bi-person-standing me-1"></i> 17. Garment
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @if($activeTab === 'platform_ai_ads' || $activeTab === 'platform-ai-ads') active @endif" id="tab-platform-ai-ads-tab" data-bs-toggle="pill" data-bs-target="#tab-platform-ai-ads" type="button" role="tab">
+                                <i class="bi bi-badge-ad me-1"></i> 18. Platform AI Ads
+                            </button>
+                        </li>
                     </ul>
 
                     <div class="tab-content" id="pageSettingsTabContent">
@@ -579,7 +609,244 @@
                             </div>
                         </div>
 
-                    </div><!-- tab-content -->
+                        {{-- ======================================================== --}}
+                        {{-- 13 to 18: CMS HUBS CONTENT SETTINGS (Marketplace, Use Case, Industry, Product, Garment, Platform AI Ads) --}}
+                        {{-- ======================================================== --}}
+                        @php
+                            $hubCmsPages = [
+                                'marketplace' => [
+                                    'title' => 'Marketplace Content Settings',
+                                    'target_url' => url('marketplace'),
+                                    'tab_id' => 'tab-marketplace',
+                                    'icon' => 'bi-shop',
+                                ],
+                                'use_case' => [
+                                    'title' => 'Use Case Content Settings',
+                                    'target_url' => url('use-case'),
+                                    'tab_id' => 'tab-use-case',
+                                    'icon' => 'bi-bullseye',
+                                ],
+                                'industry' => [
+                                    'title' => 'Industry Content Settings',
+                                    'target_url' => url('industry'),
+                                    'tab_id' => 'tab-industry',
+                                    'icon' => 'bi-building',
+                                ],
+                                'product' => [
+                                    'title' => 'Product Content Settings',
+                                    'target_url' => url('product'),
+                                    'tab_id' => 'tab-product',
+                                    'icon' => 'bi-box-seam',
+                                ],
+                                'garment' => [
+                                    'title' => 'Garment Content Settings',
+                                    'target_url' => url('garment'),
+                                    'tab_id' => 'tab-garment',
+                                    'icon' => 'bi-person-standing',
+                                ],
+                                'platform_ai_ads' => [
+                                    'title' => 'Platform AI Ads Content Settings',
+                                    'target_url' => url('platform-ai-ads'),
+                                    'tab_id' => 'tab-platform-ai-ads',
+                                    'icon' => 'bi-badge-ad',
+                                ],
+                            ];
+                        @endphp
+
+                        @foreach ($hubCmsPages as $hubKey => $hubMeta)
+                        <div class="tab-pane fade @if($activeTab === $hubKey || $activeTab === str_replace('_', '-', $hubKey)) show active @endif" id="{{ $hubMeta['tab_id'] }}" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                                <div>
+                                    <h6 class="fw-bold mb-1"><i class="bi {{ $hubMeta['icon'] }} me-1 text-primary"></i> {{ $hubMeta['title'] }}</h6>
+                                    <small class="text-muted">Target live URL: <code>{{ $hubMeta['target_url'] }}</code></small>
+                                </div>
+                                <a href="{{ $hubMeta['target_url'] }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Preview Live Page
+                                </a>
+                            </div>
+
+                            <form method="POST" action="{{ url('panel/admin/website-pages-content/update', $hubKey) }}">
+                                @csrf
+
+                                {{-- Section 1: Hero Section --}}
+                                <div class="bg-light p-3 rounded mb-4 border">
+                                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-stars me-1 text-primary"></i> 1. Hero Section</h6>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Eyebrow Badge</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="extra_data[hero_badge]" class="form-control" value="{{ old('extra_data.hero_badge', $pages[$hubKey]->getExtra('hero_badge')) }}">
+                                            <small class="text-muted">Small pill badge above the hero title (e.g. <code>COMPLIANCE GUARANTEED</code>).</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Hero Heading (H1)</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="page_title" class="form-control" value="{{ old('page_title', $pages[$hubKey]->page_title) }}">
+                                            <small class="text-muted">HTML tags allowed, e.g. <code>&lt;span class="cms-heading-gradient-mint"&gt;Highlighted Text&lt;/span&gt;</code></small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Hero Description</label>
+                                        <div class="col-sm-10">
+                                            <textarea name="subtitle" class="form-control" rows="3">{{ old('subtitle', $pages[$hubKey]->subtitle) }}</textarea>
+                                            <small class="text-muted">Subheading paragraph directly below the main hero heading.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Primary CTA Button</label>
+                                        <div class="col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-fonts"></i></span>
+                                                <input type="text" name="extra_data[hero_cta_text]" class="form-control" placeholder="Button Label (e.g. Explore Solutions)" value="{{ old('extra_data.hero_cta_text', $pages[$hubKey]->getExtra('hero_cta_text', 'Explore Solutions')) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                                <input type="text" name="extra_data[hero_cta_url]" class="form-control" placeholder="Button URL / Anchor (e.g. #catalog)" value="{{ old('extra_data.hero_cta_url', $pages[$hubKey]->getExtra('hero_cta_url', '#catalog')) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Section 2: Catalog / Directory Grid --}}
+                                <div class="bg-light p-3 rounded mb-4 border">
+                                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-grid-3x3-gap me-1 text-primary"></i> 2. Solutions Directory Grid Section</h6>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Grid Badge</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="extra_data[grid_badge]" class="form-control" value="{{ old('extra_data.grid_badge', $pages[$hubKey]->getExtra('grid_badge', 'CATALOG')) }}">
+                                            <small class="text-muted">Small pill badge above the catalog heading (e.g. <code>CATALOG</code>).</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Grid Heading (H2)</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="extra_data[grid_heading]" class="form-control" value="{{ old('extra_data.grid_heading', $pages[$hubKey]->getExtra('grid_heading')) }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Grid Description</label>
+                                        <div class="col-sm-10">
+                                            <textarea name="extra_data[grid_subheading]" class="form-control" rows="2">{{ old('extra_data.grid_subheading', $pages[$hubKey]->getExtra('grid_subheading')) }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Section 3: Social Proof / Client Logos --}}
+                                <div class="bg-light p-3 rounded mb-4 border">
+                                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-patch-check me-1 text-primary"></i> 3. Client Logos & Social Proof Section</h6>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Social Proof Badge</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="extra_data[social_proof_badge]" class="form-control" value="{{ old('extra_data.social_proof_badge', $pages[$hubKey]->getExtra('social_proof_badge', 'TRUSTED BY 500+ D2C BRANDS & AGENCIES')) }}">
+                                            <small class="text-muted">Badge text displayed directly above the client brand logos slider.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Section 4: Bottom CTA Banner --}}
+                                <div class="bg-light p-3 rounded mb-4 border">
+                                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-rocket-takeoff me-1 text-primary"></i> 4. Bottom Floating CTA Banner Section</h6>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">CTA Eyebrow Badge</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="extra_data[cta_badge]" class="form-control" value="{{ old('extra_data.cta_badge', $pages[$hubKey]->getExtra('cta_badge', 'GET STARTED')) }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">CTA Heading (H2)</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="extra_data[cta_heading]" class="form-control" value="{{ old('extra_data.cta_heading', $pages[$hubKey]->getExtra('cta_heading', 'Scale Your Product Visuals with AI')) }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">CTA Description</label>
+                                        <div class="col-sm-10">
+                                            <textarea name="extra_data[cta_subheading]" class="form-control" rows="2">{{ old('extra_data.cta_subheading', $pages[$hubKey]->getExtra('cta_subheading', 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.')) }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Primary Button</label>
+                                        <div class="col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-fonts"></i></span>
+                                                <input type="text" name="extra_data[cta_btn_text]" class="form-control" placeholder="Label (e.g. Create Free Account)" value="{{ old('extra_data.cta_btn_text', $pages[$hubKey]->getExtra('cta_btn_text', 'Create Free Account')) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                                <input type="text" name="extra_data[cta_btn_url]" class="form-control" placeholder="URL (e.g. https://... or register)" value="{{ old('extra_data.cta_btn_url', $pages[$hubKey]->getExtra('cta_btn_url', url('register'))) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Secondary Button</label>
+                                        <div class="col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-fonts"></i></span>
+                                                <input type="text" name="extra_data[cta_secondary_btn_text]" class="form-control" placeholder="Label (e.g. View Pricing Plans)" value="{{ old('extra_data.cta_secondary_btn_text', $pages[$hubKey]->getExtra('cta_secondary_btn_text', 'View Pricing Plans')) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                                <input type="text" name="extra_data[cta_secondary_btn_url]" class="form-control" placeholder="URL (e.g. https://... or pricing)" value="{{ old('extra_data.cta_secondary_btn_url', $pages[$hubKey]->getExtra('cta_secondary_btn_url', url('pricing'))) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Section 5: SEO & Social Metadata --}}
+                                <div class="bg-light p-3 rounded mb-4 border">
+                                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-search me-1 text-primary"></i> 5. SEO & Social Metadata</h6>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Title (SEO)</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="seo_title" class="form-control" value="{{ old('seo_title', $pages[$hubKey]->seo_title) }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Keywords (SEO)</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" name="meta_keywords" class="form-control" value="{{ old('meta_keywords', $pages[$hubKey]->meta_keywords) }}">
+                                            <small class="text-muted">Comma-separated keywords.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-2 col-form-label text-lg-end">Description (SEO)</label>
+                                        <div class="col-sm-10">
+                                            <textarea name="meta_description" class="form-control" rows="3">{{ old('meta_description', $pages[$hubKey]->meta_description) }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-10 offset-sm-2">
+                                        <button type="submit" class="btn btn-dark px-4"><i class="bi bi-check2-circle me-1"></i> Save {{ $hubMeta['title'] }}</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        @endforeach
+                    </div>
                 </div><!-- card-body -->
             </div><!-- card -->
         </div><!-- col-lg-12 -->

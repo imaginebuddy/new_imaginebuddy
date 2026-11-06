@@ -126,9 +126,148 @@ class WebsitePageSetting extends Model
                     'cta_guarantee' => 'Cancel anytime with one click. No questions asked.',
                 ],
             ],
+            'marketplace' => [
+                'page_title' => 'Marketplace-Ready <span class="cms-heading-gradient-mint">Product Photos</span>',
+                'subtitle' => 'Automate strict marketplace compliance: pure white RGB 255 backgrounds, 85%+ frame fill, high-res zoom, and zero catalog suppressions.',
+                'seo_title' => 'Marketplace Compliance Product Photography - ' . $siteTitle,
+                'meta_description' => 'Guaranteed compliance imagery for Amazon, Ajio, Blinkit, Etsy, Myntra, and Meta Shop. Avoid suppressions with instant AI generation.',
+                'meta_keywords' => 'marketplace product photos, amazon product photography, ajio photography, blinkit compliance, etsy product photos, ecommerce packshots, white background ai',
+                'extra_data' => [
+                    'hero_badge' => 'COMPLIANCE GUARANTEED',
+                    'hero_cta_text' => 'Explore Solutions',
+                    'hero_cta_url' => '#catalog',
+                    'grid_badge' => 'CATALOG',
+                    'grid_heading' => 'All Marketplace Listings',
+                    'grid_subheading' => 'Browse specialized marketplace workflows and production-ready photography guides.',
+                    'social_proof_badge' => 'TRUSTED BY 500+ D2C BRANDS & AGENCIES',
+                    'cta_badge' => 'GET STARTED',
+                    'cta_heading' => 'Scale Your Product Visuals with AI',
+                    'cta_subheading' => 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.',
+                    'cta_btn_text' => 'Create Free Account',
+                    'cta_btn_url' => url('register'),
+                    'cta_secondary_btn_text' => 'View Pricing Plans',
+                    'cta_secondary_btn_url' => url('pricing'),
+                ],
+            ],
+            'use_case' => [
+                'page_title' => 'Transform Your <span class="cms-heading-gradient-mint">Product Imagery</span>',
+                'subtitle' => "Discover how Imagine Buddy's AI-powered tools format, optimize, and customize your product photos for e-commerce platforms, social media, and beyond.",
+                'seo_title' => 'AI Product Photography Use Cases - ' . $siteTitle,
+                'meta_description' => 'Explore AI product photography use cases for D2C brands, bulk e-commerce cataloging, boutique shoots, background removal, and campaign visuals.',
+                'meta_keywords' => 'ai product photography use cases, ecommerce product visuals, background removal ai, lifestyle photoshoot ai, d2c brand photoshoots',
+                'extra_data' => [
+                    'hero_badge' => 'ALL OUR SERVICES AT YOUR FINGERTIPS',
+                    'hero_cta_text' => 'Explore Solutions',
+                    'hero_cta_url' => '#catalog',
+                    'grid_badge' => 'CATALOG',
+                    'grid_heading' => 'All Use Cases',
+                    'grid_subheading' => 'Browse specialized use case workflows and production-ready photography guides.',
+                    'social_proof_badge' => 'TRUSTED BY 500+ D2C BRANDS & AGENCIES',
+                    'cta_badge' => 'GET STARTED',
+                    'cta_heading' => 'Scale Your Product Visuals with AI',
+                    'cta_subheading' => 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.',
+                    'cta_btn_text' => 'Create Free Account',
+                    'cta_btn_url' => url('register'),
+                    'cta_secondary_btn_text' => 'View Pricing Plans',
+                    'cta_secondary_btn_url' => url('pricing'),
+                ],
+            ],
+            'industry' => [
+                'page_title' => 'Industry-Specific <span class="cms-heading-gradient-mint">Photography Solutions</span>',
+                'subtitle' => 'Tailored AI product photography workflows built to conquer the unique challenges of fashion, jewelry, cosmetics, electronics, and home decor.',
+                'seo_title' => 'Industry-Specific AI Photography Solutions - ' . $siteTitle,
+                'meta_description' => 'Professional AI photography tailored for e-commerce fashion, luxury jewelry, beauty products, electronics, and home decor brands.',
+                'meta_keywords' => 'industry photography, jewelry ai photography, cosmetic product shoot, electronics packshot, fashion lookbook ai, home decor product images',
+                'extra_data' => [
+                    'hero_badge' => 'SOLUTIONS FOR EVERY SECTOR',
+                    'hero_cta_text' => 'Explore Solutions',
+                    'hero_cta_url' => '#catalog',
+                    'grid_badge' => 'CATALOG',
+                    'grid_heading' => 'All Industries',
+                    'grid_subheading' => 'Browse specialized industry workflows and production-ready photography guides.',
+                    'social_proof_badge' => 'TRUSTED BY 500+ D2C BRANDS & AGENCIES',
+                    'cta_badge' => 'GET STARTED',
+                    'cta_heading' => 'Scale Your Product Visuals with AI',
+                    'cta_subheading' => 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.',
+                    'cta_btn_text' => 'Create Free Account',
+                    'cta_btn_url' => url('register'),
+                    'cta_secondary_btn_text' => 'View Pricing Plans',
+                    'cta_secondary_btn_url' => url('pricing'),
+                ],
+            ],
+            'product' => [
+                'page_title' => 'Product Photos for <span class="cms-heading-gradient-mint">Every Purpose</span>',
+                'subtitle' => "Whether you need carousel ads, social media posts, website hero imagery, or high-converting static creatives, we've got you covered.",
+                'seo_title' => 'Product Photos & Ad Deliverables - ' . $siteTitle,
+                'meta_description' => 'Generate carousel ad images, social media packs, static Facebook creatives, and website product photos instantly with AI.',
+                'meta_keywords' => 'product photography assets, carousel ad photos, social media product images, website hero product photos, static ad creative ai',
+                'extra_data' => [
+                    'hero_badge' => 'FORMAT-OPTIMIZED ASSETS',
+                    'hero_cta_text' => 'Explore Solutions',
+                    'hero_cta_url' => '#catalog',
+                    'grid_badge' => 'CATALOG',
+                    'grid_heading' => 'All Product Deliverables',
+                    'grid_subheading' => 'Browse specialized product content workflows and production-ready photography guides.',
+                    'social_proof_badge' => 'TRUSTED BY 500+ D2C BRANDS & AGENCIES',
+                    'cta_badge' => 'GET STARTED',
+                    'cta_heading' => 'Scale Your Product Visuals with AI',
+                    'cta_subheading' => 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.',
+                    'cta_btn_text' => 'Create Free Account',
+                    'cta_btn_url' => url('register'),
+                    'cta_secondary_btn_text' => 'View Pricing Plans',
+                    'cta_secondary_btn_url' => url('pricing'),
+                ],
+            ],
+            'garment' => [
+                'page_title' => 'On-Model Apparel <span class="cms-heading-gradient-mint">Photography</span>',
+                'subtitle' => 'Turn flat lays and ghost mannequins into studio-quality on-model fashion shoots. Perfect fabric texture, realistic drapes, and ethnic diversity.',
+                'seo_title' => 'AI Apparel & Garment Photography - ' . $siteTitle,
+                'meta_description' => 'AI fashion photography for sarees, kurtas, dresses, western wear, and streetwear. True-to-fabric textures and diverse virtual models.',
+                'meta_keywords' => 'ai garment photography, on-model fashion shoot, saree ai photography, ghost mannequin to model, apparel lookbook ai, fashion prompts',
+                'extra_data' => [
+                    'hero_badge' => 'FABRIC & DRAPE FIDELITY',
+                    'hero_cta_text' => 'Explore Solutions',
+                    'hero_cta_url' => '#catalog',
+                    'grid_badge' => 'CATALOG',
+                    'grid_heading' => 'All Garments & Apparel',
+                    'grid_subheading' => 'Browse specialized garment workflows and production-ready photography guides.',
+                    'social_proof_badge' => 'TRUSTED BY 500+ D2C BRANDS & AGENCIES',
+                    'cta_badge' => 'GET STARTED',
+                    'cta_heading' => 'Scale Your Product Visuals with AI',
+                    'cta_subheading' => 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.',
+                    'cta_btn_text' => 'Create Free Account',
+                    'cta_btn_url' => url('register'),
+                    'cta_secondary_btn_text' => 'View Pricing Plans',
+                    'cta_secondary_btn_url' => url('pricing'),
+                ],
+            ],
+            'platform_ai_ads' => [
+                'page_title' => 'High-Converting <span class="cms-heading-gradient-mint">Platform Ad Creatives</span>',
+                'subtitle' => 'Generate scroll-stopping ad creatives formatted for Facebook, Instagram Reels, Google Display, TikTok, Pinterest, and YouTube.',
+                'seo_title' => 'Platform AI Ad Creatives & Video Formats - ' . $siteTitle,
+                'meta_description' => 'High-converting AI ad visuals and story/feed creatives for Meta Ads, Google Display, TikTok, and Pinterest marketing campaigns.',
+                'meta_keywords' => 'platform ai ads, facebook ad creatives, instagram story ads, google display ads, tiktok visual prompts, high ctr ecommerce ads',
+                'extra_data' => [
+                    'hero_badge' => 'ROAS & CTR OPTIMIZATION',
+                    'hero_cta_text' => 'Explore Solutions',
+                    'hero_cta_url' => '#catalog',
+                    'grid_badge' => 'CATALOG',
+                    'grid_heading' => 'All Ad Creatives',
+                    'grid_subheading' => 'Browse specialized platform ad creative workflows and production-ready photography guides.',
+                    'social_proof_badge' => 'TRUSTED BY 500+ D2C BRANDS & AGENCIES',
+                    'cta_badge' => 'GET STARTED',
+                    'cta_heading' => 'Scale Your Product Visuals with AI',
+                    'cta_subheading' => 'Join thousands of brands producing studio-quality e-commerce and ad imagery without physical photoshoots.',
+                    'cta_btn_text' => 'Create Free Account',
+                    'cta_btn_url' => url('register'),
+                    'cta_secondary_btn_text' => 'View Pricing Plans',
+                    'cta_secondary_btn_url' => url('pricing'),
+                ],
+            ],
         ];
 
-        return $defaults[$key] ?? [
+        $normalizedKey = str_replace('-', '_', $key);
+        return $defaults[$normalizedKey] ?? [
             'page_title' => '',
             'subtitle' => '',
             'seo_title' => '',
@@ -143,12 +282,13 @@ class WebsitePageSetting extends Model
      */
     public static function getByKey(string $key): self
     {
-        return Cache::remember("website_page_settings_{$key}", 86400, function () use ($key) {
-            $record = self::where('page_key', $key)->first();
-            $defaults = self::getDefaults($key);
+        $normalizedKey = str_replace('-', '_', $key);
+        return Cache::remember("website_page_settings_{$normalizedKey}", 86400, function () use ($normalizedKey) {
+            $record = self::where('page_key', $normalizedKey)->first();
+            $defaults = self::getDefaults($normalizedKey);
 
             if (!$record) {
-                $record = new self(array_merge(['page_key' => $key], $defaults));
+                $record = new self(array_merge(['page_key' => $normalizedKey], $defaults));
             } else {
                 // Ensure empty fields fallback gracefully
                 foreach (['page_title', 'subtitle', 'seo_title', 'meta_description', 'meta_keywords'] as $field) {
@@ -156,9 +296,9 @@ class WebsitePageSetting extends Model
                         $record->{$field} = $defaults[$field];
                     }
                 }
-                if (empty($record->extra_data) && !empty($defaults['extra_data'])) {
-                    $record->extra_data = $defaults['extra_data'];
-                }
+                $existingExtra = is_array($record->extra_data) ? $record->extra_data : [];
+                $defaultExtra = is_array($defaults['extra_data'] ?? null) ? $defaults['extra_data'] : [];
+                $record->extra_data = array_merge($defaultExtra, $existingExtra);
             }
 
             return $record;
@@ -185,10 +325,12 @@ class WebsitePageSetting extends Model
     {
         static::saved(function ($model) {
             Cache::forget("website_page_settings_{$model->page_key}");
+            Cache::forget("website_page_settings_" . str_replace('_', '-', $model->page_key));
         });
 
         static::deleted(function ($model) {
             Cache::forget("website_page_settings_{$model->page_key}");
+            Cache::forget("website_page_settings_" . str_replace('_', '-', $model->page_key));
         });
     }
 }
