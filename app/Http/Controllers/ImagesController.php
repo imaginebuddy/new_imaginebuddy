@@ -1099,6 +1099,14 @@ class ImagesController extends Controller
 		if (!auth()->check()) {
 			// 1. Premium prompt check: premium prompts require a subscription
 			if ($image->item_for_sale == 'sale') {
+				if (class_exists('\App\Services\AnalyticsService')) {
+					\App\Services\AnalyticsService::logEvent('prompt_copy_attempt', request()->fullUrl(), $image->id, [
+						'prompt_title' => $image->title,
+						'tier' => 'sale',
+						'reason' => 'guest_premium_prompt',
+					]);
+				}
+
 				return response()->json([
 					'success' => false,
 					'message' => __('misc.premium_prompt_requires_subscription') ?: 'Upgrade your plan to copy premium prompts.',
@@ -1174,6 +1182,14 @@ class ImagesController extends Controller
 		if (!$user->canCopyPrompt($image)) {
 			$subscription = $user->getSubscription();
 			if ($image->item_for_sale == 'sale' && !$subscription) {
+				if (class_exists('\App\Services\AnalyticsService')) {
+					\App\Services\AnalyticsService::logEvent('prompt_copy_attempt', request()->fullUrl(), $image->id, [
+						'prompt_title' => $image->title,
+						'tier' => 'sale',
+						'reason' => 'member_premium_prompt',
+					]);
+				}
+
 				return response()->json([
 					'success' => false,
 					'message' => __('misc.premium_prompt_requires_subscription') ?: 'Upgrade your plan to copy premium prompts.',
@@ -1183,6 +1199,13 @@ class ImagesController extends Controller
 
 			$used = $user->dailyPromptCopiesCount();
 			$limit = $user->totalDailyPromptLimit();
+
+			if (class_exists('\App\Services\AnalyticsService')) {
+				\App\Services\AnalyticsService::logEvent('prompt_copy_limit_reached', request()->fullUrl(), $image->id, [
+					'daily_used' => $used,
+					'daily_limit' => $limit,
+				]);
+			}
 
 			// Fetch active plan for upsell details
 			$plan = \App\Models\Plans::where('status', '1')->orderBy('popular', 'desc')->first();

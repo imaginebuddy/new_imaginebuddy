@@ -75,7 +75,7 @@ class AnalyticsRollup extends Command
         $eventStats = AnalyticsEvent::whereBetween('created_at', [$start, $end])
             ->selectRaw('
                 COUNT(CASE WHEN event_name = "prompt_view" THEN 1 END) as prompt_views,
-                COUNT(CASE WHEN event_name = "prompt_copy" THEN 1 END) as prompt_copies,
+                COUNT(CASE WHEN event_name IN ("prompt_copy", "prompt_copy_anonymous") THEN 1 END) as prompt_copies,
                 COUNT(CASE WHEN event_name = "pricing_view" THEN 1 END) as pricing_views,
                 COUNT(CASE WHEN event_name = "checkout_start" THEN 1 END) as checkout_starts,
                 COUNT(CASE WHEN event_name = "payment_attempt" THEN 1 END) as payment_attempts,

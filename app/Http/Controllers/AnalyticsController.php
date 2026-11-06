@@ -137,8 +137,8 @@ class AnalyticsController extends Controller
 
         $eventStats = (clone $eventQuery)->selectRaw('
             COUNT(CASE WHEN event_name = "prompt_view" THEN 1 END) as prompt_views,
-            COUNT(CASE WHEN event_name = "prompt_copy" THEN 1 END) as prompt_copies,
-            COUNT(CASE WHEN event_name = "prompt_copy_attempt" THEN 1 END) as prompt_copy_attempts,
+            COUNT(CASE WHEN event_name IN ("prompt_copy", "prompt_copy_anonymous") THEN 1 END) as prompt_copies,
+            COUNT(CASE WHEN event_name IN ("prompt_copy_attempt", "prompt_copy_anon_exhausted", "prompt_copy_limit_reached") THEN 1 END) as prompt_copy_attempts,
             COUNT(CASE WHEN event_name = "pricing_view" THEN 1 END) as pricing_views,
             COUNT(CASE WHEN event_name = "checkout_start" THEN 1 END) as checkout_starts,
             COUNT(CASE WHEN event_name = "payment_attempt" THEN 1 END) as payment_attempts,
@@ -467,7 +467,7 @@ class AnalyticsController extends Controller
         $totalCopies = (clone $eventQuery)->whereIn('event_name', ['prompt_copy', 'prompt_copy_anonymous'])->count();
         $totalMemberCopies = (clone $eventQuery)->where('event_name', 'prompt_copy')->count();
         $totalAnonCopies = (clone $eventQuery)->where('event_name', 'prompt_copy_anonymous')->count();
-        $totalBlockedAttempts = (clone $eventQuery)->whereIn('event_name', ['prompt_copy_attempt', 'prompt_copy_anon_exhausted'])->count();
+        $totalBlockedAttempts = (clone $eventQuery)->whereIn('event_name', ['prompt_copy_attempt', 'prompt_copy_anon_exhausted', 'prompt_copy_limit_reached'])->count();
         $totalAnonExhausted = (clone $eventQuery)->where('event_name', 'prompt_copy_anon_exhausted')->count();
         $uniqueCopiers = (clone $eventQuery)->whereIn('event_name', ['prompt_copy', 'prompt_copy_anonymous'])->distinct('visitor_id')->count('visitor_id');
 
@@ -497,7 +497,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // Recent copy event stream
-        $copyStream = AnalyticsEvent::whereIn('event_name', ['prompt_copy', 'prompt_copy_attempt', 'prompt_copy_anonymous', 'prompt_copy_anon_exhausted'])
+        $copyStream = AnalyticsEvent::whereIn('event_name', ['prompt_copy', 'prompt_copy_attempt', 'prompt_copy_anonymous', 'prompt_copy_anon_exhausted', 'prompt_copy_limit_reached'])
             ->whereBetween('created_at', [$start, $end])
             ->with(['user:id,username,name', 'image:id,title,thumbnail,slug'])
             ->orderByDesc('created_at')

@@ -218,8 +218,10 @@
                     <span class="badge bg-info-subtle text-info"><i class="bi bi-person"></i> Guest Copied (Free Quota)</span>
                   @elseif($evt->event_name == 'prompt_copy_anon_exhausted')
                     <span class="badge bg-danger-subtle text-danger"><i class="bi bi-shield-lock"></i> Guest Quota Exhausted</span>
+                  @elseif($evt->event_name == 'prompt_copy_limit_reached')
+                    <span class="badge bg-danger-subtle text-danger"><i class="bi bi-shield-lock"></i> Member Limit Reached</span>
                   @else
-                    <span class="badge bg-warning-subtle text-warning"><i class="bi bi-lock"></i> Guest Clicked Copy</span>
+                    <span class="badge bg-warning-subtle text-warning"><i class="bi bi-lock"></i> Premium / Auth Prompt</span>
                   @endif
                 </td>
                 <td class="text-end">
@@ -227,8 +229,10 @@
                     <span class="text-success small fw-bold">Delivered</span>
                   @elseif($evt->event_name == 'prompt_copy_anon_exhausted')
                     <span class="text-danger small fw-bold">Auth Modal (3/3 Limit)</span>
+                  @elseif($evt->event_name == 'prompt_copy_limit_reached')
+                    <span class="text-danger small fw-bold">Daily Limit Modal</span>
                   @else
-                    <span class="text-warning small fw-bold">Sign-up Prompt Shown</span>
+                    <span class="text-warning small fw-bold">Sign-up / Upgrade Prompt</span>
                   @endif
                 </td>
               </tr>

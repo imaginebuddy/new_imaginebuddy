@@ -81,8 +81,6 @@ $(document).on('click', '.btn-copy-prompt-grid, .btn-copy-prompt', function(e) {
   var originalHtml = btn.html();
 
   @guest
-    $.post(URL_BASE + '/analytics/event', { _token: '{{ csrf_token() }}', event: 'prompt_copy_attempt', image_id: id });
-
     // Store target ID and update auth modal return URLs in case quota is exhausted
     if (id) {
       sessionStorage.setItem('pending_autocopy_id', id);
