@@ -84,8 +84,9 @@
 
             <!-- TAB 1: General & Routing -->
             <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
-              <form action="{{ url('panel/admin/page-manager/update/' . $page->id) }}" method="POST" enctype="multipart/form-data">
+              <form action="{{ url('panel/admin/page-manager/update/' . $page->id) }}" method="POST" enctype="multipart/form-data" id="pageGeneralForm">
                 @csrf
+                <input type="hidden" name="active_tab" value="tab-general">
                 <div class="row g-4">
                   <div class="col-lg-8">
                     <div class="row g-3">
@@ -535,15 +536,9 @@
 
             <!-- TAB 4: SEO & Social Meta -->
             <div class="tab-pane fade" id="tab-seo" role="tabpanel">
-              <form action="{{ url('panel/admin/page-manager/update/' . $page->id) }}" method="POST">
+              <form action="{{ url('panel/admin/page-manager/update/' . $page->id) }}" method="POST" id="pageSeoForm">
                 @csrf
-                <input type="hidden" name="title" value="{{ $page->title }}">
-                <input type="hidden" name="slug" value="{{ $page->slug }}">
-                <input type="hidden" name="page_type" value="{{ $page->page_type }}">
-                <input type="hidden" name="route_prefix" value="{{ $page->route_prefix }}">
-                <input type="hidden" name="user_id" value="{{ $page->user_id }}">
-                <input type="hidden" name="status" value="{{ $page->status }}">
-                <input type="hidden" name="search_intent" value="{{ $page->search_intent }}">
+                <input type="hidden" name="active_tab" value="tab-seo">
 
                 <!-- Google SERP Live Snippet Preview -->
                 <div class="p-3 bg-light rounded-3 border mb-4">
@@ -569,6 +564,21 @@
                   <div class="col-12">
                     <label class="form-label fw-bold">Meta Keywords</label>
                     <input type="text" name="meta_keywords" class="form-control" value="{{ old('meta_keywords', $page->meta_keywords) }}">
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Primary Focus Keyword</label>
+                    <input type="text" name="primary_keyword" class="form-control" placeholder="e.g. saree product photography" value="{{ old('primary_keyword', $page->primary_keyword) }}">
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Schema.org Type</label>
+                    <select name="schema_type" class="form-select">
+                      <option value="Service" {{ old('schema_type', $page->schema_type) === 'Service' ? 'selected' : '' }}>Service</option>
+                      <option value="Product" {{ old('schema_type', $page->schema_type) === 'Product' ? 'selected' : '' }}>Product</option>
+                      <option value="WebPage" {{ old('schema_type', $page->schema_type) === 'WebPage' ? 'selected' : '' }}>WebPage</option>
+                      <option value="HowTo" {{ old('schema_type', $page->schema_type) === 'HowTo' ? 'selected' : '' }}>HowTo</option>
+                    </select>
                   </div>
 
                   <div class="col-md-6">
@@ -945,6 +955,57 @@
         return false;
       }
     }
+  });
+
+  // Tab restoration via URL hash & tab tracking
+  function initTabManager() {
+    var hash = window.location.hash;
+    if (hash) {
+      var tabBtn = document.querySelector('#pageManagerTabs a[href="' + hash + '"]');
+      if (tabBtn) {
+        var tabInstance = bootstrap.Tab.getOrCreateInstance(tabBtn);
+        tabInstance.show();
+      }
+    }
+
+    $('#pageManagerTabs a[data-bs-toggle="pill"], #pageManagerTabs a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+      var targetHash = $(e.target).attr('href');
+      if (targetHash && history.replaceState) {
+        history.replaceState(null, null, targetHash);
+      }
+    });
+  }
+  initTabManager();
+
+  // Cross-tab input synchronization on submit to ensure multi-tab edits are never lost
+  $('#pageGeneralForm, #pageSeoForm').on('submit', function() {
+    var currentForm = this;
+    var otherFormId = currentForm.id === 'pageGeneralForm' ? 'pageSeoForm' : 'pageGeneralForm';
+    var otherForm = document.getElementById(otherFormId);
+    if (!otherForm) return;
+
+    var otherInputs = otherForm.querySelectorAll('input:not([type="file"]):not([type="submit"]):not([type="button"]), textarea, select');
+    otherInputs.forEach(function(inp) {
+      if (inp.name && !inp.name.startsWith('_') && inp.name !== 'active_tab') {
+        if (!currentForm.querySelector('[name="' + inp.name + '"]')) {
+          var hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = inp.name;
+          hidden.value = inp.value;
+          currentForm.appendChild(hidden);
+        }
+      }
+    });
+  });
+
+  // Live Google SERP snippet preview synchronization
+  $('#input_meta_title, input[name="title"]').on('input', function() {
+    var val = $('#input_meta_title').val() || $('input[name="title"]').val();
+    $('#serp-title').text(val || 'Title preview');
+  });
+  $('#input_meta_desc, textarea[name="excerpt"]').on('input', function() {
+    var val = $('#input_meta_desc').val() || $('textarea[name="excerpt"]').val();
+    $('#serp-desc').text(val || 'No description configured yet.');
   });
 })();
 </script>

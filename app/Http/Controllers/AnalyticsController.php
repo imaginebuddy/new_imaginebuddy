@@ -454,9 +454,12 @@ class AnalyticsController extends Controller
         $eventQuery = AnalyticsEvent::whereBetween('created_at', [$start, $end]);
 
         $totalViews = (clone $eventQuery)->where('event_name', 'prompt_view')->count();
-        $totalCopies = (clone $eventQuery)->where('event_name', 'prompt_copy')->count();
-        $totalBlockedAttempts = (clone $eventQuery)->where('event_name', 'prompt_copy_attempt')->count();
-        $uniqueCopiers = (clone $eventQuery)->where('event_name', 'prompt_copy')->distinct('visitor_id')->count('visitor_id');
+        $totalCopies = (clone $eventQuery)->whereIn('event_name', ['prompt_copy', 'prompt_copy_anonymous'])->count();
+        $totalMemberCopies = (clone $eventQuery)->where('event_name', 'prompt_copy')->count();
+        $totalAnonCopies = (clone $eventQuery)->where('event_name', 'prompt_copy_anonymous')->count();
+        $totalBlockedAttempts = (clone $eventQuery)->whereIn('event_name', ['prompt_copy_attempt', 'prompt_copy_anon_exhausted'])->count();
+        $totalAnonExhausted = (clone $eventQuery)->where('event_name', 'prompt_copy_anon_exhausted')->count();
+        $uniqueCopiers = (clone $eventQuery)->whereIn('event_name', ['prompt_copy', 'prompt_copy_anonymous'])->distinct('visitor_id')->count('visitor_id');
 
         // Most viewed prompts
         $mostViewed = AnalyticsEvent::where('event_name', 'prompt_view')
@@ -471,7 +474,7 @@ class AnalyticsController extends Controller
             ->paginate(15, ['*'], 'views_page');
 
         // Most copied prompts
-        $mostCopied = AnalyticsEvent::where('event_name', 'prompt_copy')
+        $mostCopied = AnalyticsEvent::whereIn('event_name', ['prompt_copy', 'prompt_copy_anonymous'])
             ->whereBetween('created_at', [$start, $end])
             ->whereNotNull('image_id')
             ->select('image_id', DB::raw('COUNT(id) as copies_count'), DB::raw('COUNT(DISTINCT visitor_id) as unique_copiers'))
@@ -484,7 +487,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // Recent copy event stream
-        $copyStream = AnalyticsEvent::whereIn('event_name', ['prompt_copy', 'prompt_copy_attempt'])
+        $copyStream = AnalyticsEvent::whereIn('event_name', ['prompt_copy', 'prompt_copy_attempt', 'prompt_copy_anonymous', 'prompt_copy_anon_exhausted'])
             ->whereBetween('created_at', [$start, $end])
             ->with(['user:id,username,name', 'image:id,title,thumbnail,slug'])
             ->orderByDesc('created_at')
@@ -498,7 +501,10 @@ class AnalyticsController extends Controller
             'end' => $end->toDateString(),
             'totalViews' => $totalViews,
             'totalCopies' => $totalCopies,
+            'totalMemberCopies' => $totalMemberCopies,
+            'totalAnonCopies' => $totalAnonCopies,
             'totalBlockedAttempts' => $totalBlockedAttempts,
+            'totalAnonExhausted' => $totalAnonExhausted,
             'uniqueCopiers' => $uniqueCopiers,
             'mostViewed' => $mostViewed,
             'mostCopied' => $mostCopied,
@@ -543,6 +549,28 @@ class AnalyticsController extends Controller
             ->distinct('visitor_id')
             ->count('visitor_id');
 
+        // Free Quota & User Registration Funnel
+        $anonCopyVisitors = AnalyticsEvent::where('event_name', 'prompt_copy_anonymous')
+            ->whereBetween('created_at', [$start, $end])
+            ->distinct('visitor_id')
+            ->count('visitor_id');
+
+        $exhaustedTriggers = AnalyticsEvent::where('event_name', 'prompt_copy_anon_exhausted')
+            ->whereBetween('created_at', [$start, $end])
+            ->distinct('visitor_id')
+            ->count('visitor_id');
+
+        $registerPageVisitors = AnalyticsEvent::where('event_name', 'register_page_view')
+            ->whereBetween('created_at', [$start, $end])
+            ->distinct('visitor_id')
+            ->count('visitor_id');
+
+        $newRegistrations = User::whereBetween('date', [$start, $end])->count();
+
+        $verifiedUsers = AnalyticsEvent::where('event_name', 'email_verify_success')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+
         // Gateway performance
         $gateways = AnalyticsEvent::where('event_name', 'payment_success')
             ->whereBetween('created_at', [$start, $end])
@@ -570,6 +598,11 @@ class AnalyticsController extends Controller
             'checkoutStarts' => $checkoutStarts,
             'paymentAttempts' => $paymentAttempts,
             'paymentSuccesses' => $paymentSuccesses,
+            'anonCopyVisitors' => $anonCopyVisitors,
+            'exhaustedTriggers' => $exhaustedTriggers,
+            'registerPageVisitors' => $registerPageVisitors,
+            'newRegistrations' => $newRegistrations,
+            'verifiedUsers' => $verifiedUsers,
             'gateways' => $gateways,
         ]);
     }

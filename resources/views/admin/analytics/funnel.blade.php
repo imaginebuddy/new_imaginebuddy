@@ -4,6 +4,93 @@
 <div class="content">
   @include('admin.analytics.nav')
 
+  <!-- Guest-to-Registration Conversion Funnel -->
+  <div class="card shadow-custom border-0 mb-4">
+    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="card-title m-0 fw-light"><i class="bi bi-person-plus text-primary me-2"></i> Free Quota &amp; Registration Conversion Funnel</h5>
+          <small class="text-muted">Unique Visitors &rarr; Used Free Quota &rarr; Exhausted 3 Copies (Auth Modal) &rarr; Visited Sign Up &rarr; Created Account</small>
+        </div>
+        <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill">New User Acquisition</span>
+      </div>
+    </div>
+    <div class="card-body pt-4">
+      @php
+        $r1 = $totalVisitors > 0 ? 100 : 0;
+        $r2 = $totalVisitors > 0 ? round(($anonCopyVisitors / $totalVisitors) * 100, 1) : 0;
+        $r3 = $anonCopyVisitors > 0 ? round(($exhaustedTriggers / $anonCopyVisitors) * 100, 1) : 0;
+        $r4 = $exhaustedTriggers > 0 ? round(($registerPageVisitors / max(1, $exhaustedTriggers)) * 100, 1) : 0;
+        $r5 = $registerPageVisitors > 0 ? round(($newRegistrations / $registerPageVisitors) * 100, 1) : 0;
+        $regConversion = $totalVisitors > 0 ? round(($newRegistrations / $totalVisitors) * 100, 2) : 0;
+      @endphp
+
+      <div class="row g-3 text-center align-items-center mb-4">
+        <!-- Stage 1 -->
+        <div class="col-md">
+          <div class="p-3 border rounded bg-light">
+            <span class="small text-muted text-uppercase fw-bold d-block">1. Unique Visitors</span>
+            <h3 class="fw-bold my-1 text-primary">{{ number_format($totalVisitors) }}</h3>
+            <span class="badge bg-secondary">100%</span>
+          </div>
+        </div>
+
+        <div class="col-auto d-none d-md-block text-muted fs-4">&rarr;</div>
+
+        <!-- Stage 2 -->
+        <div class="col-md">
+          <div class="p-3 border rounded bg-light">
+            <span class="small text-muted text-uppercase fw-bold d-block">2. Tried Free Copy</span>
+            <h3 class="fw-bold my-1 text-info">{{ number_format($anonCopyVisitors) }}</h3>
+            <span class="badge bg-info-subtle text-info">{{ $r2 }}% of visitors</span>
+          </div>
+        </div>
+
+        <div class="col-auto d-none d-md-block text-muted fs-4">&rarr;</div>
+
+        <!-- Stage 3 -->
+        <div class="col-md">
+          <div class="p-3 border rounded bg-light">
+            <span class="small text-muted text-uppercase fw-bold d-block">3. Hit 3-Copy Limit</span>
+            <h3 class="fw-bold my-1 text-warning">{{ number_format($exhaustedTriggers) }}</h3>
+            <span class="badge bg-warning-subtle text-warning">{{ $r3 }}% reached limit</span>
+          </div>
+        </div>
+
+        <div class="col-auto d-none d-md-block text-muted fs-4">&rarr;</div>
+
+        <!-- Stage 4 -->
+        <div class="col-md">
+          <div class="p-3 border rounded bg-light">
+            <span class="small text-muted text-uppercase fw-bold d-block">4. Opened Sign-Up</span>
+            <h3 class="fw-bold my-1 text-secondary">{{ number_format($registerPageVisitors) }}</h3>
+            <span class="badge bg-secondary-subtle text-secondary">{{ $r4 }}% opened form</span>
+          </div>
+        </div>
+
+        <div class="col-auto d-none d-md-block text-muted fs-4">&rarr;</div>
+
+        <!-- Stage 5 -->
+        <div class="col-md">
+          <div class="p-3 border rounded bg-success-subtle border-success">
+            <span class="small text-success text-uppercase fw-bold d-block">5. Registered</span>
+            <h3 class="fw-bold my-1 text-success">{{ number_format($newRegistrations) }}</h3>
+            <span class="badge bg-success">{{ $r5 }}% conversion</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registration Conversion Callout -->
+      <div class="alert alert-light border d-flex justify-content-between align-items-center mb-0">
+        <div>
+          <strong>Overall Visitor-to-Registered User Conversion Rate:</strong>
+          <span class="text-muted ms-1">{{ number_format($newRegistrations) }} new accounts from {{ number_format($totalVisitors) }} visitors ({{ number_format($verifiedUsers) }} verified)</span>
+        </div>
+        <span class="fs-4 fw-bold text-success">{{ $regConversion }}%</span>
+      </div>
+    </div>
+  </div>
+
   <!-- 5-Stage Conversion Funnel Visualizer -->
   <div class="card shadow-custom border-0 mb-4">
     <div class="card-header bg-transparent border-0 pt-4 pb-0">

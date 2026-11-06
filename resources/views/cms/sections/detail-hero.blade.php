@@ -11,7 +11,7 @@
             </a>
           </li>
         @endif
-        <li class="breadcrumb-item active text-truncate" aria-current="page" style="max-width: 360px;">
+        <li class="breadcrumb-item active" aria-current="page">
           {{ $page->title }}
         </li>
       </ol>

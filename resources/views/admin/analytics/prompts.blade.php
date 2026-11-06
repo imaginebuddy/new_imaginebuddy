@@ -21,7 +21,7 @@
         <div class="card-body">
           <span class="text-muted text-uppercase small fw-bold">Successful Prompt Copies</span>
           <h3 class="fw-bold mb-0 mt-1 text-success">{{ number_format($totalCopies) }}</h3>
-          <small class="text-muted">By logged-in members</small>
+          <small class="text-muted">{{ number_format($totalMemberCopies) }} members &bull; {{ number_format($totalAnonCopies) }} guest quota</small>
         </div>
       </div>
     </div>
@@ -29,9 +29,9 @@
     <div class="col-xl-3 col-md-6">
       <div class="card shadow-custom border-0">
         <div class="card-body">
-          <span class="text-muted text-uppercase small fw-bold">Guest Copy Attempts (Sign-up triggers)</span>
+          <span class="text-muted text-uppercase small fw-bold">Sign-Up & Quota Triggers</span>
           <h3 class="fw-bold mb-0 mt-1 text-warning">{{ number_format($totalBlockedAttempts) }}</h3>
-          <small class="text-muted">Guests blocked by copy auth-wall</small>
+          <small class="text-muted">{{ number_format($totalAnonExhausted) }} exhausted 3-monthly quota</small>
         </div>
       </div>
     </div>
@@ -213,14 +213,20 @@
                 </td>
                 <td>
                   @if($evt->event_name == 'prompt_copy')
-                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-lg"></i> Prompt Copied</span>
+                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-lg"></i> Member Copied</span>
+                  @elseif($evt->event_name == 'prompt_copy_anonymous')
+                    <span class="badge bg-info-subtle text-info"><i class="bi bi-person"></i> Guest Copied (Free Quota)</span>
+                  @elseif($evt->event_name == 'prompt_copy_anon_exhausted')
+                    <span class="badge bg-danger-subtle text-danger"><i class="bi bi-shield-lock"></i> Guest Quota Exhausted</span>
                   @else
                     <span class="badge bg-warning-subtle text-warning"><i class="bi bi-lock"></i> Guest Clicked Copy</span>
                   @endif
                 </td>
                 <td class="text-end">
-                  @if($evt->event_name == 'prompt_copy')
+                  @if($evt->event_name == 'prompt_copy' || $evt->event_name == 'prompt_copy_anonymous')
                     <span class="text-success small fw-bold">Delivered</span>
+                  @elseif($evt->event_name == 'prompt_copy_anon_exhausted')
+                    <span class="text-danger small fw-bold">Auth Modal (3/3 Limit)</span>
                   @else
                     <span class="text-warning small fw-bold">Sign-up Prompt Shown</span>
                   @endif
