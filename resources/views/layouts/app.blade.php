@@ -90,6 +90,8 @@
 
     @yield('javascript')
 
+    @include('includes.social-proof-toast')
+
      <div id="bodyContainer"></div>
      </body>
 </html>

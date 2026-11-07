@@ -920,4 +920,9 @@ class Helper
 	{
 		return app(\App\Services\SeoService::class);
 	}
+
+	public static function socialProofPayload()
+	{
+		return \App\Services\SocialProofService::getPayload();
+	}
 }//<--- End Class
