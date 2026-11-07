@@ -1,5 +1,21 @@
 @extends('admin.layout')
 
+@section('css')
+<style>
+.custom-file,
+input[type="file"].custom-file {
+    position: static !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    min-width: 100% !important;
+    min-height: auto !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+}
+</style>
+@endsection
+
 @section('content')
 <h5 class="mb-4 fw-light">
     <a class="text-reset" href="{{ url('panel/admin') }}">{{ __('admin.dashboard') }}</a>
@@ -92,6 +108,47 @@
                             
                             {{-- TAB 1: HERO & SEARCH --}}
                             <div class="tab-pane fade show active" id="tab-hero" role="tabpanel">
+                                {{-- Hero Background Image Setting --}}
+                                <div class="border rounded-3 p-3 p-md-4 mb-4 bg-light">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-image me-2 text-primary"></i> Hero Header Background Image</h6>
+                                    <p class="text-muted small mb-4">Upload or change the primary background image displayed in the hero section at the top of the homepage.</p>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-3 col-form-label fw-semibold text-sm-end">Current Background</label>
+                                        <div class="col-sm-9">
+                                            <div class="d-inline-block position-relative border rounded-3 overflow-hidden shadow-sm bg-dark mb-2" style="max-width: 440px; width: 100%;">
+                                                <img src="{{ $settings->hero_background_image_url }}" alt="Header Background" class="img-fluid w-100" style="max-height: 200px; object-fit: cover;">
+                                                <div class="position-absolute bottom-0 start-0 end-0 p-2 bg-dark bg-opacity-75 text-white small d-flex justify-content-between align-items-center">
+                                                    <span class="text-truncate" style="max-width: 280px;">
+                                                        <i class="bi bi-file-image me-1"></i> {{ basename($settings->hero_background_image ?: ($adminSettings->image_header ?? 'header-index.jpg')) }}
+                                                    </span>
+                                                    <a href="{{ $settings->hero_background_image_url }}" target="_blank" class="text-white text-decoration-none">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i> View Full
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <small class="d-block text-muted">Currently active background image applied across the homepage header.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label class="col-sm-3 col-form-label fw-semibold text-sm-end">Upload New Image</label>
+                                        <div class="col-sm-9">
+                                            <input type="file" name="hero_background_image_file" id="hero_background_image_file" class="form-control custom-file" accept="image/jpeg,image/png,image/webp,image/jpg" style="position: static !important; opacity: 1 !important; visibility: visible !important; display: block !important;">
+                                            <small class="text-muted d-block mt-1">Recommended size: <strong>1920 &times; 1080 px</strong> or <strong>1280 &times; 850 px</strong> (JPG, PNG, or WEBP, max 5MB). High quality wide-angle photograph works best.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-0">
+                                        <label class="col-sm-3 col-form-label fw-semibold text-sm-end">Or Custom Path / URL</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" name="hero_background_image" value="{{ old('hero_background_image', $settings->hero_background_image ?: ($adminSettings->image_header ?? '')) }}" class="form-control" placeholder="e.g. header_index.jpg or full https://... image URL">
+                                            <small class="text-muted">Enter a filename located in <code>public/img/</code> or an external image URL if you prefer not uploading a file.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Hero Copy Section --}}
                                 <div class="border rounded-3 p-3 p-md-4 mb-3 bg-light">
                                     <h6 class="fw-bold text-dark mb-3"><i class="bi bi-display me-2 text-primary"></i> Hero Cover Section Copy</h6>
                                     
@@ -617,7 +674,7 @@
                                                 </div>
                                                 <div class="mb-0">
                                                     <label class="form-label small fw-semibold">Or Upload New Image</label>
-                                                    <input type="file" name="transformation_before_image_file" class="form-control form-control-sm" accept="image/*">
+                                                    <input type="file" name="transformation_before_image_file" class="form-control form-control-sm custom-file" accept="image/*" style="position: static !important; opacity: 1 !important; visibility: visible !important; display: block !important;">
                                                 </div>
                                             </div>
                                         </div>
@@ -634,7 +691,7 @@
                                                 </div>
                                                 <div class="mb-0">
                                                     <label class="form-label small fw-semibold">Or Upload New Image</label>
-                                                    <input type="file" name="transformation_after_image_file" class="form-control form-control-sm" accept="image/*">
+                                                    <input type="file" name="transformation_after_image_file" class="form-control form-control-sm custom-file" accept="image/*" style="position: static !important; opacity: 1 !important; visibility: visible !important; display: block !important;">
                                                 </div>
                                             </div>
                                         </div>

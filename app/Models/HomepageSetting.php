@@ -45,6 +45,7 @@ class HomepageSetting extends Model
             'hero_title' => 'Adaptive AI Product Photography Prompts Library',
             'hero_subtitle' => 'Turn a simple product photo into studio, lifestyle, and campaign visuals using adaptive prompts designed for ChatGPT and Gemini. No complicated prompt writing required.',
             'search_placeholder' => 'Search prompt, photoshoot, brand...',
+            'hero_background_image' => 'header_index.jpg',
 
             // 2. What Makes ImagineBuddy Different?
             'diff_enabled' => true,
@@ -296,6 +297,28 @@ class HomepageSetting extends Model
 
         $defaults = self::defaultValues();
         return $defaults[$key] ?? null;
+    }
+
+    /**
+     * Get the resolved URL for the hero background image.
+     */
+    public function getHeroBackgroundImageUrlAttribute(): string
+    {
+        $img = $this->hero_background_image;
+        if (empty($img)) {
+            $adminSettings = AdminSettings::first();
+            $img = $adminSettings ? $adminSettings->image_header : 'header_index.jpg';
+        }
+
+        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+            return $img;
+        }
+
+        if (str_starts_with($img, 'public/') || str_starts_with($img, 'img/')) {
+            return asset($img);
+        }
+
+        return asset('public/img/' . $img);
     }
 
     /**

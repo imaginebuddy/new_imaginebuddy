@@ -3,8 +3,9 @@
 @section('content')
 @php
   $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
+  $heroBgUrl = $homeContent->hero_background_image_url ?? asset('public/img/' . $settings->image_header);
 @endphp
-<div class="container-fluid home-cover" style="background-image: url('{{ asset('public/img/' . $settings->image_header) }}') !important; background-size: cover !important; background-position: center center !important;">
+<div class="container-fluid home-cover" style="background-image: url('{{ $heroBgUrl }}') !important; background-size: cover !important; background-position: center center !important;">
       <div class="mb-4 position-relative custom-pt-6">
         <div class="container px-5">
 

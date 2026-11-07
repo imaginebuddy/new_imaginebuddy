@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomepageSetting;
+use App\Models\AdminSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -40,8 +41,9 @@ class AdminHomepageContentController extends Controller
         $this->checkPermission();
 
         $settings = HomepageSetting::getSettings();
+        $adminSettings = AdminSettings::first();
 
-        return view('admin.homepage-content', compact('settings'));
+        return view('admin.homepage-content', compact('settings', 'adminSettings'));
     }
 
     /**
@@ -55,6 +57,8 @@ class AdminHomepageContentController extends Controller
             'hero_title' => 'nullable|string|max:500',
             'hero_subtitle' => 'nullable|string|max:1000',
             'search_placeholder' => 'nullable|string|max:255',
+            'hero_background_image' => 'nullable|string|max:500',
+            'hero_background_image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
 
             'diff_eyebrow' => 'nullable|string|max:255',
             'diff_heading' => 'nullable|string|max:500',
@@ -142,6 +146,7 @@ class AdminHomepageContentController extends Controller
         $settings = HomepageSetting::getSettings();
         $data = $request->except([
             '_token',
+            'hero_background_image_file',
             'transformation_before_image_file',
             'transformation_after_image_file',
         ]);
@@ -155,6 +160,36 @@ class AdminHomepageContentController extends Controller
         $data['promo_section_enabled'] = $request->boolean('promo_section_enabled');
         $data['transformation_enabled'] = $request->boolean('transformation_enabled');
         $data['faq_enabled'] = $request->boolean('faq_enabled');
+
+        // Handle Hero Background Image
+        $adminSettings = AdminSettings::first();
+        if ($request->hasFile('hero_background_image_file')) {
+            $file = $request->file('hero_background_image_file');
+            $extension = $file->getClientOriginalExtension();
+            $filename = 'header_index-' . Str::random(10) . '.' . $extension;
+            $destinationPath = public_path('img');
+
+            if ($file->move($destinationPath, $filename)) {
+                if ($adminSettings && !empty($adminSettings->image_header)) {
+                    $oldHeader = $destinationPath . '/' . $adminSettings->image_header;
+                    if (file_exists($oldHeader) && !in_array($adminSettings->image_header, ['default.jpg', 'header_index.jpg', 'header-index.jpg'])) {
+                        @unlink($oldHeader);
+                    }
+                }
+                if ($adminSettings) {
+                    $adminSettings->image_header = $filename;
+                    $adminSettings->save();
+                }
+                $data['hero_background_image'] = $filename;
+            }
+        } elseif ($request->filled('hero_background_image')) {
+            $cleanBg = trim($request->hero_background_image);
+            $data['hero_background_image'] = $cleanBg;
+            if ($adminSettings && !str_starts_with($cleanBg, 'http') && !str_starts_with($cleanBg, 'public/')) {
+                $adminSettings->image_header = basename($cleanBg);
+                $adminSettings->save();
+            }
+        }
 
         // Handle File Uploads for Transformation images
         if ($request->hasFile('transformation_before_image_file')) {
