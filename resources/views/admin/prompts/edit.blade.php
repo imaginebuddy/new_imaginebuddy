@@ -839,56 +839,78 @@ $(document).ready(function() {
     });
   });
 
-  // Remove Prompt from Collection AJAX
+  function executeRemovePrompt(promptId, $btn) {
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+    $.ajax({
+      url: "{{ route('admin.prompts.remove') }}",
+      type: 'POST',
+      data: {
+        _token: "{{ csrf_token() }}",
+        collection_id: collectionId,
+        prompt_id: promptId
+      },
+      dataType: 'json',
+      success: function(res) {
+        if (res.success) {
+          showToast(res.message, 'success');
+          $('#promptRow-' + promptId).fadeOut(300, function() {
+            $(this).remove();
+            if ($('#associatedPromptsBody tr.prompt-sortable-row').length === 0) {
+              $('#associatedPromptsBody').html('<tr id="noPromptsRow"><td colspan="7" class="text-center p-5 text-muted fw-light">No prompts currently in this collection. Use the search box above to add existing prompts.</td></tr>');
+            }
+          });
+
+          var currentCount = parseInt($('#promptCountBadge').text()) || 1;
+          $('#promptCountBadge').text(Math.max(0, currentCount - 1));
+
+          // If prompt is in current search results, revert its button back to "Add to Collection"
+          var $searchItem = $('#searchResultsList .list-group-item').filter(function() {
+            return $(this).find('small:contains("ID: ' + promptId + ' ")').length > 0;
+          });
+          if ($searchItem.length) {
+            $searchItem.find('.badge.bg-success').remove();
+            $searchItem.find('button').replaceWith(
+              '<button type="button" class="btn btn-sm btn-primary rounded-pill px-3 btnAddPrompt" data-id="' + promptId + '">' +
+              '<i class="bi bi-plus-lg me-1"></i> Add to Collection</button>'
+            );
+          }
+        }
+      },
+      error: function(xhr) {
+        $btn.prop('disabled', false).html('<i class="bi-trash-fill"></i>');
+        var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error removing prompt from collection.';
+        showToast(errMsg, 'danger');
+      }
+    });
+  }
+
+  // Remove Prompt from Collection AJAX (SweetAlert)
   $(document).on('click', '.btnRemovePrompt', function(e) {
     e.preventDefault();
     var promptId = $(this).data('id');
     var $btn = $(this);
 
-    if (confirm('Remove this prompt from this collection? Note: The prompt itself will NOT be deleted.')) {
-      $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-
-      $.ajax({
-        url: "{{ route('admin.prompts.remove') }}",
-        type: 'POST',
-        data: {
-          _token: "{{ csrf_token() }}",
-          collection_id: collectionId,
-          prompt_id: promptId
-        },
-        dataType: 'json',
-        success: function(res) {
-          if (res.success) {
-            showToast(res.message, 'success');
-            $('#promptRow-' + promptId).fadeOut(300, function() {
-              $(this).remove();
-              if ($('#associatedPromptsBody tr.prompt-sortable-row').length === 0) {
-                $('#associatedPromptsBody').html('<tr id="noPromptsRow"><td colspan="7" class="text-center p-5 text-muted fw-light">No prompts currently in this collection. Use the search box above to add existing prompts.</td></tr>');
-              }
-            });
-
-            var currentCount = parseInt($('#promptCountBadge').text()) || 1;
-            $('#promptCountBadge').text(Math.max(0, currentCount - 1));
-
-            // If prompt is in current search results, revert its button back to "Add to Collection"
-            var $searchItem = $('#searchResultsList .list-group-item').filter(function() {
-              return $(this).find('small:contains("ID: ' + promptId + ' ")').length > 0;
-            });
-            if ($searchItem.length) {
-              $searchItem.find('.badge.bg-success').remove();
-              $searchItem.find('button').replaceWith(
-                '<button type="button" class="btn btn-sm btn-primary rounded-pill px-3 btnAddPrompt" data-id="' + promptId + '">' +
-                '<i class="bi bi-plus-lg me-1"></i> Add to Collection</button>'
-              );
-            }
-          }
-        },
-        error: function(xhr) {
-          $btn.prop('disabled', false).html('<i class="bi-trash-fill"></i>');
-          var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error removing prompt from collection.';
-          showToast(errMsg, 'danger');
+    if (typeof swal !== 'undefined') {
+      swal({
+        title: typeof delete_confirm !== 'undefined' ? delete_confirm : "Are you sure?",
+        text: "Remove this prompt from this collection? Note: The prompt itself will NOT be deleted.",
+        type: "warning",
+        showLoaderOnConfirm: false,
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: typeof yes_confirm !== 'undefined' ? yes_confirm : "Yes, remove it!",
+        cancelButtonText: typeof cancel_confirm !== 'undefined' ? cancel_confirm : "No, cancel!",
+        closeOnConfirm: true
+      }, function(isConfirm) {
+        if (isConfirm) {
+          executeRemovePrompt(promptId, $btn);
         }
       });
+    } else {
+      if (confirm('Remove this prompt from this collection? Note: The prompt itself will NOT be deleted.')) {
+        executeRemovePrompt(promptId, $btn);
+      }
     }
   });
 
