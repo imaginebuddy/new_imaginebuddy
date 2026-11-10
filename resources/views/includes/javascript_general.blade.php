@@ -390,7 +390,10 @@ $(document).on('click', '.btn-share-prompt', function(e) {
   }
 });
 
-@if (request()->is('/') || request()->is('home') || request()->is('prompts') || request()->is('prompts/*'))
+@php
+  $isTransparentPage = request()->is('/') || request()->is('home') || request()->is('prompts') || (request()->is('prompts/*') && !request()->is('prompts/free*') && !request()->is('prompts/premium*'));
+@endphp
+@if ($isTransparentPage)
 $(window).on('scroll resize', function() {
   if ($(window).scrollTop() > 150) {
     $('#header').removeClass('header-home-transparent').addClass('shadow-sm bg-white');

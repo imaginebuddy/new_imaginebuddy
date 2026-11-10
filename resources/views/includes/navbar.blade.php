@@ -1,6 +1,7 @@
 @php 
   $isHomePage = request()->is('/') || request()->is('home'); 
-  $isTransparentHeader = $isHomePage || request()->is('prompts') || request()->is('prompts/*');
+  $isPromptCollection = request()->is('prompts/*') && !request()->is('prompts/free*') && !request()->is('prompts/premium*');
+  $isTransparentHeader = $isHomePage || request()->is('prompts') || $isPromptCollection;
 @endphp
 <header class="py-3 fixed-top {{ $isTransparentHeader ? 'header-home-transparent' : 'shadow-sm bg-white' }}" id="header">
         <div class="container-fluid d-grid gap-3 px-4 align-items-center" style="grid-template-columns: 0fr 2fr;">
