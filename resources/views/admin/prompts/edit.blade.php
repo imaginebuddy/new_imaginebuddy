@@ -549,6 +549,19 @@ input[type="file"].custom-file,
     </div>
   </div>
 </div>
+
+<!-- Floating Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11000;">
+  <div id="adminToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body d-flex align-items-center gap-2 py-3 px-3">
+        <i class="bi bi-check-circle-fill text-success fs-5" id="toastIcon"></i>
+        <span id="toastMessage" class="fw-medium">Action completed successfully.</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('javascript')
@@ -557,15 +570,30 @@ $(document).ready(function() {
   var collectionId = {{ $collection->id }};
   var searchTimeout = null;
 
+  var toastEl = document.getElementById('adminToast');
+  var adminToast = (toastEl && typeof bootstrap !== 'undefined') ? new bootstrap.Toast(toastEl, { delay: 3500 }) : null;
+
+  function showToast(message, type) {
+    type = type || 'success';
+    $('#toastMessage').text(message);
+    if (type === 'success') {
+      $('#toastIcon').attr('class', 'bi bi-check-circle-fill text-success fs-5');
+    } else if (type === 'danger' || type === 'error') {
+      $('#toastIcon').attr('class', 'bi bi-exclamation-triangle-fill text-danger fs-5');
+    } else {
+      $('#toastIcon').attr('class', 'bi bi-info-circle-fill text-primary fs-5');
+    }
+    if (adminToast) {
+      adminToast.show();
+    } else {
+      $('#adminToast').addClass('show').fadeIn();
+      setTimeout(function() { $('#adminToast').removeClass('show').fadeOut(); }, 3500);
+    }
+  }
+
+  // Alias showAlert to showToast to avoid top-scrolling and page reload
   function showAlert(message, type) {
-    var icon = type === 'success' ? 'check2' : 'exclamation-circle';
-    var html = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
-      '<i class="bi bi-' + icon + ' me-2"></i>' + message +
-      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-    '</div>';
-    $('#ajaxAlertContainer').html(html);
-    $('html, body').animate({ scrollTop: $('#ajaxAlertContainer').offset().top - 80 }, 300);
-    setTimeout(function() { $('#ajaxAlertContainer .alert').fadeOut(400); }, 5000);
+    showToast(message, type);
   }
 
   // Live Image Previews for File Inputs
@@ -751,11 +779,12 @@ $(document).ready(function() {
   });
 
   // Add Prompt to Collection AJAX
-  $(document).on('click', '.btnAddPrompt', function() {
+  $(document).on('click', '.btnAddPrompt', function(e) {
+    e.preventDefault();
     var promptId = $(this).data('id');
     var $btn = $(this);
 
-    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Adding...');
 
     $.ajax({
       url: "{{ route('admin.prompts.attach') }}",
@@ -768,8 +797,19 @@ $(document).ready(function() {
       dataType: 'json',
       success: function(res) {
         if (res.success) {
-          showAlert(res.message, 'success');
-          $('#searchPromptInput').trigger('keyup');
+          showToast(res.message, 'success');
+
+          // Smoothly update the button in the search result to 'Added' without jumping or re-querying
+          $btn.removeClass('btn-primary btnAddPrompt')
+              .addClass('btn-secondary disabled')
+              .prop('disabled', true)
+              .html('Added');
+
+          var $itemRow = $btn.closest('.list-group-item');
+          var $strongTitle = $itemRow.find('strong');
+          if ($strongTitle.length && $strongTitle.find('.badge').length === 0) {
+            $strongTitle.append(' <span class="badge bg-success ms-1">Already Added</span>');
+          }
 
           $('#noPromptsRow').remove();
 
@@ -778,7 +818,7 @@ $(document).ready(function() {
             var newRow = '<tr id="promptRow-' + p.prompt_id + '" data-id="' + p.prompt_id + '" data-item-id="' + p.id + '" class="prompt-sortable-row">' +
               '<td class="drag-handle text-center text-muted" style="cursor: grab; width: 45px;" title="Drag to reorder"><i class="bi bi-grip-vertical fs-5"></i></td>' +
               '<td class="fw-bold text-muted">' + p.prompt_id + '</td>' +
-              '<td><img src="' + p.thumb_url + '" class="rounded shadow-sm" width="48" height="48" style="object-fit: cover;" /></td>' +
+              '<td><img src="' + p.thumb_url + '" class="rounded shadow-sm" width="48" height="48" style="object-fit: cover;" onerror="this.src=\'{{ asset("public/img/thumbnail-default.jpg") }}\';" /></td>' +
               '<td><a href="' + p.prompt_url + '" target="_blank" class="fw-bold text-dark text-decoration-none">' + p.title + ' <i class="bi bi-box-arrow-up-right small text-muted ms-1"></i></a><small class="text-muted d-block"><code>' + p.slug + '</code></small></td>' +
               '<td><span class="badge bg-' + (p.tier === 'Premium' ? 'warning' : 'secondary') + '">' + p.tier + '</span></td>' +
               '<td><span class="badge bg-success">Active</span></td>' +
@@ -794,7 +834,7 @@ $(document).ready(function() {
       error: function(xhr) {
         $btn.prop('disabled', false).html('<i class="bi bi-plus-lg me-1"></i> Add to Collection');
         var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error adding prompt to collection.';
-        showAlert(errMsg, 'danger');
+        showToast(errMsg, 'danger');
       }
     });
   });
@@ -819,26 +859,34 @@ $(document).ready(function() {
         dataType: 'json',
         success: function(res) {
           if (res.success) {
-            showAlert(res.message, 'success');
+            showToast(res.message, 'success');
             $('#promptRow-' + promptId).fadeOut(300, function() {
               $(this).remove();
               if ($('#associatedPromptsBody tr.prompt-sortable-row').length === 0) {
-                $('#associatedPromptsBody').html('<tr id="noPromptsRow"><td colspan="8" class="text-center p-5 text-muted fw-light">No prompts currently in this collection. Use the search box above to add existing prompts.</td></tr>');
+                $('#associatedPromptsBody').html('<tr id="noPromptsRow"><td colspan="7" class="text-center p-5 text-muted fw-light">No prompts currently in this collection. Use the search box above to add existing prompts.</td></tr>');
               }
             });
 
             var currentCount = parseInt($('#promptCountBadge').text()) || 1;
             $('#promptCountBadge').text(Math.max(0, currentCount - 1));
 
-            if ($('#searchPromptInput').val().length >= 2) {
-              $('#searchPromptInput').trigger('keyup');
+            // If prompt is in current search results, revert its button back to "Add to Collection"
+            var $searchItem = $('#searchResultsList .list-group-item').filter(function() {
+              return $(this).find('small:contains("ID: ' + promptId + ' ")').length > 0;
+            });
+            if ($searchItem.length) {
+              $searchItem.find('.badge.bg-success').remove();
+              $searchItem.find('button').replaceWith(
+                '<button type="button" class="btn btn-sm btn-primary rounded-pill px-3 btnAddPrompt" data-id="' + promptId + '">' +
+                '<i class="bi bi-plus-lg me-1"></i> Add to Collection</button>'
+              );
             }
           }
         },
         error: function(xhr) {
           $btn.prop('disabled', false).html('<i class="bi-trash-fill"></i>');
           var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error removing prompt from collection.';
-          showAlert(errMsg, 'danger');
+          showToast(errMsg, 'danger');
         }
       });
     }
