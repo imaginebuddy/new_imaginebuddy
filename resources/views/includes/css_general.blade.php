@@ -837,7 +837,7 @@ var copiedSuccess = "{{ __('misc.copied_success') }}";
 var error = "{{__('misc.error')}}";
 var error_oops = "{{__('misc.error_oops')}}";
 var resending_code = "{{__('misc.resending_code')}}";
-var isProfile = {{ request()->route()->named('profile') ? 'true' : 'false' }};
+var isProfile = {{ (request()->route() && request()->route()->named('profile')) ? 'true' : 'false' }};
 var download = '{{__('misc.download')}}';
 var downloading = '{{__('misc.downloading')}}';
 var announcement_cookie = "{{$settings->announcement_cookie}}";
@@ -981,6 +981,31 @@ var thanks = "{{ __('misc.thanks') }}";
   line-height: 1.4 !important;
 }
 
+.btn-explore-product {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding: 0 12px !important;
+  height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50rem !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  max-width: 185px !important;
+  white-space: nowrap !important;
+}
+
+.btn-explore-product:hover {
+  background-color: #00df81 !important;
+  color: #041209 !important;
+  border-color: #00df81 !important;
+  transform: translateY(-1px) !important;
+}
+
 .prompt-author-pill {
   background-color: #f1f5f9 !important;
   color: #1e293b !important;
@@ -1078,6 +1103,22 @@ body.dark-mode .prompt-snippet-text {
 body.dark-mode .prompt-author-pill {
   background-color: #334155 !important;
   color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .btn-explore-product,
+[data-theme="dark"] .btn-explore-product,
+body.dark-mode .btn-explore-product {
+  background-color: #334155 !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-bs-theme="dark"] .btn-explore-product:hover,
+[data-theme="dark"] .btn-explore-product:hover,
+body.dark-mode .btn-explore-product:hover {
+  background-color: #00df81 !important;
+  color: #041209 !important;
+  border-color: #00df81 !important;
 }
 
 [data-bs-theme="dark"] .prompt-share-btn,

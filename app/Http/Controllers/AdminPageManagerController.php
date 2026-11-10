@@ -645,7 +645,7 @@ class AdminPageManagerController extends Controller
         }
 
         // Handle before_image removal or upload
-        if ($request->has('remove_before_image')) {
+        if ($request->boolean('remove_before_image')) {
             if (!empty($page->before_image)) {
                 $oldPath = public_path('uploads/guides/' . $page->before_image);
                 if (File::exists($oldPath)) {
@@ -667,7 +667,7 @@ class AdminPageManagerController extends Controller
         }
 
         // Handle after_image / featured_image removal or upload
-        if ($request->has('remove_after_image') || $request->has('remove_featured_image')) {
+        if ($request->boolean('remove_after_image') || $request->boolean('remove_featured_image')) {
             $existing = $page->after_image ?: $page->featured_image;
             if (!empty($existing)) {
                 $oldPath = public_path('uploads/guides/' . $existing);

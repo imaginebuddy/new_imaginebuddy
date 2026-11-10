@@ -86,7 +86,7 @@
             <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
               <form action="{{ url('panel/admin/page-manager/update/' . $page->id) }}" method="POST" enctype="multipart/form-data" id="pageGeneralForm">
                 @csrf
-                <input type="hidden" name="active_tab" value="tab-general">
+                <input type="hidden" name="active_tab" id="pageActiveTabInput" value="tab-general">
                 <div class="row g-4">
                   <div class="col-lg-8">
                     <div class="row g-3">
@@ -207,13 +207,25 @@
                             <input type="text" name="before_label" class="form-control form-control-sm w-50" placeholder="Raw Snapshot" value="{{ old('before_label', $page->before_label ?: 'Raw Snapshot') }}" title="Badge Label">
                           </div>
 
-                          @if (!empty($page->before_image))
+                          @php
+                            $heroSec = $page->sections?->firstWhere('type', 'hero');
+                            $heroBefore = $heroSec && !empty($heroSec->settings['before_image']) ? $heroSec->settings['before_image'] : null;
+                            $heroAfter = $heroSec && !empty($heroSec->settings['after_image']) ? $heroSec->settings['after_image'] : null;
+                            $hasBefore = !empty($page->before_image) || !empty($heroBefore);
+                            $hasAfter = !empty($page->after_image) || !empty($page->featured_image) || !empty($heroAfter);
+                          @endphp
+
+                          @if ($hasBefore)
                             <div class="mb-2 text-center p-2 bg-white rounded border">
                               <img src="{{ $page->before_image_url }}" alt="Before Snapshot" class="img-fluid rounded border shadow-xs mb-1" style="max-height: 110px; object-fit: cover;">
-                              <div class="form-check d-flex justify-content-center align-items-center gap-1">
-                                <input class="form-check-input" type="checkbox" name="remove_before_image" value="1" id="removeBeforeCheck">
-                                <label class="form-check-label text-danger small" for="removeBeforeCheck">Remove before image</label>
-                              </div>
+                              @if (!empty($page->before_image))
+                                <div class="form-check d-flex justify-content-center align-items-center gap-1">
+                                  <input class="form-check-input" type="checkbox" name="remove_before_image" value="1" id="removeBeforeCheck">
+                                  <label class="form-check-label text-danger small" for="removeBeforeCheck">Remove before image</label>
+                                </div>
+                              @else
+                                <div class="small text-muted" style="font-size: 0.72rem;"><i class="bi bi-info-circle"></i> Inherited from Hero Section</div>
+                              @endif
                             </div>
                           @endif
                           <input type="file" name="before_image" class="form-control custom-file" accept="image/jpeg,image/png,image/webp,image/jpg">
@@ -229,16 +241,17 @@
                             <input type="text" name="after_label" class="form-control form-control-sm w-50" placeholder="Campaign Ready" value="{{ old('after_label', $page->after_label ?: 'Campaign Ready') }}" title="Badge Label">
                           </div>
 
-                          @php
-                            $currentAfter = $page->after_image ?: $page->featured_image;
-                          @endphp
-                          @if (!empty($currentAfter))
+                          @if ($hasAfter)
                             <div class="mb-2 text-center p-2 bg-white rounded border">
                               <img src="{{ $page->after_image_url }}" alt="Campaign Ready" class="img-fluid rounded border shadow-xs mb-1" style="max-height: 110px; object-fit: cover;">
-                              <div class="form-check d-flex justify-content-center align-items-center gap-1">
-                                <input class="form-check-input" type="checkbox" name="remove_after_image" value="1" id="removeAfterCheck">
-                                <label class="form-check-label text-danger small" for="removeAfterCheck">Remove after image</label>
-                              </div>
+                              @if (!empty($page->after_image) || !empty($page->featured_image))
+                                <div class="form-check d-flex justify-content-center align-items-center gap-1">
+                                  <input class="form-check-input" type="checkbox" name="remove_after_image" value="1" id="removeAfterCheck">
+                                  <label class="form-check-label text-danger small" for="removeAfterCheck">Remove after image</label>
+                                </div>
+                              @else
+                                <div class="small text-muted" style="font-size: 0.72rem;"><i class="bi bi-info-circle"></i> Inherited from Hero Section</div>
+                              @endif
                             </div>
                           @endif
                           <input type="file" name="after_image" class="form-control custom-file" accept="image/jpeg,image/png,image/webp,image/jpg">
@@ -248,7 +261,7 @@
                     </div>
 
                     <div class="d-grid mt-4">
-                      <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold">
+                      <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold" onclick="document.getElementById('pageActiveTabInput').value='tab-general'">
                         <i class="bi bi-save me-1"></i> Save Changes
                       </button>
                     </div>
@@ -536,10 +549,6 @@
 
             <!-- TAB 4: SEO & Social Meta -->
             <div class="tab-pane fade" id="tab-seo" role="tabpanel">
-              <form action="{{ url('panel/admin/page-manager/update/' . $page->id) }}" method="POST" id="pageSeoForm">
-                @csrf
-                <input type="hidden" name="active_tab" value="tab-seo">
-
                 <!-- Google SERP Live Snippet Preview -->
                 <div class="p-3 bg-light rounded-3 border mb-4">
                   <div class="small text-muted fw-bold mb-2">GOOGLE SEARCH RESULT PREVIEW</div>
@@ -553,27 +562,27 @@
                 <div class="row g-3">
                   <div class="col-12">
                     <label class="form-label fw-bold">Meta Title</label>
-                    <input type="text" name="meta_title" id="input_meta_title" class="form-control" value="{{ old('meta_title', $page->meta_title) }}">
+                    <input type="text" name="meta_title" id="input_meta_title" form="pageGeneralForm" class="form-control" value="{{ old('meta_title', $page->meta_title) }}">
                   </div>
 
                   <div class="col-12">
                     <label class="form-label fw-bold">Meta Description</label>
-                    <textarea name="meta_description" id="input_meta_desc" rows="3" class="form-control">{{ old('meta_description', $page->meta_description) }}</textarea>
+                    <textarea name="meta_description" id="input_meta_desc" form="pageGeneralForm" rows="3" class="form-control">{{ old('meta_description', $page->meta_description) }}</textarea>
                   </div>
 
                   <div class="col-12">
                     <label class="form-label fw-bold">Meta Keywords</label>
-                    <input type="text" name="meta_keywords" class="form-control" value="{{ old('meta_keywords', $page->meta_keywords) }}">
+                    <input type="text" name="meta_keywords" form="pageGeneralForm" class="form-control" value="{{ old('meta_keywords', $page->meta_keywords) }}">
                   </div>
 
                   <div class="col-md-6">
                     <label class="form-label fw-bold">Primary Focus Keyword</label>
-                    <input type="text" name="primary_keyword" class="form-control" placeholder="e.g. saree product photography" value="{{ old('primary_keyword', $page->primary_keyword) }}">
+                    <input type="text" name="primary_keyword" form="pageGeneralForm" class="form-control" placeholder="e.g. saree product photography" value="{{ old('primary_keyword', $page->primary_keyword) }}">
                   </div>
 
                   <div class="col-md-6">
                     <label class="form-label fw-bold">Schema.org Type</label>
-                    <select name="schema_type" class="form-select">
+                    <select name="schema_type" form="pageGeneralForm" class="form-select">
                       <option value="Service" {{ old('schema_type', $page->schema_type) === 'Service' ? 'selected' : '' }}>Service</option>
                       <option value="Product" {{ old('schema_type', $page->schema_type) === 'Product' ? 'selected' : '' }}>Product</option>
                       <option value="WebPage" {{ old('schema_type', $page->schema_type) === 'WebPage' ? 'selected' : '' }}>WebPage</option>
@@ -583,12 +592,12 @@
 
                   <div class="col-md-6">
                     <label class="form-label fw-bold">Canonical URL (Optional override)</label>
-                    <input type="url" name="canonical_url" class="form-control" placeholder="{{ $page->public_url }}" value="{{ old('canonical_url', $page->canonical_url) }}">
+                    <input type="url" name="canonical_url" form="pageGeneralForm" class="form-control" placeholder="{{ $page->public_url }}" value="{{ old('canonical_url', $page->canonical_url) }}">
                   </div>
 
                   <div class="col-md-6">
                     <label class="form-label fw-bold">Robots Tag</label>
-                    <select name="robots" class="form-select">
+                    <select name="robots" form="pageGeneralForm" class="form-select">
                       <option value="index, follow" {{ $page->robots === 'index, follow' ? 'selected' : '' }}>index, follow</option>
                       <option value="noindex, follow" {{ $page->robots === 'noindex, follow' ? 'selected' : '' }}>noindex, follow</option>
                       <option value="noindex, nofollow" {{ $page->robots === 'noindex, nofollow' ? 'selected' : '' }}>noindex, nofollow</option>
@@ -596,12 +605,11 @@
                   </div>
 
                   <div class="col-12 text-end mt-4">
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    <button type="submit" form="pageGeneralForm" class="btn btn-primary rounded-pill px-4" onclick="document.getElementById('pageActiveTabInput').value='tab-seo'">
                       <i class="bi bi-save me-1"></i> Save SEO Settings
                     </button>
                   </div>
                 </div>
-              </form>
             </div>
 
           </div>
@@ -977,25 +985,14 @@
   }
   initTabManager();
 
-  // Cross-tab input synchronization on submit to ensure multi-tab edits are never lost
-  $('#pageGeneralForm, #pageSeoForm').on('submit', function() {
-    var currentForm = this;
-    var otherFormId = currentForm.id === 'pageGeneralForm' ? 'pageSeoForm' : 'pageGeneralForm';
-    var otherForm = document.getElementById(otherFormId);
-    if (!otherForm) return;
-
-    var otherInputs = otherForm.querySelectorAll('input:not([type="file"]):not([type="submit"]):not([type="button"]), textarea, select');
-    otherInputs.forEach(function(inp) {
-      if (inp.name && !inp.name.startsWith('_') && inp.name !== 'active_tab') {
-        if (!currentForm.querySelector('[name="' + inp.name + '"]')) {
-          var hidden = document.createElement('input');
-          hidden.type = 'hidden';
-          hidden.name = inp.name;
-          hidden.value = inp.value;
-          currentForm.appendChild(hidden);
-        }
-      }
-    });
+  // Active tab tracking for submit button context
+  $('#tab-seo input, #tab-seo textarea, #tab-seo select').on('focus', function() {
+    var activeTabInp = document.getElementById('pageActiveTabInput');
+    if (activeTabInp) activeTabInp.value = 'tab-seo';
+  });
+  $('#tab-general input, #tab-general textarea, #tab-general select').on('focus', function() {
+    var activeTabInp = document.getElementById('pageActiveTabInput');
+    if (activeTabInp) activeTabInp.value = 'tab-general';
   });
 
   // Live Google SERP snippet preview synchronization

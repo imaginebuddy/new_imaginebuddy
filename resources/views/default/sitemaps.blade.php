@@ -19,6 +19,13 @@
          @endif
 
          <url>
+            <loc>{{ url('prompts') }}</loc>
+            <lastmod>{{ (class_exists(App\Models\PromptCollection::class) && App\Models\PromptCollection::where('status', 'active')->max('updated_at')) ? Carbon\Carbon::parse(App\Models\PromptCollection::where('status', 'active')->max('updated_at'))->format('Y-m-d') : $date }}</lastmod>
+            <priority>0.9</priority>
+            <changefreq>daily</changefreq>
+         </url>
+
+         <url>
             <loc>{{ url('prompts/free') }}</loc>
             <lastmod>{{$date}}</lastmod>
             <priority>0.8</priority>
@@ -119,6 +126,27 @@
             <priority>0.8</priority>
         </url>
         @endforeach
+
+        {{-- Prompt Collections Directory & Collections (/prompts/{slug}) --}}
+        @if (class_exists(App\Models\PromptCollection::class))
+            @foreach (App\Models\PromptCollection::where('status', 'active')->whereNotNull('slug')->where('slug', '!=', '')->orderBy('updated_at', 'desc')->get() as $promptCollection)
+            <url>
+                <loc>{{ url('prompts/' . $promptCollection->slug) }}</loc>
+                <lastmod>{{ $promptCollection->updated_at ? Carbon\Carbon::parse($promptCollection->updated_at)->format('Y-m-d') : ($promptCollection->created_at ? Carbon\Carbon::parse($promptCollection->created_at)->format('Y-m-d') : $date) }}</lastmod>
+                <priority>0.8</priority>
+                <changefreq>weekly</changefreq>
+            </url>
+            @endforeach
+        @endif
+
+        @if (class_exists(App\Models\HireSetting::class) && (App\Models\HireSetting::getSettings()->status ?? 'on') == 'on')
+        <url>
+            <loc>{{ url('hire') }}</loc>
+            <lastmod>{{ $date }}</lastmod>
+            <priority>0.8</priority>
+            <changefreq>monthly</changefreq>
+        </url>
+        @endif
 
         
    

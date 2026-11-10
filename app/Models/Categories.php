@@ -23,4 +23,9 @@ class Categories extends Model
 		return $this->hasMany(Subcategories::class, 'category_id')->where('mode', 'on');
 	}
 
+	public function promptCollections()
+	{
+		return $this->hasMany(PromptCollection::class, 'category_id');
+	}
+
 }

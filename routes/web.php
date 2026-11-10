@@ -152,6 +152,10 @@ Route::get('members',[HomeController::class, 'members']);
  Route::get('photoshoots', [HomeController::class, 'photoshoots']);
  Route::get('photoshoots/{slug}', [HomeController::class, 'photoshootDetail']);
 
+ // Prompts Directory & Collection Showcase (Programmatic SEO)
+ Route::get('prompts', [\App\Http\Controllers\PromptsDirectoryController::class, 'index'])->name('prompts.index');
+ Route::get('prompts/{slug}', [\App\Http\Controllers\PromptsDirectoryController::class, 'show'])->where('slug', '^(?!free$|premium$).*$')->name('prompts.show');
+
  // Pricing
  Route::get('pricing',[HomeController::class, 'pricing']);
 
@@ -546,6 +550,21 @@ Route::group(['middleware' => 'role'], function() {
 	Route::post('panel/admin/photoshoots/add-prompt', [AdminController::class, 'addPromptToPhotoshoot']);
 	Route::post('panel/admin/photoshoots/remove-prompt', [AdminController::class, 'removePromptFromPhotoshoot']);
 	Route::post('panel/admin/photoshoots/reorder-prompts', [AdminController::class, 'reorderPhotoshootPrompts']);
+
+	// Prompt Collections & Directory Hub
+	Route::get('panel/admin/prompts', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'index'])->name('admin.prompts.index');
+	Route::get('panel/admin/prompts/settings', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'settings'])->name('admin.prompts.settings');
+	Route::post('panel/admin/prompts/settings', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'updateSettings'])->name('admin.prompts.settings.update');
+	Route::get('panel/admin/prompts/create', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'create'])->name('admin.prompts.create');
+	Route::post('panel/admin/prompts/store', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'store'])->name('admin.prompts.store');
+	Route::get('panel/admin/prompts/edit/{id}', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'edit'])->name('admin.prompts.edit');
+	Route::post('panel/admin/prompts/update/{id}', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'update'])->name('admin.prompts.update');
+	Route::post('panel/admin/prompts/delete/{id}', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'destroy'])->name('admin.prompts.destroy');
+	Route::get('panel/admin/prompts/search-prompts', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'searchPrompts'])->name('admin.prompts.search');
+	Route::post('panel/admin/prompts/attach-prompt', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'attachPrompt'])->name('admin.prompts.attach');
+	Route::post('panel/admin/prompts/remove-prompt', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'removePrompt'])->name('admin.prompts.remove');
+	Route::post('panel/admin/prompts/reorder-prompts', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'reorderPrompts'])->name('admin.prompts.reorder');
+	Route::post('panel/admin/prompts/shot-type', [\App\Http\Controllers\AdminPromptCollectionsController::class, 'updateItemShotType'])->name('admin.prompts.shot_type');
 
 	// Images
 	Route::get('panel/admin/images',[AdminController::class, 'images'])->name('images');

@@ -390,7 +390,7 @@ $(document).on('click', '.btn-share-prompt', function(e) {
   }
 });
 
-@if (request()->is('/') || request()->is('home'))
+@if (request()->is('/') || request()->is('home') || request()->is('prompts') || request()->is('prompts/*'))
 $(window).on('scroll resize', function() {
   if ($(window).scrollTop() > 150) {
     $('#header').removeClass('header-home-transparent').addClass('shadow-sm bg-white');

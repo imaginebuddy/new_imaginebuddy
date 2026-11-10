@@ -195,9 +195,10 @@ class Images extends Model
 		'images.prompt',
 		'images.ai_model',
 		'images.copies_count',
-		'images.categories_id'
+		'images.categories_id',
+		'images.photoshoot_id'
 	   ])
-	   ->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution', 'examples:id,images_id,file']);
+	   ->with(['author:id,avatar,name,username', 'category:id,name,slug', 'stock:id,images_id,name,type,resolution', 'examples:id,images_id,file', 'photoshoot:id,title,slug']);
 	 }
 
 	 public function scopeCountLikesDownloads($query)

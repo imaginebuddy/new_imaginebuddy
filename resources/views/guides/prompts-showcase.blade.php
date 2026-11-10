@@ -139,10 +139,15 @@
 
               <!-- Bottom Action Controls Bar -->
               <div class="d-flex align-items-center justify-content-between gap-2">
-                <!-- Author Pill Badge (Left Side) -->
-                <span class="badge fw-bold rounded-pill px-3 py-2 text-truncate guide-prompt-author-pill prompt-author-pill" style="font-size: 13px; max-width: 140px;">
-                  By {{ $authorName }}
-                </span>
+                <!-- View Entire Collection Button (Left Side) -->
+                @php
+                  $promptPhotoshootUrl = ($prompt->photoshoot && !empty($prompt->photoshoot->slug))
+                    ? url('photoshoots/' . $prompt->photoshoot->slug)
+                    : url('photoshoots');
+                @endphp
+                <a href="{{ $promptPhotoshootUrl }}" class="btn fw-bold text-truncate btn-explore-product" title="View Entire Collection">
+                  View Entire Collection
+                </a>
 
                 <!-- Right Action Buttons (Share Circle + Copy Pill with Icon) -->
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">

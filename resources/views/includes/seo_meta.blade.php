@@ -43,6 +43,7 @@
     $finalKeywords = rtrim($finalKeywords, ",");
 
     $finalRobots = View::hasSection('robots') ? trim(View::yieldContent('robots')) : $seoData['robots'];
+    $finalCanonical = View::hasSection('canonical_override') ? trim(View::yieldContent('canonical_override')) : $seoData['canonical'];
 
     $pageParam = request()->query('page');
     if ($pageParam !== null && is_numeric($pageParam) && (int) $pageParam > 1) {
@@ -115,14 +116,14 @@
 <meta name="googlebot" content="{{ $finalRobots }}">
 @endif
 @endif
-<link rel="canonical" href="{{ $seoData['canonical'] }}">
+<link rel="canonical" href="{{ $finalCanonical }}">
 
 {{-- Open Graph / Facebook (Discover & Social Acquisition) --}}
 <meta property="og:type" content="{{ $finalOgType }}">
 <meta property="og:site_name" content="{{ config('settings.title', 'ImagineBuddy') }}">
 <meta property="og:title" content="{{ $finalOgTitle }}">
 <meta property="og:description" content="{{ $finalOgDesc }}">
-<meta property="og:url" content="{{ $seoData['canonical'] }}">
+<meta property="og:url" content="{{ $finalCanonical }}">
 @if (!empty($finalOgImage))
 <meta property="og:image" content="{{ $finalOgImage }}">
 @if ($isDiscoverEligible)

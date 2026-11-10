@@ -57,11 +57,15 @@ class SitemapController extends Controller
             $latestLandingPageDate = class_exists(\App\Models\SeoLandingPage::class)
                 ? \App\Models\SeoLandingPage::published()->max('updated_at')
                 : null;
+            $latestPromptCollectionDate = class_exists(\App\Models\PromptCollection::class)
+                ? \App\Models\PromptCollection::where('status', 'active')->max('updated_at')
+                : null;
 
             $dates = array_filter([
                 $latestPromptDate ? Carbon::parse($latestPromptDate)->format('Y-m-d') : null,
                 $latestPhotoshootDate ? Carbon::parse($latestPhotoshootDate)->format('Y-m-d') : null,
                 $latestLandingPageDate ? Carbon::parse($latestLandingPageDate)->format('Y-m-d') : null,
+                $latestPromptCollectionDate ? Carbon::parse($latestPromptCollectionDate)->format('Y-m-d') : null,
             ]);
 
             $latestMod = !empty($dates) ? max($dates) : Carbon::now()->format('Y-m-d');

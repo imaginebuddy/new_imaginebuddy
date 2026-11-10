@@ -186,6 +186,15 @@ class SeoLandingPage extends Model
                 return Storage::url($path);
             }
         }
+
+        // Check if hero section has before_image setting (e.g. from JSON import)
+        if ($this->relationLoaded('sections') || $this->sections()->exists()) {
+            $heroSec = $this->sections->firstWhere('type', 'hero');
+            if ($heroSec && !empty($heroSec->settings['before_image'])) {
+                return $heroSec->settings['before_image'];
+            }
+        }
+
         return asset('public/img/White-Oud-Perfume-01.webp');
     }
 
@@ -211,6 +220,15 @@ class SeoLandingPage extends Model
                 return Storage::url($path);
             }
         }
+
+        // Check if hero section has after_image setting (e.g. from JSON import)
+        if ($this->relationLoaded('sections') || $this->sections()->exists()) {
+            $heroSec = $this->sections->firstWhere('type', 'hero');
+            if ($heroSec && !empty($heroSec->settings['after_image'])) {
+                return $heroSec->settings['after_image'];
+            }
+        }
+
         return asset('public/img/premium-white-oud-perfume-ad-02.webp');
     }
 
@@ -219,7 +237,16 @@ class SeoLandingPage extends Model
      */
     public function getHasBeforeAfterSliderAttribute(): bool
     {
-        return !empty($this->before_image) || (!empty($this->after_image) && !empty($this->featured_image));
+        if (!empty($this->before_image) || (!empty($this->after_image) && !empty($this->featured_image))) {
+            return true;
+        }
+        if ($this->relationLoaded('sections') || $this->sections()->exists()) {
+            $heroSec = $this->sections->firstWhere('type', 'hero');
+            if ($heroSec && (!empty($heroSec->settings['before_image']) || !empty($heroSec->settings['after_image']))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -67,6 +67,36 @@
 
 @section('title'){{ !empty($page->meta_title) ? $page->meta_title : $page->title }} - @endsection
 
+@if (!empty($page->meta_description))
+@section('description_custom'){{ $page->meta_description }}@endsection
+@elseif (!empty($page->excerpt))
+@section('description_custom'){{ $page->excerpt }}@endsection
+@endif
+
+@if (!empty($keywordsString))
+@section('keywords_custom'){{ $keywordsString }}@endsection
+@endif
+
+@if (!empty($page->robots))
+@section('robots'){{ $page->robots }}@endsection
+@endif
+
+@if (!empty($page->canonical_url))
+@section('canonical_override'){{ $page->canonical_url }}@endsection
+@endif
+
+@section('og_title'){{ !empty($page->meta_title) ? $page->meta_title : $page->title }}@endsection
+
+@if (!empty($page->meta_description))
+@section('og_description'){{ $page->meta_description }}@endsection
+@elseif (!empty($page->excerpt))
+@section('og_description'){{ $page->excerpt }}@endsection
+@endif
+
+@if (!empty($coverImageUrl))
+@section('og_image'){{ $coverImageUrl }}@endsection
+@endif
+
 @section('css')
 <link href="{{ asset('public/css/cms-pages.css') }}?v={{ filemtime(public_path('css/cms-pages.css')) }}" rel="stylesheet">
 @endsection

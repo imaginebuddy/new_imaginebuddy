@@ -91,6 +91,7 @@ class HomeController extends Controller
         'images' => $images,
         'featured' => $featured,
         'categoryPopular' => $categoryPopular,
+        'popularCategories' => $popularCategories,
         'testimonials' => $testimonials,
         'clientLogos' => $clientLogos,
         'latestPhotoshoots' => $latestPhotoshoots,

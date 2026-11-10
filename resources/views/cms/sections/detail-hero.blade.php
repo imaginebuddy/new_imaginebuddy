@@ -61,10 +61,11 @@
 
       <div class="col-lg-6">
         @php
-          $sliderBeforeImg = $page->before_image_url;
-          $sliderAfterImg = $page->after_image_url;
-          $sliderBeforeLabel = $page->before_label ?: 'Raw Snapshot';
-          $sliderAfterLabel = $page->after_label ?: 'Campaign Ready';
+          $heroSettings = $section->settings ?? [];
+          $sliderBeforeImg = !empty($page->before_image) ? $page->before_image_url : (!empty($heroSettings['before_image']) ? $heroSettings['before_image'] : $page->before_image_url);
+          $sliderAfterImg = !empty($page->after_image ?: $page->featured_image) ? $page->after_image_url : (!empty($heroSettings['after_image']) ? $heroSettings['after_image'] : $page->after_image_url);
+          $sliderBeforeLabel = $page->before_label ?: ($heroSettings['before_label'] ?? 'Raw Snapshot');
+          $sliderAfterLabel = $page->after_label ?: ($heroSettings['after_label'] ?? 'Campaign Ready');
           $sliderId = 'heroTransformationSlider_' . $page->id;
         @endphp
         <div class="before-after-slider-container shadow-lg position-relative overflow-hidden rounded-4" id="{{ $sliderId }}">

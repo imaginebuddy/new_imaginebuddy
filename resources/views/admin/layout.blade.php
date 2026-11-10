@@ -141,6 +141,12 @@
                       <i class="bi-collection-play me-2"></i> Photoshoots
                   </a>
               </li><!-- /end list -->
+
+              <li class="nav-item">
+                  <a href="{{ route('admin.prompts.index') }}" class="nav-link text-truncate @if (request()->is('panel/admin/prompts*')) active @endif">
+                      <i class="bi-folder2-open me-2"></i> Prompt Collections
+                  </a>
+              </li><!-- /end list -->
               @endif
 
               @if (auth()->user()->hasPermission('hire_service') || auth()->user()->hasPermission('full_access'))

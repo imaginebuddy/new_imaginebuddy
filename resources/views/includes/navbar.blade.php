@@ -1,5 +1,8 @@
-@php $isHomePage = request()->is('/') || request()->is('home'); @endphp
-<header class="py-3 fixed-top {{ $isHomePage ? 'header-home-transparent' : 'shadow-sm bg-white' }}" id="header">
+@php 
+  $isHomePage = request()->is('/') || request()->is('home'); 
+  $isTransparentHeader = $isHomePage || request()->is('prompts') || request()->is('prompts/*');
+@endphp
+<header class="py-3 fixed-top {{ $isTransparentHeader ? 'header-home-transparent' : 'shadow-sm bg-white' }}" id="header">
         <div class="container-fluid d-grid gap-3 px-4 align-items-center" style="grid-template-columns: 0fr 2fr;">
 
             <a href="{{ url('/') }}" class="d-flex align-items-center col-lg-4 link-dark text-decoration-none fw-bold display-6">
@@ -9,7 +12,7 @@
             </a>
 
           <div class="d-flex align-items-center">
-            <form action="{{ url('search') }}" method="get" class="w-100 me-3 position-relative navbar-search-form {{ $isHomePage ? 'home-search-hidden' : '' }}">
+            <form action="{{ url('search') }}" method="get" class="w-100 me-3 position-relative navbar-search-form {{ $isTransparentHeader ? 'home-search-hidden' : '' }}">
               <i class="bi bi-search btn-search bar-search"></i>
               <input type="text" class="form-control rounded-pill ps-5 input-search search-navbar" name="q" value="{{ \App\Services\SearchSecurityGuard::sanitize(request('q')) }}" autocomplete="off" placeholder="{{__('misc.search')}}" required minlength="3">
             </form>
@@ -17,9 +20,11 @@
             <!-- Start Nav -->
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 navbar-session">
 
-              <li><a href="{{url('photoshoots')}}" class="nav-link px-2 link-dark @if (request()->is('photoshoots*')) fw-bold @endif">Photoshoots</a></li>
-
               <li><a href="{{url('prompts/free')}}" class="nav-link px-2 link-dark @if (request()->is('prompts/free*')) fw-bold @endif">{{__('misc.free')}} Prompts</a></li>
+
+              <li><a href="{{url('prompts')}}" class="nav-link px-2 link-dark @if (request()->is('prompts*') && !request()->is('prompts/free*') && !request()->is('prompts/premium*')) fw-bold @endif">Prompts</a></li>
+
+              <li><a href="{{url('photoshoots')}}" class="nav-link px-2 link-dark @if (request()->is('photoshoots*')) fw-bold @endif">Photoshoots</a></li>
 
               @if ($plansActive != 0 && $settings->sell_option == 'on')
                 <li><a href="{{url('pricing')}}" class="nav-link px-2 link-dark @if (request()->is('pricing*')) fw-bold @endif">{{__('misc.pricing')}}</a></li>
@@ -158,14 +163,20 @@
         <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start" id="menu">
 
           <li>
-            <a href="{{url('photoshoots')}}" class="nav-link link-dark text-truncate @if (request()->is('photoshoots*')) fw-bold @endif">
-              Photoshoots
+            <a href="{{url('prompts/free')}}" class="nav-link link-dark text-truncate @if (request()->is('prompts/free*')) fw-bold @endif">
+              {{__('misc.free')}} Prompts
             </a>
           </li>
 
           <li>
-            <a href="{{url('prompts/free')}}" class="nav-link link-dark text-truncate @if (request()->is('prompts/free*')) fw-bold @endif">
-              {{__('misc.free')}} Prompts
+            <a href="{{url('prompts')}}" class="nav-link link-dark text-truncate @if (request()->is('prompts*') && !request()->is('prompts/free*') && !request()->is('prompts/premium*')) fw-bold @endif">
+              Prompts
+            </a>
+          </li>
+
+          <li>
+            <a href="{{url('photoshoots')}}" class="nav-link link-dark text-truncate @if (request()->is('photoshoots*')) fw-bold @endif">
+              Photoshoots
             </a>
           </li>
 

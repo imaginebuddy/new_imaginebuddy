@@ -5,42 +5,80 @@
   $homeContent = $homeContent ?? \App\Models\HomepageSetting::getSettings();
   $heroBgUrl = $homeContent->hero_background_image_url ?? asset('public/img/' . $settings->image_header);
 @endphp
-<div class="container-fluid home-cover" style="background-image: url('{{ $heroBgUrl }}') !important; background-size: cover !important; background-position: center center !important;">
-      <div class="mb-4 position-relative custom-pt-6">
-        <div class="container px-5">
-
-          @if ($settings->announcement != '' && $settings->announcement_show == 'all'
-              || $settings->announcement != '' && $settings->announcement_show == 'users' && auth()->check())
-            <div class="alert alert-{{$settings->type_announcement}} announcements display-none alert-dismissible fade show" role="alert">
-              
-              <h4 class="alert-heading"><i class="bi-megaphone me-2"></i> {{ __('admin.announcements') }}</h4>
-
-              <p class="update-text">
-                {!! $settings->announcement !!}
-              </p>
+<div class="container-fluid home-cover position-relative overflow-hidden text-center d-flex flex-column justify-content-center" style="background-image: url('{{ $heroBgUrl }}') !important; background-size: cover !important; background-position: center center !important; min-height: 100vh; padding-top: 120px; padding-bottom: 70px;">
   
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="closeAnnouncements">
-                  <i class="bi bi-x-lg"></i>
-                </button>
-              </div><!-- end announcements -->
-            @endif
+  {{-- Atmospheric Gradient Overlay to preserve 100% text and search bar legibility --}}
+  <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 50% 40%, rgba(3, 10, 6, 0.25) 0%, rgba(3, 10, 6, 0.65) 100%), linear-gradient(180deg, rgba(3, 10, 6, 0.25) 0%, transparent 40%, rgba(3, 10, 6, 0.75) 100%); pointer-events: none; z-index: 1;"></div>
 
-          <h1 class="display-3 fw-bold text-white home-hero-title">{{ $homeContent->getVal('hero_title', __('seo.welcome_text')) }}</h1>
-          <p class="col-md-12 fs-4 fw-bold text-white">{{ $homeContent->getVal('hero_subtitle', __('seo.welcome_subtitle')) }}</p>
-          <form action="{{ url('search') }}" method="get" class="position-relative">
-            <i class="bi bi-search btn-search"></i>
-            <input class="form-control form-control-lg ps-5 input-search-lg border-0 search-lg" type="text" name="q" value="{{ \App\Services\SearchSecurityGuard::sanitize(request('q')) }}" autocomplete="off" placeholder="{{ $homeContent->getVal('search_placeholder', __('misc.search')) }}" required minlength="3">
-          </form>
+  <div class="position-relative w-100 my-auto" style="z-index: 2;">
+    <div class="container px-3 px-md-4">
 
-		  @if ($categoryPopular)
-          <p class="mt-2 text-white linkCategoryPopular">
-            <strong>{{__('misc.popular_categories')}}</strong> {!! $categoryPopular !!}
+      @if ($settings->announcement != '' && $settings->announcement_show == 'all'
+          || $settings->announcement != '' && $settings->announcement_show == 'users' && auth()->check())
+        <div class="alert alert-{{$settings->type_announcement}} announcements display-none alert-dismissible fade show text-start mb-4 mx-auto" style="max-width: 820px;" role="alert">
+          <h4 class="alert-heading"><i class="bi-megaphone me-2"></i> {{ __('admin.announcements') }}</h4>
+          <p class="update-text">
+            {!! $settings->announcement !!}
           </p>
-		  @endif
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="closeAnnouncements">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div><!-- end announcements -->
+      @endif
 
-        </div>
+      <!-- Main Monumental Headline (H1) -->
+      <h1 class="home-hero-headline text-white">
+        {{ $homeContent->getVal('hero_title', __('seo.welcome_text')) }}
+      </h1>
+
+      <!-- Value Proposition Subhead -->
+      <p class="home-hero-subhead">
+        {{ $homeContent->getVal('hero_subtitle', __('seo.welcome_subtitle')) }}
+      </p>
+
+      <!-- Integrated Luxury Search Bar (Matching Design from Second Image) -->
+      <div class="prompt-search-wrapper">
+        <form action="{{ url('search') }}" method="get" class="position-relative">
+          <div class="prompt-search-card">
+            <span class="ps-3 pe-2 text-white-50"><i class="bi bi-search fs-5"></i></span>
+            <input type="text" 
+                   name="q" 
+                   class="form-control prompt-search-input" 
+                   value="{{ \App\Services\SearchSecurityGuard::sanitize(request('q')) }}" 
+                   placeholder="{{ $homeContent->getVal('search_placeholder', 'Search prompt, photoshoot, brand...') }}"
+                   autocomplete="off"
+                   required
+                   minlength="3">
+            <button type="submit" class="btn prompt-search-btn rounded-pill px-4 py-2.5 fw-bold">
+              Search Prompts <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </form>
+
+        <!-- Popular Tags Row (Matching Design in Second Image) -->
+        @if (isset($popularCategories) && $popularCategories->isNotEmpty())
+          <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 mt-3 pt-1">
+            <span class="small text-white-50 me-1">{{ rtrim(__('misc.popular_categories'), ':') }}:</span>
+            @foreach ($popularCategories as $popCat)
+              @php
+                $popCatName = Lang::has('categories.' . $popCat->slug) ? __('categories.' . $popCat->slug) : $popCat->name;
+              @endphp
+              <a href="{{ url('category', $popCat->slug) }}" class="home-popular-pill">
+                {{ $popCatName }}
+              </a>
+            @endforeach
+          </div>
+        @elseif ($categoryPopular)
+          <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 mt-3 pt-1">
+            <span class="small text-white-50 me-1">{{ rtrim(__('misc.popular_categories'), ':') }}:</span>
+            {!! $categoryPopular !!}
+          </div>
+        @endif
       </div>
-    </div><!-- container-fluid -->
+
+    </div>
+  </div>
+</div><!-- container-fluid -->
 
     {{-- Client Logos Slider Section --}}
     @include('includes.client-logos-slider', ['clientLogos' => $clientLogos])
@@ -351,6 +389,130 @@
 }
 [data-bs-theme="dark"] .testimonials-section p.text-muted {
   color: #94a3b8 !important;
+}
+
+/* --- Modern Luxury Hero Styles (Matching /prompts design) --- */
+.home-hero-headline {
+  font-size: clamp(1.6rem, 2.9vw, 2.85rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: #FFFFFF !important;
+  margin-top: 18px;
+  margin-bottom: 18px;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.70);
+}
+
+@media (min-width: 992px) {
+  .home-hero-headline {
+    white-space: nowrap;
+  }
+}
+
+.home-hero-subhead {
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.90);
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 32px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
+}
+
+.prompt-search-wrapper {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.prompt-search-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.prompt-search-card:focus-within {
+  border-color: #00DF81;
+  box-shadow: 0 0 28px -4px rgba(0, 223, 129, 0.35);
+}
+
+.prompt-search-input {
+  background: transparent !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  font-size: 1rem;
+  padding-left: 12px;
+}
+
+.prompt-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.50);
+}
+
+.prompt-search-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.prompt-search-btn {
+  background: #00DF81;
+  color: #041209;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.prompt-search-btn:hover {
+  background: #00bf6f;
+  color: #041209;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 223, 129, 0.4);
+}
+
+.home-popular-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 0.82rem;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+}
+
+.home-popular-pill:hover {
+  background: rgba(0, 223, 129, 0.18);
+  border-color: #00DF81;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 576px) {
+  .prompt-search-card {
+    border-radius: 18px;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+  }
+  .prompt-search-btn {
+    width: 100%;
+  }
 }
 </style>
 @endsection
