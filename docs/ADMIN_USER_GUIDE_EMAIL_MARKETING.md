@@ -431,7 +431,7 @@ gantt
    - Automatically sent to users 3 days after signup.
    - Delivers *"3 Studio Lighting Secrets for Realistic AI Mockups"* to encourage active prompt generation.
 2. **Weekly Curated Prompt Drop (`email:send-weekly-drop`):**
-   - Dispatches every Tuesday at 10:00 AM UTC.
+   - Dispatches every Tuesday at 10:30 AM IST (Asia/Kolkata).
    - Automatically selects the top 3 newest prompts and photoshoots with direct 1-click links.
 3. **3-Day Subscription Expiration Notice (`email:send-quota-alerts`):**
    - Runs daily at 09:00 AM UTC.
@@ -489,7 +489,7 @@ Lifecycle automations run automatically based on predefined server cron schedule
 | Operational Task | Artisan Command | Recommended Schedule | Queue Lane |
 |---|---|:---:|:---:|
 | Background Queue Worker | `php artisan queue:work --queue=emails-urgent,default,emails-bulk --stop-when-empty` | Every minute | All |
-| Weekly Prompt Drop | `php artisan email:send-weekly-drop` | Tuesdays 10:00 AM UTC | `emails-bulk` |
+| Weekly Prompt Drop | `php artisan email:send-weekly-drop` | Tuesdays 10:30 AM IST (`Asia/Kolkata`) | `emails-bulk` |
 | 3-Day Welcome Drip | `php artisan email:send-welcome-drip` | Daily 10:30 AM UTC | `emails-bulk` |
 | Quota & Expiry Alerts | `php artisan email:send-quota-alerts` | Daily 09:00 AM UTC | `emails-bulk` |
 | Abandoned Checkout Recovery | `php artisan email:send-abandoned-checkout` | Hourly | `emails-bulk` |

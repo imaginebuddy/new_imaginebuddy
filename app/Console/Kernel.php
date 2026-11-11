@@ -36,7 +36,7 @@ class Kernel extends ConsoleKernel
 
         // Automated Lifecycle Email Campaigns
         $schedule->command('email:send-weekly-drop')
-            ->weeklyOn(2, '10:00')
+            ->weeklyOn(2, '10:30')
             ->withoutOverlapping();
 
         $schedule->command('email:send-reengagement --days=30')
@@ -64,6 +64,16 @@ class Kernel extends ConsoleKernel
         $schedule->command('email:sync-suppressions')
             ->dailyAt('03:00')
             ->withoutOverlapping();
+    }
+
+    /**
+     * Get the timezone that should be used by default for scheduled events.
+     *
+     * @return \DateTimeZone|string|null
+     */
+    protected function scheduleTimezone()
+    {
+        return config('app.schedule_timezone', config('app.timezone', 'Asia/Kolkata'));
     }
 
     /**
